@@ -3,8 +3,10 @@
 namespace App\Livewire\Campaigns;
 
 use App\Models\Campaign;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Create Campaign')]
 class CampaignCreate extends Component
 {
     public string $name = '';

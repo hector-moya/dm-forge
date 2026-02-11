@@ -16,19 +16,32 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                @auth
+                    @php
+                        $sidebarCampaigns = auth()->user()->campaigns()->where('status', '!=', 'archived')->orderBy('name')->limit(10)->get();
+                    @endphp
+                    @if ($sidebarCampaigns->isNotEmpty())
+                        <flux:sidebar.group :heading="__('Campaigns')" class="grid">
+                            @foreach ($sidebarCampaigns as $sidebarCampaign)
+                                <flux:sidebar.item
+                                    icon="map"
+                                    :href="route('campaigns.show', $sidebarCampaign)"
+                                    :current="request()->routeIs('campaigns.show') && request()->route('campaign')?->id === $sidebarCampaign->id"
+                                    wire:navigate
+                                >
+                                    {{ Str::limit($sidebarCampaign->name, 20) }}
+                                </flux:sidebar.item>
+                            @endforeach
+                            <flux:sidebar.item icon="plus" :href="route('campaigns.create')" :current="request()->routeIs('campaigns.create')" wire:navigate>
+                                {{ __('New Campaign') }}
+                            </flux:sidebar.item>
+                        </flux:sidebar.group>
+                    @endif
+                @endauth
             </flux:sidebar.nav>
 
             <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>

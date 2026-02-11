@@ -329,6 +329,6 @@ class CampaignEdit extends Component
             'factions' => $this->campaign->factions()->orderBy('sort_order')->orderBy('name')->get(),
             'locations' => $this->campaign->locations()->orderBy('name')->get(),
             'npcs' => $this->campaign->npcs()->with(['faction', 'location'])->orderBy('name')->get(),
-        ]);
+        ])->title(__('Edit') . ' ' . $this->campaign->name);
     }
 }
