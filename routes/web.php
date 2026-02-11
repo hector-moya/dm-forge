@@ -9,6 +9,8 @@ use App\Livewire\Characters\CharacterIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Sessions\SessionBuilder;
 use App\Livewire\Sessions\SessionIndex;
+use App\Livewire\Sessions\SessionRecap;
+use App\Livewire\Sessions\SessionRunner;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('campaigns/{campaign}/sessions', SessionIndex::class)->name('campaigns.sessions');
     Route::get('campaigns/{campaign}/sessions/create', SessionBuilder::class)->name('sessions.create');
     Route::get('sessions/{session}/edit', SessionBuilder::class)->name('sessions.edit');
+    Route::get('sessions/{session}/run', SessionRunner::class)->name('sessions.run');
+    Route::get('sessions/{session}/recap', SessionRecap::class)->name('sessions.recap');
 });
 
 require __DIR__.'/settings.php';
