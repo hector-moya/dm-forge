@@ -15,7 +15,6 @@ test('users can create a campaign', function () {
         ->test(\App\Livewire\Campaigns\CampaignCreate::class)
         ->set('name', 'The Lost Mine')
         ->set('premise', 'A forgotten mine holds ancient secrets')
-        ->set('status', 'active')
         ->call('save')
         ->assertRedirect();
 

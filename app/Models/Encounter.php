@@ -17,6 +17,7 @@ class Encounter extends Model
         'environment',
         'difficulty',
         'sort_order',
+        'scene_id',
     ];
 
     protected function casts(): array
@@ -36,7 +37,7 @@ class Encounter extends Model
         return $this->belongsTo(Scene::class);
     }
 
-    public function encounterMonsters(): HasMany
+    public function monsters(): HasMany
     {
         return $this->hasMany(EncounterMonster::class);
     }

@@ -320,10 +320,9 @@
                 @endif
             </div>
         </div>
-    </div>
 
-    {{-- Decision Recorder Modal --}}
-    <flux:modal wire:model="showDecisionModal" variant="dialog" class="max-w-lg">
+        {{-- Decision Recorder Modal --}}
+        <flux:modal wire:model="showDecisionModal" variant="dialog" class="max-w-lg">
         <div class="space-y-4">
             <flux:heading size="lg">{{ __('Record Major Decision') }}</flux:heading>
 
@@ -393,5 +392,6 @@
                 </div>
             @endif
         </div>
-    </flux:modal>
+        </flux:modal>
+    </div>
 </x-layouts::app>

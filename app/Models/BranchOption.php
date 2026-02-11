@@ -16,6 +16,7 @@ class BranchOption extends Model
         'description',
         'sort_order',
         'chosen',
+        'scene_id',
     ];
 
     protected function casts(): array
