@@ -65,32 +65,32 @@ PROMPT;
     public function schema(JsonSchema $schema): array
     {
         return [
-            'scenes' => $schema->array(
+            'scenes' => $schema->array()->items(
                 $schema->object([
                     'title' => $schema->string()->required(),
                     'description' => $schema->string()->required(),
                     'notes' => $schema->string()->description('DM-only notes for running this scene'),
-                    'encounters' => $schema->array(
+                    'encounters' => $schema->array()->items(
                         $schema->object([
                             'name' => $schema->string()->required(),
                             'description' => $schema->string(),
                             'environment' => $schema->string(),
                             'difficulty' => $schema->string()->enum(['easy', 'medium', 'hard', 'deadly'])->required(),
-                            'monsters' => $schema->array(
+                            'monsters' => $schema->array()->items(
                                 $schema->object([
                                     'name' => $schema->string()->required(),
-                                    'hp_max' => $schema->integer()->minimum(1)->required(),
-                                    'armor_class' => $schema->integer()->minimum(1)->required(),
-                                    'count' => $schema->integer()->minimum(1)->required(),
+                                    'hp_max' => $schema->integer()->min(1)->required(),
+                                    'armor_class' => $schema->integer()->min(1)->required(),
+                                    'count' => $schema->integer()->min(1)->required(),
                                 ])
                             ),
                         ])
                     ),
-                    'branch_options' => $schema->array(
+                    'branch_options' => $schema->array()->items(
                         $schema->object([
                             'label' => $schema->string()->required(),
                             'description' => $schema->string()->required(),
-                            'consequences' => $schema->array(
+                            'consequences' => $schema->array()->items(
                                 $schema->object([
                                     'type' => $schema->string()->enum(['immediate', 'delayed', 'meta'])->required(),
                                     'description' => $schema->string()->required(),

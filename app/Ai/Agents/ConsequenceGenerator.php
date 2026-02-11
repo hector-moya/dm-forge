@@ -48,7 +48,7 @@ PROMPT;
     public function schema(JsonSchema $schema): array
     {
         return [
-            'consequences' => $schema->array(
+            'consequences' => $schema->array()->items(
                 $schema->object([
                     'type' => $schema->string()->enum(['immediate', 'delayed', 'meta'])->required(),
                     'description' => $schema->string()->required()

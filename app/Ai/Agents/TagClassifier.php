@@ -29,7 +29,7 @@ PROMPT;
     public function schema(JsonSchema $schema): array
     {
         return [
-            'tags' => $schema->array(
+            'tags' => $schema->array()->items(
                 $schema->object([
                     'label' => $schema->string()->required()->description('Short hyphenated tag label'),
                     'category' => $schema->string()->enum(['alignment', 'narrative', 'consequence'])->required(),

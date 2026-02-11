@@ -46,7 +46,7 @@ class GetSessionLogs implements Tool
     {
         return [
             'type' => $schema->string()->enum(['narrative', 'decision', 'combat', 'note'])->description('Filter logs by type'),
-            'limit' => $schema->integer()->minimum(1)->maximum(100)->description('Maximum number of log entries to return (default 50)'),
+            'limit' => $schema->integer()->min(1)->max(100)->description('Maximum number of log entries to return (default 50)'),
         ];
     }
 }

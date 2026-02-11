@@ -52,13 +52,13 @@ PROMPT;
     public function schema(JsonSchema $schema): array
     {
         return [
-            'good_evil_delta' => $schema->integer()->minimum(-5)->maximum(5)->required()
+            'good_evil_delta' => $schema->integer()->min(-5)->max(5)->required()
                 ->description('Suggested Good/Evil score change. Positive = Good, Negative = Evil.'),
-            'law_chaos_delta' => $schema->integer()->minimum(-5)->maximum(5)->required()
+            'law_chaos_delta' => $schema->integer()->min(-5)->max(5)->required()
                 ->description('Suggested Law/Chaos score change. Positive = Lawful, Negative = Chaotic.'),
             'reasoning' => $schema->string()->required()
                 ->description('Brief explanation of why these alignment shifts are appropriate.'),
-            'tags' => $schema->array($schema->string())->required()
+            'tags' => $schema->array()->items($schema->string())->required()
                 ->description('Alignment-relevant tags for this action (e.g., "mercy", "theft", "honor", "deception").'),
         ];
     }
