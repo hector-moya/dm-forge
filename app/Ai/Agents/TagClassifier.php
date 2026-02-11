@@ -4,49 +4,37 @@ namespace App\Ai\Agents;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;
-use Laravel\Ai\Contracts\Conversational;
 use Laravel\Ai\Contracts\HasStructuredOutput;
-use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
 
-class TagClassifier implements Agent, Conversational, HasTools, HasStructuredOutput
+class TagClassifier implements Agent, HasStructuredOutput
 {
     use Promptable;
 
-    /**
-     * Get the instructions that the agent should follow.
-     */
     public function instructions(): Stringable|string
     {
-        return 'You are a helpful assistant.';
+        return <<<'PROMPT'
+You are a D&D action classifier. Given a description of a character's action during a game session, classify it with appropriate alignment and narrative tags.
+
+Tag categories:
+- alignment: Tags related to moral alignment (e.g., "mercy", "cruelty", "honor", "deception", "charity", "theft")
+- narrative: Tags related to story elements (e.g., "combat", "diplomacy", "exploration", "puzzle", "roleplay")
+- consequence: Tags related to potential outcomes (e.g., "alliance", "enemy-made", "reputation", "debt", "secret-revealed")
+
+Return 2-5 tags total, selecting the most relevant ones. Each tag should be a short lowercase hyphenated label.
+PROMPT;
     }
 
-    /**
-     * Get the list of messages comprising the conversation so far.
-     */
-    public function messages(): iterable
-    {
-        return [];
-    }
-
-    /**
-     * Get the tools available to the agent.
-     *
-     * @return Tool[]
-     */
-    public function tools(): iterable
-    {
-        return [];
-    }
-
-    /**
-     * Get the agent's structured output schema definition.
-     */
     public function schema(JsonSchema $schema): array
     {
         return [
-            'value' => $schema->string()->required(),
+            'tags' => $schema->array(
+                $schema->object([
+                    'label' => $schema->string()->required()->description('Short hyphenated tag label'),
+                    'category' => $schema->string()->enum(['alignment', 'narrative', 'consequence'])->required(),
+                ])
+            )->required()->description('Array of classified tags for the action'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Ai\Tools;
 
+use App\Models\GameSession;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -9,29 +10,43 @@ use Stringable;
 
 class GetSessionLogs implements Tool
 {
-    /**
-     * Get the description of the tool's purpose.
-     */
+    public function __construct(
+        protected GameSession $session,
+    ) {}
+
     public function description(): Stringable|string
     {
-        return 'A description of the tool.';
+        return 'Retrieve session log entries for the current game session. Can filter by log type (narrative, decision, combat, note).';
     }
 
-    /**
-     * Execute the tool.
-     */
     public function handle(Request $request): Stringable|string
     {
-        //
+        $query = $this->session->sessionLogs()->orderBy('logged_at');
+
+        if ($type = $request->string('type')) {
+            $query->where('type', $type);
+        }
+
+        $limit = $request->integer('limit', 50);
+        $logs = $query->limit($limit)->get();
+
+        if ($logs->isEmpty()) {
+            return 'No session log entries found.';
+        }
+
+        return $logs->map(function ($log) {
+            $time = $log->logged_at?->format('H:i:s') ?? 'N/A';
+            $type = strtoupper($log->type);
+
+            return "[{$time}] [{$type}] {$log->entry}";
+        })->implode("\n");
     }
 
-    /**
-     * Get the tool's schema definition.
-     */
     public function schema(JsonSchema $schema): array
     {
         return [
-            'value' => $schema->string()->required(),
+            'type' => $schema->string()->enum(['narrative', 'decision', 'combat', 'note'])->description('Filter logs by type'),
+            'limit' => $schema->integer()->minimum(1)->maximum(100)->description('Maximum number of log entries to return (default 50)'),
         ];
     }
 }
