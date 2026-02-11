@@ -9,16 +9,25 @@ use Livewire\Component;
 class CharacterForm extends Component
 {
     public Campaign $campaign;
+
     public ?Character $character = null;
 
     public string $name = '';
+
     public string $player_name = '';
+
     public string $characterClass = '';
+
     public int $level = 1;
+
     public int $hp_max = 10;
+
     public ?int $hp_current = null;
+
     public int $armor_class = 10;
+
     public string $alignment_label = '';
+
     public string $notes = '';
 
     public function mount(Campaign $campaign, ?Character $character = null): void
@@ -97,7 +106,7 @@ class CharacterForm extends Component
 
     public function render()
     {
-        $title = ($this->character?->exists ? __('Edit') . ' ' . $this->character->name : __('New Character')) . ' — ' . $this->campaign->name;
+        $title = ($this->character?->exists ? __('Edit').' '.$this->character->name : __('New Character')).' — '.$this->campaign->name;
 
         return view('livewire.characters.character-form')
             ->title($title);

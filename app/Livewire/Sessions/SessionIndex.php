@@ -23,6 +23,6 @@ class SessionIndex extends Component
                 ->withCount(['scenes', 'encounters'])
                 ->orderByDesc('session_number')
                 ->get(),
-        ])->title(__('Sessions') . ' — ' . $this->campaign->name);
+        ])->title(__('Sessions').' — '.$this->campaign->name);
     }
 }

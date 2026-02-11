@@ -13,7 +13,7 @@ use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
 
-class SessionOutliner implements Agent, HasTools, HasStructuredOutput
+class SessionOutliner implements Agent, HasStructuredOutput, HasTools
 {
     use Promptable;
 

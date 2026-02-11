@@ -95,8 +95,8 @@ class CampaignExporter
                     $md .= " (Player: {$character->player_name})";
                 }
                 $md .= "\n\n";
-                $md .= "- **Class:** ".($character->class ?? 'Unknown')."\n";
-                $md .= "- **Level:** ".($character->level ?? '?')."\n";
+                $md .= '- **Class:** '.($character->class ?? 'Unknown')."\n";
+                $md .= '- **Level:** '.($character->level ?? '?')."\n";
                 $md .= "- **HP:** {$character->hp_current}/{$character->hp_max}\n";
                 $md .= "- **AC:** {$character->armor_class}\n";
                 $md .= "- **Alignment:** {$character->alignment_label}\n\n";
@@ -107,7 +107,7 @@ class CampaignExporter
             $md .= "## Sessions\n\n";
             foreach ($campaign->gameSessions->sortBy('session_number') as $session) {
                 $md .= "### Session #{$session->session_number}: {$session->title}\n\n";
-                $md .= "**Status:** ".ucfirst($session->status)."\n\n";
+                $md .= '**Status:** '.ucfirst($session->status)."\n\n";
                 if ($session->setup_text) {
                     $md .= "{$session->setup_text}\n\n";
                 }

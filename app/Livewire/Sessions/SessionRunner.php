@@ -14,15 +14,22 @@ class SessionRunner extends Component
 
     // Initiative tracker
     public array $combatants = [];
+
     public int $currentTurnIndex = 0;
+
     public bool $inCombat = false;
 
     // Add combatant form
     public bool $showAddCombatant = false;
+
     public string $combatantType = 'character';
+
     public ?int $selectedCharacterId = null;
+
     public ?int $selectedEncounterId = null;
+
     public string $combatantName = '';
+
     public int $combatantInitiative = 10;
 
     // Combat panel — selected combatant
@@ -30,13 +37,18 @@ class SessionRunner extends Component
 
     // Quick log
     public string $logEntry = '';
+
     public string $logType = 'narrative';
 
     // Decision recorder
     public bool $showDecisionModal = false;
+
     public array $decisionCharacterIds = [];
+
     public string $decisionAction = '';
+
     public ?array $aiSuggestion = null;
+
     public bool $loadingAiSuggestion = false;
 
     // Conditions list
@@ -410,6 +422,6 @@ class SessionRunner extends Component
             'branches' => $branches,
             'logs' => $logs,
             'characters' => $characters,
-        ]);
+        ])->title(__('Session').' #'.$this->session->session_number.' — '.$this->session->title);
     }
 }

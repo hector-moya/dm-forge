@@ -9,51 +9,79 @@ use Livewire\Component;
 class SessionBuilder extends Component
 {
     public Campaign $campaign;
+
     public ?GameSession $session = null;
 
     // Session fields
     public string $title = '';
+
     public int $session_number = 1;
+
     public string $type = 'sequential';
+
     public string $status = 'draft';
+
     public string $setup_text = '';
+
     public string $dm_notes = '';
 
     // Scene inline form
     public bool $showSceneForm = false;
+
     public ?int $editingSceneId = null;
+
     public string $sceneTitle = '';
+
     public string $sceneDescription = '';
+
     public string $sceneNotes = '';
 
     // Encounter inline form
     public bool $showEncounterForm = false;
+
     public ?int $editingEncounterId = null;
+
     public ?int $encounterSceneId = null;
+
     public string $encounterName = '';
+
     public string $encounterDescription = '';
+
     public string $encounterEnvironment = '';
+
     public string $encounterDifficulty = 'medium';
 
     // Monster inline form
     public bool $showMonsterForm = false;
+
     public ?int $addingMonsterToEncounterId = null;
+
     public string $monsterName = '';
+
     public int $monsterHpMax = 10;
+
     public int $monsterAc = 10;
+
     public int $monsterCount = 1;
 
     // Branch inline form
     public bool $showBranchForm = false;
+
     public ?int $editingBranchId = null;
+
     public ?int $branchSceneId = null;
+
     public string $branchLabel = '';
+
     public string $branchDescription = '';
 
     // Consequence inline
     public bool $showConsequenceForm = false;
+
     public ?int $addingConsequenceToBranchId = null;
+
     public string $consequenceType = 'immediate';
+
     public string $consequenceDescription = '';
 
     public function mount(?Campaign $campaign = null, ?GameSession $session = null): void

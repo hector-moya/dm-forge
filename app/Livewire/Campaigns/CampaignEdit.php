@@ -14,40 +14,66 @@ class CampaignEdit extends Component
 
     // Campaign fields
     public string $name = '';
+
     public string $premise = '';
+
     public string $lore = '';
+
     public string $theme_tone = '';
+
     public string $world_rules = '';
+
     public string $special_mechanics = '';
+
     public string $status = 'draft';
 
     // Faction inline form
     public bool $showFactionForm = false;
+
     public ?int $editingFactionId = null;
+
     public string $factionName = '';
+
     public string $factionDescription = '';
+
     public string $factionAlignment = '';
+
     public string $factionGoals = '';
+
     public string $factionResources = '';
 
     // Location inline form
     public bool $showLocationForm = false;
+
     public ?int $editingLocationId = null;
+
     public string $locationName = '';
+
     public string $locationDescription = '';
+
     public string $locationRegion = '';
+
     public ?int $locationParentId = null;
 
     // NPC inline form
     public bool $showNpcForm = false;
+
     public ?int $editingNpcId = null;
+
     public string $npcName = '';
+
     public string $npcRole = '';
+
     public string $npcDescription = '';
+
     public string $npcPersonality = '';
+
     public string $npcMotivation = '';
+
     public ?int $npcFactionId = null;
+
     public ?int $npcLocationId = null;
+
     public bool $npcIsAlive = true;
 
     // Delete confirmation
@@ -329,6 +355,6 @@ class CampaignEdit extends Component
             'factions' => $this->campaign->factions()->orderBy('sort_order')->orderBy('name')->get(),
             'locations' => $this->campaign->locations()->orderBy('name')->get(),
             'npcs' => $this->campaign->npcs()->with(['faction', 'location'])->orderBy('name')->get(),
-        ])->title(__('Edit') . ' ' . $this->campaign->name);
+        ])->title(__('Edit').' '.$this->campaign->name);
     }
 }

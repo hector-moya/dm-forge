@@ -11,6 +11,7 @@ class SessionRecap extends Component
     public GameSession $session;
 
     public bool $generating = false;
+
     public string $streamedText = '';
 
     public function mount(GameSession $session): void
@@ -100,6 +101,6 @@ class SessionRecap extends Component
 
         return view('livewire.sessions.session-recap', [
             'logs' => $logs,
-        ]);
+        ])->title(__('Recap').' — Session #'.$this->session->session_number);
     }
 }

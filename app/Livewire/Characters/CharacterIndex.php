@@ -23,6 +23,6 @@ class CharacterIndex extends Component
                 ->withCount('alignmentEvents')
                 ->orderBy('name')
                 ->get(),
-        ])->title(__('Characters') . ' — ' . $this->campaign->name);
+        ])->title(__('Characters').' — '.$this->campaign->name);
     }
 }

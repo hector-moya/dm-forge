@@ -56,10 +56,10 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <flux:button variant="subtle" size="sm" href="{{ route('characters.edit', $character) }}" wire:navigate icon="pencil">
+                        <flux:button variant="subtle" size="sm" href="{{ route('characters.edit', [$campaign, $character]) }}" wire:navigate icon="pencil">
                             {{ __('Edit') }}
                         </flux:button>
-                        <flux:button variant="subtle" size="sm" href="{{ route('characters.alignment', $character) }}" wire:navigate icon="compass">
+                        <flux:button variant="subtle" size="sm" href="{{ route('characters.alignment', $character) }}" wire:navigate icon="scale">
                             {{ __('Alignment') }}
                         </flux:button>
                     </div>

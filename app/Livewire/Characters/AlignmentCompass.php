@@ -10,11 +10,14 @@ class AlignmentCompass extends Component
     public Character $character;
 
     public int $goodEvilScore;
+
     public int $lawChaosScore;
 
     // Manual adjustment form
     public string $actionDescription = '';
+
     public int $goodEvilDelta = 0;
+
     public int $lawChaosDelta = 0;
 
     public function mount(Character $character): void
@@ -88,6 +91,6 @@ class AlignmentCompass extends Component
                 ->latest()
                 ->limit(20)
                 ->get(),
-        ])->title(__('Alignment') . ' — ' . $this->character->name);
+        ])->title(__('Alignment').' — '.$this->character->name);
     }
 }

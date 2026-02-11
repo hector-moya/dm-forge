@@ -11,7 +11,7 @@ use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
 
-class ConsequenceGenerator implements Agent, HasTools, HasStructuredOutput
+class ConsequenceGenerator implements Agent, HasStructuredOutput, HasTools
 {
     use Promptable;
 

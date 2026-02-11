@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Campaigns;
 
-use App\Models\Campaign;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -10,10 +9,15 @@ use Livewire\Component;
 class CampaignCreate extends Component
 {
     public string $name = '';
+
     public string $premise = '';
+
     public string $lore = '';
+
     public string $theme_tone = '';
+
     public string $world_rules = '';
+
     public string $special_mechanics = '';
 
     public function rules(): array

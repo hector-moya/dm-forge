@@ -12,7 +12,7 @@ class RecapExporter
 
         $md = "# Session #{$session->session_number}: {$session->title}\n\n";
         $md .= "**Campaign:** {$session->campaign->name}\n";
-        $md .= "**Status:** ".ucfirst($session->status)."\n";
+        $md .= '**Status:** '.ucfirst($session->status)."\n";
 
         if ($session->started_at) {
             $md .= "**Date:** {$session->started_at->format('F j, Y')}\n";
