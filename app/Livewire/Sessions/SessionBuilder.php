@@ -3,13 +3,8 @@
 namespace App\Livewire\Sessions;
 
 use App\Models\Campaign;
-use App\Models\CustomLoot;
-use App\Models\CustomMonster;
 use App\Models\GameSession;
-use App\Models\SrdEquipment;
-use App\Models\SrdMagicItem;
-use App\Models\SrdMonster;
-use App\Services\EncounterBalancer;
+use Flux;
 use Livewire\Component;
 
 class SessionBuilder extends Component
@@ -31,93 +26,30 @@ class SessionBuilder extends Component
 
     public string $dm_notes = '';
 
-    // Scene modal form
-    public bool $showSceneForm = false;
+    // Add scene form
+    public bool $showAddSceneForm = false;
 
-    public ?int $editingSceneId = null;
+    public string $newSceneTitle = '';
 
-    public string $sceneTitle = '';
+    public string $newSceneDescription = '';
 
-    public string $sceneDescription = '';
+    public string $newSceneNotes = '';
 
-    public string $sceneNotes = '';
+    // Add encounter form (for standalone encounters)
+    public bool $showAddEncounterForm = false;
 
-    // Encounter modal form
-    public bool $showEncounterForm = false;
+    public string $newEncounterName = '';
 
-    public ?int $editingEncounterId = null;
+    public string $newEncounterDescription = '';
 
-    public ?int $encounterSceneId = null;
+    public string $newEncounterEnvironment = '';
 
-    public string $encounterName = '';
+    // Add branch form (for standalone branches)
+    public bool $showAddBranchForm = false;
 
-    public string $encounterDescription = '';
+    public string $newBranchLabel = '';
 
-    public string $encounterEnvironment = '';
-
-    // Monster modal form
-    public bool $showMonsterForm = false;
-
-    public ?int $addingMonsterToEncounterId = null;
-
-    public string $monsterSource = 'srd';
-
-    public string $monsterSearchQuery = '';
-
-    public ?int $selectedSrdMonsterId = null;
-
-    public ?int $selectedCustomMonsterId = null;
-
-    public string $monsterName = '';
-
-    public int $monsterHpMax = 10;
-
-    public int $monsterAc = 10;
-
-    public int $monsterCount = 1;
-
-    public ?float $monsterCr = null;
-
-    public ?int $monsterXp = null;
-
-    // Branch modal form
-    public bool $showBranchForm = false;
-
-    public ?int $editingBranchId = null;
-
-    public ?int $branchSceneId = null;
-
-    public string $branchLabel = '';
-
-    public string $branchDescription = '';
-
-    // Consequence modal form
-    public bool $showConsequenceForm = false;
-
-    public ?int $addingConsequenceToBranchId = null;
-
-    public string $consequenceType = 'immediate';
-
-    public string $consequenceDescription = '';
-
-    // Loot modal form
-    public bool $showLootForm = false;
-
-    public ?int $addingLootToEncounterId = null;
-
-    public ?int $addingLootToSceneId = null;
-
-    public string $lootSearchQuery = '';
-
-    public string $lootSource = 'equipment';
-
-    public ?int $selectedLootId = null;
-
-    public string $selectedLootType = '';
-
-    public int $lootQuantity = 1;
-
-    public string $lootNotes = '';
+    public string $newBranchDescription = '';
 
     public function mount(?Campaign $campaign = null, ?GameSession $session = null): void
     {
@@ -165,10 +97,10 @@ class SessionBuilder extends Component
 
         if ($this->session) {
             $this->session->update($data);
-            session()->flash('message', 'Session updated.');
+            Flux::toast(__('Session updated successfully'));
         } else {
             $this->session = $this->campaign->gameSessions()->create($data);
-            session()->flash('message', 'Session created.');
+            Flux::toast(__('Session created successfully'));
         }
 
         $this->redirect(route('sessions.edit', $this->session), navigate: true);
@@ -179,475 +111,115 @@ class SessionBuilder extends Component
         if ($this->session) {
             $campaignId = $this->session->campaign_id;
             $this->session->delete();
-            session()->flash('message', 'Session deleted.');
+            Flux::toast(__('Session deleted successfully'));
             $this->redirect(route('campaigns.sessions', $campaignId), navigate: true);
         }
     }
 
-    // ── Scene CRUD ──────────────────────────────────────────────────────
+    // ── Add Scene ────────────────────────────────────────────────────
 
-    public function openSceneForm(?int $sceneId = null): void
+    public function openAddSceneForm(): void
     {
-        $this->resetSceneForm();
-        $this->showSceneForm = true;
-
-        if ($sceneId) {
-            $scene = $this->session->scenes()->findOrFail($sceneId);
-            $this->editingSceneId = $scene->id;
-            $this->sceneTitle = $scene->title;
-            $this->sceneDescription = $scene->description ?? '';
-            $this->sceneNotes = $scene->notes ?? '';
-        }
+        $this->showAddSceneForm = true;
+        $this->newSceneTitle = '';
+        $this->newSceneDescription = '';
+        $this->newSceneNotes = '';
     }
 
-    public function saveScene(): void
+    public function saveNewScene(): void
     {
         $this->validate([
-            'sceneTitle' => ['required', 'string', 'max:255'],
-            'sceneDescription' => ['nullable', 'string', 'max:5000'],
-            'sceneNotes' => ['nullable', 'string', 'max:5000'],
+            'newSceneTitle' => ['required', 'string', 'max:255'],
+            'newSceneDescription' => ['nullable', 'string', 'max:5000'],
+            'newSceneNotes' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $data = [
-            'title' => $this->sceneTitle,
-            'description' => $this->sceneDescription ?: null,
-            'notes' => $this->sceneNotes ?: null,
-        ];
+        $maxSort = $this->session->scenes()->max('sort_order') ?? 0;
+        $this->session->scenes()->create([
+            'title' => $this->newSceneTitle,
+            'description' => $this->newSceneDescription ?: null,
+            'notes' => $this->newSceneNotes ?: null,
+            'sort_order' => $maxSort + 1,
+        ]);
 
-        if ($this->editingSceneId) {
-            $this->session->scenes()->findOrFail($this->editingSceneId)->update($data);
-        } else {
-            $maxSort = $this->session->scenes()->max('sort_order') ?? 0;
-            $this->session->scenes()->create(array_merge($data, ['sort_order' => $maxSort + 1]));
-        }
-
-        $this->resetSceneForm();
+        Flux::toast(__('Scene created successfully'));
+        $this->showAddSceneForm = false;
     }
 
-    public function deleteScene(int $sceneId): void
+    // ── Add Standalone Encounter ────────────────────────────────────────
+
+    public function openAddEncounterForm(): void
     {
-        $this->session->scenes()->findOrFail($sceneId)->delete();
+        $this->showAddEncounterForm = true;
+        $this->newEncounterName = '';
+        $this->newEncounterDescription = '';
+        $this->newEncounterEnvironment = '';
     }
 
-    private function resetSceneForm(): void
-    {
-        $this->showSceneForm = false;
-        $this->editingSceneId = null;
-        $this->sceneTitle = '';
-        $this->sceneDescription = '';
-        $this->sceneNotes = '';
-    }
-
-    // ── Encounter CRUD ──────────────────────────────────────────────────
-
-    public function openEncounterForm(?int $sceneId = null, ?int $encounterId = null): void
-    {
-        $this->resetEncounterForm();
-        $this->showEncounterForm = true;
-        $this->encounterSceneId = $sceneId;
-
-        if ($encounterId) {
-            $encounter = $this->session->encounters()->findOrFail($encounterId);
-            $this->editingEncounterId = $encounter->id;
-            $this->encounterSceneId = $encounter->scene_id;
-            $this->encounterName = $encounter->name;
-            $this->encounterDescription = $encounter->description ?? '';
-            $this->encounterEnvironment = $encounter->environment ?? '';
-        }
-    }
-
-    public function saveEncounter(): void
+    public function saveNewEncounter(): void
     {
         $this->validate([
-            'encounterName' => ['required', 'string', 'max:255'],
-            'encounterDescription' => ['nullable', 'string', 'max:5000'],
-            'encounterEnvironment' => ['nullable', 'string', 'max:255'],
+            'newEncounterName' => ['required', 'string', 'max:255'],
+            'newEncounterDescription' => ['nullable', 'string', 'max:5000'],
+            'newEncounterEnvironment' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $data = [
-            'name' => $this->encounterName,
-            'description' => $this->encounterDescription ?: null,
-            'environment' => $this->encounterEnvironment ?: null,
+        $this->session->encounters()->create([
+            'name' => $this->newEncounterName,
+            'description' => $this->newEncounterDescription ?: null,
+            'environment' => $this->newEncounterEnvironment ?: null,
             'difficulty' => 'medium',
-            'scene_id' => $this->encounterSceneId,
-        ];
+            'scene_id' => null,
+        ]);
 
-        if ($this->editingEncounterId) {
-            $this->session->encounters()->findOrFail($this->editingEncounterId)->update($data);
-        } else {
-            $this->session->encounters()->create($data);
-        }
-
-        $this->resetEncounterForm();
+        Flux::toast(__('Encounter created successfully'));
+        $this->showAddEncounterForm = false;
     }
 
-    public function deleteEncounter(int $encounterId): void
+    // ── Add Standalone Branch ────────────────────────────────────────
+
+    public function openAddBranchForm(): void
     {
-        $this->session->encounters()->findOrFail($encounterId)->delete();
+        $this->showAddBranchForm = true;
+        $this->newBranchLabel = '';
+        $this->newBranchDescription = '';
     }
 
-    private function resetEncounterForm(): void
-    {
-        $this->showEncounterForm = false;
-        $this->editingEncounterId = null;
-        $this->encounterSceneId = null;
-        $this->encounterName = '';
-        $this->encounterDescription = '';
-        $this->encounterEnvironment = '';
-    }
-
-    // ── Monster CRUD ────────────────────────────────────────────────────
-
-    public function openMonsterForm(int $encounterId): void
-    {
-        $this->resetMonsterForm();
-        $this->showMonsterForm = true;
-        $this->addingMonsterToEncounterId = $encounterId;
-    }
-
-    public function selectSrdMonster(int $id): void
-    {
-        $monster = SrdMonster::query()->findOrFail($id);
-        $this->selectedSrdMonsterId = $monster->id;
-        $this->selectedCustomMonsterId = null;
-        $this->monsterName = $monster->name;
-        $this->monsterHpMax = $monster->hit_points;
-        $this->monsterAc = $monster->armor_class;
-        $this->monsterCr = $monster->challenge_rating;
-        $this->monsterXp = $monster->xp;
-    }
-
-    public function selectCustomMonster(int $id): void
-    {
-        $monster = CustomMonster::query()
-            ->where('user_id', auth()->id())
-            ->findOrFail($id);
-        $this->selectedCustomMonsterId = $monster->id;
-        $this->selectedSrdMonsterId = null;
-        $this->monsterName = $monster->name;
-        $this->monsterHpMax = $monster->hit_points;
-        $this->monsterAc = $monster->armor_class;
-        $this->monsterCr = $monster->challenge_rating;
-        $this->monsterXp = $monster->xp;
-    }
-
-    public function getMonsterSearchResultsProperty(): array
-    {
-        if (strlen($this->monsterSearchQuery) < 2) {
-            return [];
-        }
-
-        if ($this->monsterSource === 'custom') {
-            return CustomMonster::query()
-                ->where('user_id', auth()->id())
-                ->search($this->monsterSearchQuery)
-                ->limit(10)
-                ->get()
-                ->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'cr' => $m->challenge_rating, 'hp' => $m->hit_points, 'ac' => $m->armor_class, 'source' => 'custom'])
-                ->toArray();
-        }
-
-        return SrdMonster::query()
-            ->search($this->monsterSearchQuery)
-            ->limit(10)
-            ->get()
-            ->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'cr' => $m->challenge_rating, 'hp' => $m->hit_points, 'ac' => $m->armor_class, 'source' => 'srd'])
-            ->toArray();
-    }
-
-    public function saveMonster(): void
+    public function saveNewBranch(): void
     {
         $this->validate([
-            'monsterName' => ['required', 'string', 'max:255'],
-            'monsterHpMax' => ['required', 'integer', 'min:1'],
-            'monsterAc' => ['required', 'integer', 'min:1'],
-            'monsterCount' => ['required', 'integer', 'min:1', 'max:20'],
+            'newBranchLabel' => ['required', 'string', 'max:255'],
+            'newBranchDescription' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $encounter = $this->session->encounters()->findOrFail($this->addingMonsterToEncounterId);
-
-        for ($i = 0; $i < $this->monsterCount; $i++) {
-            $name = $this->monsterCount > 1
-                ? $this->monsterName.' '.($i + 1)
-                : $this->monsterName;
-
-            $encounter->monsters()->create([
-                'name' => $name,
-                'hp_max' => $this->monsterHpMax,
-                'hp_current' => $this->monsterHpMax,
-                'armor_class' => $this->monsterAc,
-                'srd_monster_id' => $this->selectedSrdMonsterId,
-                'custom_monster_id' => $this->selectedCustomMonsterId,
-                'challenge_rating' => $this->monsterCr,
-                'xp' => $this->monsterXp,
-            ]);
-        }
-
-        $this->resetMonsterForm();
-    }
-
-    public function deleteMonster(int $monsterId): void
-    {
-        $this->session->encounters->each(function ($enc) use ($monsterId) {
-            $enc->monsters()->where('id', $monsterId)->delete();
-        });
-    }
-
-    private function resetMonsterForm(): void
-    {
-        $this->showMonsterForm = false;
-        $this->addingMonsterToEncounterId = null;
-        $this->monsterSource = 'srd';
-        $this->monsterSearchQuery = '';
-        $this->selectedSrdMonsterId = null;
-        $this->selectedCustomMonsterId = null;
-        $this->monsterName = '';
-        $this->monsterHpMax = 10;
-        $this->monsterAc = 10;
-        $this->monsterCount = 1;
-        $this->monsterCr = null;
-        $this->monsterXp = null;
-    }
-
-    // ── Branch Option CRUD ──────────────────────────────────────────────
-
-    public function openBranchForm(?int $sceneId = null, ?int $branchId = null): void
-    {
-        $this->resetBranchForm();
-        $this->showBranchForm = true;
-        $this->branchSceneId = $sceneId;
-
-        if ($branchId) {
-            $branch = $this->session->branchOptions()->findOrFail($branchId);
-            $this->editingBranchId = $branch->id;
-            $this->branchSceneId = $branch->scene_id;
-            $this->branchLabel = $branch->label;
-            $this->branchDescription = $branch->description ?? '';
-        }
-    }
-
-    public function saveBranch(): void
-    {
-        $this->validate([
-            'branchLabel' => ['required', 'string', 'max:255'],
-            'branchDescription' => ['nullable', 'string', 'max:5000'],
+        $this->session->branchOptions()->create([
+            'label' => $this->newBranchLabel,
+            'description' => $this->newBranchDescription ?: null,
+            'scene_id' => null,
         ]);
 
-        $data = [
-            'label' => $this->branchLabel,
-            'description' => $this->branchDescription ?: null,
-            'scene_id' => $this->branchSceneId,
-        ];
-
-        if ($this->editingBranchId) {
-            $this->session->branchOptions()->findOrFail($this->editingBranchId)->update($data);
-        } else {
-            $this->session->branchOptions()->create($data);
-        }
-
-        $this->resetBranchForm();
-    }
-
-    public function deleteBranch(int $branchId): void
-    {
-        $this->session->branchOptions()->findOrFail($branchId)->delete();
-    }
-
-    private function resetBranchForm(): void
-    {
-        $this->showBranchForm = false;
-        $this->editingBranchId = null;
-        $this->branchSceneId = null;
-        $this->branchLabel = '';
-        $this->branchDescription = '';
-    }
-
-    // ── Consequence CRUD ────────────────────────────────────────────────
-
-    public function openConsequenceForm(int $branchId): void
-    {
-        $this->resetConsequenceForm();
-        $this->showConsequenceForm = true;
-        $this->addingConsequenceToBranchId = $branchId;
-    }
-
-    public function saveConsequence(): void
-    {
-        $this->validate([
-            'consequenceType' => ['required', 'in:immediate,delayed,meta'],
-            'consequenceDescription' => ['required', 'string', 'max:2000'],
-        ]);
-
-        $branch = $this->session->branchOptions()->findOrFail($this->addingConsequenceToBranchId);
-        $branch->consequences()->create([
-            'type' => $this->consequenceType,
-            'description' => $this->consequenceDescription,
-        ]);
-
-        $this->resetConsequenceForm();
-    }
-
-    public function deleteConsequence(int $consequenceId): void
-    {
-        $this->session->branchOptions->each(function ($branch) use ($consequenceId) {
-            $branch->consequences()->where('id', $consequenceId)->delete();
-        });
-    }
-
-    private function resetConsequenceForm(): void
-    {
-        $this->showConsequenceForm = false;
-        $this->addingConsequenceToBranchId = null;
-        $this->consequenceType = 'immediate';
-        $this->consequenceDescription = '';
-    }
-
-    // ── Loot CRUD ───────────────────────────────────────────────────────
-
-    public function openLootForm(?int $encounterId = null, ?int $sceneId = null): void
-    {
-        $this->resetLootForm();
-        $this->showLootForm = true;
-        $this->addingLootToEncounterId = $encounterId;
-        $this->addingLootToSceneId = $sceneId;
-    }
-
-    public function getLootSearchResultsProperty(): array
-    {
-        if (strlen($this->lootSearchQuery) < 2) {
-            return [];
-        }
-
-        return match ($this->lootSource) {
-            'magic_item' => SrdMagicItem::query()
-                ->search($this->lootSearchQuery)
-                ->limit(10)->get()
-                ->map(fn ($i) => ['id' => $i->id, 'name' => $i->name, 'type' => 'srd_magic_item', 'rarity' => $i->rarity])
-                ->toArray(),
-            'custom' => CustomLoot::query()
-                ->where('user_id', auth()->id())
-                ->search($this->lootSearchQuery)
-                ->limit(10)->get()
-                ->map(fn ($i) => ['id' => $i->id, 'name' => $i->name, 'type' => 'custom_loot', 'rarity' => $i->rarity])
-                ->toArray(),
-            default => SrdEquipment::query()
-                ->search($this->lootSearchQuery)
-                ->limit(10)->get()
-                ->map(fn ($i) => ['id' => $i->id, 'name' => $i->name, 'type' => 'srd_equipment', 'rarity' => null])
-                ->toArray(),
-        };
-    }
-
-    public function selectLoot(int $id, string $type): void
-    {
-        $this->selectedLootId = $id;
-        $this->selectedLootType = $type;
-    }
-
-    public function saveLoot(): void
-    {
-        $this->validate([
-            'selectedLootId' => ['required', 'integer'],
-            'selectedLootType' => ['required', 'string', 'in:srd_equipment,srd_magic_item,custom_loot'],
-            'lootQuantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $lootableType = match ($this->selectedLootType) {
-            'srd_equipment' => SrdEquipment::class,
-            'srd_magic_item' => SrdMagicItem::class,
-            'custom_loot' => CustomLoot::class,
-        };
-
-        $data = [
-            'lootable_type' => $lootableType,
-            'lootable_id' => $this->selectedLootId,
-            'quantity' => $this->lootQuantity,
-            'notes' => $this->lootNotes ?: null,
-        ];
-
-        if ($this->addingLootToEncounterId) {
-            $encounter = $this->session->encounters()->findOrFail($this->addingLootToEncounterId);
-            $encounter->loot()->create($data);
-        } elseif ($this->addingLootToSceneId) {
-            $scene = $this->session->scenes()->findOrFail($this->addingLootToSceneId);
-            $scene->loot()->create($data);
-        }
-
-        $this->resetLootForm();
-    }
-
-    public function deleteLoot(string $context, int $lootId): void
-    {
-        if ($context === 'encounter') {
-            $this->session->encounters->each(fn ($enc) => $enc->loot()->where('id', $lootId)->delete());
-        } else {
-            $this->session->scenes->each(fn ($scene) => $scene->loot()->where('id', $lootId)->delete());
-        }
-    }
-
-    private function resetLootForm(): void
-    {
-        $this->showLootForm = false;
-        $this->addingLootToEncounterId = null;
-        $this->addingLootToSceneId = null;
-        $this->lootSearchQuery = '';
-        $this->lootSource = 'equipment';
-        $this->selectedLootId = null;
-        $this->selectedLootType = '';
-        $this->lootQuantity = 1;
-        $this->lootNotes = '';
-    }
-
-    // ── Encounter Balancing ─────────────────────────────────────────────
-
-    /**
-     * @return array<int, \App\DataTransferObjects\EncounterDifficulty>
-     */
-    public function getEncounterDifficultiesProperty(): array
-    {
-        if (! $this->session) {
-            return [];
-        }
-
-        $characters = $this->campaign->characters;
-        if ($characters->isEmpty()) {
-            return [];
-        }
-
-        $balancer = app(EncounterBalancer::class);
-        $difficulties = [];
-
-        foreach ($this->session->encounters()->with('monsters')->get() as $encounter) {
-            $difficulties[$encounter->id] = $balancer->calculate($encounter, $characters);
-        }
-
-        return $difficulties;
+        Flux::toast(__('Branch option created successfully'));
+        $this->showAddBranchForm = false;
     }
 
     public function render(): \Illuminate\View\View
     {
         $scenes = $this->session
-            ? $this->session->scenes()->orderBy('sort_order')->get()
+            ? $this->session->scenes()->with(['encounters.monsters', 'branchOptions.consequences'])->orderBy('sort_order')->get()
             : collect();
 
-        $encounters = $this->session
-            ? $this->session->encounters()->with(['monsters', 'loot.lootable'])->orderBy('sort_order')->get()
+        $unscopedEncounters = $this->session
+            ? $this->session->encounters()->whereNull('scene_id')->with('monsters')->orderBy('sort_order')->get()
             : collect();
 
-        $branches = $this->session
-            ? $this->session->branchOptions()->with('consequences')->orderBy('sort_order')->get()
-            : collect();
-
-        $scenesWithLoot = $this->session
-            ? $this->session->scenes()->with('loot.lootable')->get()->keyBy('id')
+        $unscopedBranches = $this->session
+            ? $this->session->branchOptions()->whereNull('scene_id')->with('consequences')->orderBy('sort_order')->get()
             : collect();
 
         return view('livewire.sessions.session-builder', [
             'scenes' => $scenes,
-            'encounters' => $encounters,
-            'branches' => $branches,
-            'scenesWithLoot' => $scenesWithLoot,
-            'encounterDifficulties' => $this->encounterDifficulties,
+            'unscopedEncounters' => $unscopedEncounters,
+            'unscopedBranches' => $unscopedBranches,
         ])->title($this->session ? __('Edit Session') : __('New Session'));
     }
 }
