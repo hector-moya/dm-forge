@@ -41,4 +41,9 @@ class Scene extends Model
     {
         return $this->hasMany(BranchOption::class);
     }
+
+    public function loot(): HasMany
+    {
+        return $this->hasMany(SceneLoot::class);
+    }
 }

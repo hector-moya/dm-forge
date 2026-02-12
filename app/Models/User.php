@@ -67,4 +67,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Campaign::class);
     }
+
+    public function customMonsters(): HasMany
+    {
+        return $this->hasMany(CustomMonster::class);
+    }
+
+    public function customLoot(): HasMany
+    {
+        return $this->hasMany(CustomLoot::class);
+    }
 }

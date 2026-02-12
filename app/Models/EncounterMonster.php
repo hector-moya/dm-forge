@@ -20,6 +20,10 @@ class EncounterMonster extends Model
         'conditions',
         'notes',
         'sort_order',
+        'srd_monster_id',
+        'custom_monster_id',
+        'challenge_rating',
+        'xp',
     ];
 
     protected function casts(): array
@@ -32,11 +36,23 @@ class EncounterMonster extends Model
             'stats' => 'array',
             'conditions' => 'array',
             'sort_order' => 'integer',
+            'challenge_rating' => 'float',
+            'xp' => 'integer',
         ];
     }
 
     public function encounter(): BelongsTo
     {
         return $this->belongsTo(Encounter::class);
+    }
+
+    public function srdMonster(): BelongsTo
+    {
+        return $this->belongsTo(SrdMonster::class);
+    }
+
+    public function customMonster(): BelongsTo
+    {
+        return $this->belongsTo(CustomMonster::class);
     }
 }

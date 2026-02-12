@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -9,15 +10,17 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CustomMonsterFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
+            'user_id' => User::factory(),
+            'name' => fake()->words(2, true),
+            'size' => fake()->randomElement(['Tiny', 'Small', 'Medium', 'Large', 'Huge']),
+            'type' => fake()->randomElement(['humanoid', 'beast', 'undead', 'fiend', 'dragon']),
+            'armor_class' => fake()->numberBetween(10, 20),
+            'hit_points' => fake()->numberBetween(5, 200),
+            'challenge_rating' => fake()->randomFloat(2, 0, 20),
+            'xp' => fake()->numberBetween(10, 10000),
         ];
     }
 }
