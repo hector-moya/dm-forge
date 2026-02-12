@@ -42,8 +42,11 @@
                                     {{ Str::limit($sidebarCampaign->name, 20) }}
                                 </flux:sidebar.item>
                             @endforeach
+                            <flux:sidebar.item icon="sparkles" :href="route('campaigns.wizard')" :current="request()->routeIs('campaigns.wizard')" wire:navigate>
+                                {{ __('Campaign Wizard') }}
+                            </flux:sidebar.item>
                             <flux:sidebar.item icon="plus" :href="route('campaigns.create')" :current="request()->routeIs('campaigns.create')" wire:navigate>
-                                {{ __('New Campaign') }}
+                                {{ __('Quick Create') }}
                             </flux:sidebar.item>
                         </flux:sidebar.group>
                     @endif

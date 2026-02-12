@@ -3,6 +3,7 @@
 use App\Livewire\Campaigns\CampaignCreate;
 use App\Livewire\Campaigns\CampaignEdit;
 use App\Livewire\Campaigns\CampaignShow;
+use App\Livewire\Campaigns\CampaignWizard;
 use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
 use App\Livewire\Characters\CharacterIndex;
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Dashboard::class)->name('dashboard');
 
     // Campaigns
+    Route::get('campaigns/wizard', CampaignWizard::class)->name('campaigns.wizard');
     Route::get('campaigns/create', CampaignCreate::class)->name('campaigns.create');
     Route::get('campaigns/{campaign}', CampaignShow::class)->name('campaigns.show');
     Route::get('campaigns/{campaign}/edit', CampaignEdit::class)->name('campaigns.edit');
