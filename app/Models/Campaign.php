@@ -61,6 +61,11 @@ class Campaign extends Model
         return $this->hasMany(Npc::class);
     }
 
+    public function worldEvents(): HasMany
+    {
+        return $this->hasMany(WorldEvent::class);
+    }
+
     public function tags(): MorphMany
     {
         return $this->morphMany(Tag::class, 'taggable');

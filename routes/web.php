@@ -4,6 +4,7 @@ use App\Livewire\Campaigns\CampaignCreate;
 use App\Livewire\Campaigns\CampaignEdit;
 use App\Livewire\Campaigns\CampaignShow;
 use App\Livewire\Campaigns\CampaignWizard;
+use App\Livewire\Campaigns\WorldTimeline;
 use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
 use App\Livewire\Characters\CharacterIndex;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('campaigns/create', CampaignCreate::class)->name('campaigns.create');
     Route::get('campaigns/{campaign}', CampaignShow::class)->name('campaigns.show');
     Route::get('campaigns/{campaign}/edit', CampaignEdit::class)->name('campaigns.edit');
+    Route::get('campaigns/{campaign}/timeline', WorldTimeline::class)->name('campaigns.timeline');
 
     // Characters
     Route::get('campaigns/{campaign}/characters', CharacterIndex::class)->name('campaigns.characters');
