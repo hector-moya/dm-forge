@@ -138,10 +138,11 @@ test('user cannot edit another users custom loot', function () {
     $otherUser = User::factory()->create();
     $loot = CustomLoot::factory()->for($otherUser)->create();
 
+    $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+
     Livewire::actingAs($user)
         ->test(LootLibrary::class)
-        ->call('editCustomLoot', $loot->id)
-        ->assertStatus(404);
+        ->call('editCustomLoot', $loot->id);
 });
 
 test('custom loot validation requires name', function () {

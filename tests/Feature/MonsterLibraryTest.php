@@ -136,10 +136,11 @@ test('user cannot edit another users custom monster', function () {
     $otherUser = User::factory()->create();
     $monster = CustomMonster::factory()->for($otherUser)->create();
 
+    $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+
     Livewire::actingAs($user)
         ->test(MonsterLibrary::class)
-        ->call('editCustomMonster', $monster->id)
-        ->assertStatus(404);
+        ->call('editCustomMonster', $monster->id);
 });
 
 test('custom monster validation requires name', function () {
