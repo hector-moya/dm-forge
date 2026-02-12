@@ -3,7 +3,6 @@
 use App\Models\CustomLoot;
 use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
-use Flux;
 use Livewire\Component;
 
 new class extends Component
@@ -80,7 +79,7 @@ new class extends Component
             'notes' => $this->lootNotes ?: null,
         ]);
 
-        Flux::toast(__('Loot added successfully'));
+        \Flux::toast(__('Loot added successfully'));
         $this->showForm = false;
         $this->dispatch('loot-form-closed');
         $this->dispatch('$refresh');

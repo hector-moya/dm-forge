@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Campaigns;
 
+use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
 use App\Models\Faction;
 use App\Models\Location;
 use App\Models\Npc;
+use Flux;
 use Livewire\Component;
 
 class CampaignEdit extends Component
@@ -75,6 +77,19 @@ class CampaignEdit extends Component
     public ?int $npcLocationId = null;
 
     public bool $npcIsAlive = true;
+
+    public string $npcVoiceDescription = '';
+
+    public string $npcSpeechPatterns = '';
+
+    public string $npcCatchphrases = '';
+
+    // NPC Generator
+    public bool $showGenerateNpcModal = false;
+
+    public string $generateNpcContext = '';
+
+    public bool $generatingNpc = false;
 
     // Delete confirmation
     public bool $showDeleteModal = false;
@@ -291,6 +306,9 @@ class CampaignEdit extends Component
             $this->npcFactionId = $npc->faction_id;
             $this->npcLocationId = $npc->location_id;
             $this->npcIsAlive = $npc->is_alive;
+            $this->npcVoiceDescription = $npc->voice_description ?? '';
+            $this->npcSpeechPatterns = $npc->speech_patterns ?? '';
+            $this->npcCatchphrases = $npc->catchphrases ? implode("\n", $npc->catchphrases) : '';
         }
     }
 
@@ -302,10 +320,17 @@ class CampaignEdit extends Component
             'npcDescription' => ['nullable', 'string', 'max:5000'],
             'npcPersonality' => ['nullable', 'string', 'max:2000'],
             'npcMotivation' => ['nullable', 'string', 'max:2000'],
+            'npcVoiceDescription' => ['nullable', 'string', 'max:2000'],
+            'npcSpeechPatterns' => ['nullable', 'string', 'max:2000'],
+            'npcCatchphrases' => ['nullable', 'string', 'max:2000'],
             'npcFactionId' => ['nullable', 'exists:factions,id'],
             'npcLocationId' => ['nullable', 'exists:locations,id'],
             'npcIsAlive' => ['boolean'],
         ]);
+
+        $catchphrases = $this->npcCatchphrases
+            ? array_values(array_filter(array_map('trim', explode("\n", $this->npcCatchphrases))))
+            : null;
 
         $data = [
             'name' => $this->npcName,
@@ -313,6 +338,9 @@ class CampaignEdit extends Component
             'description' => $this->npcDescription ?: null,
             'personality' => $this->npcPersonality ?: null,
             'motivation' => $this->npcMotivation ?: null,
+            'voice_description' => $this->npcVoiceDescription ?: null,
+            'speech_patterns' => $this->npcSpeechPatterns ?: null,
+            'catchphrases' => $catchphrases,
             'faction_id' => $this->npcFactionId,
             'location_id' => $this->npcLocationId,
             'is_alive' => $this->npcIsAlive,
@@ -343,10 +371,56 @@ class CampaignEdit extends Component
         $this->npcDescription = '';
         $this->npcPersonality = '';
         $this->npcMotivation = '';
+        $this->npcVoiceDescription = '';
+        $this->npcSpeechPatterns = '';
+        $this->npcCatchphrases = '';
         $this->npcFactionId = null;
         $this->npcLocationId = null;
         $this->npcIsAlive = true;
-        $this->resetValidation(['npcName', 'npcRole', 'npcDescription', 'npcPersonality', 'npcMotivation', 'npcFactionId', 'npcLocationId', 'npcIsAlive']);
+        $this->resetValidation();
+    }
+
+    // ── NPC Generator ─────────────────────────────────────────────────
+
+    public function openGenerateNpcModal(): void
+    {
+        $this->showGenerateNpcModal = true;
+        $this->generateNpcContext = '';
+        $this->generatingNpc = false;
+    }
+
+    public function generateNpc(): void
+    {
+        $this->generatingNpc = true;
+
+        try {
+            $generator = new NpcGenerator($this->campaign);
+            $prompt = 'Generate a unique NPC for this campaign.';
+            if ($this->generateNpcContext) {
+                $prompt .= " Context: {$this->generateNpcContext}";
+            }
+
+            $response = $generator->prompt($prompt);
+
+            $this->showGenerateNpcModal = false;
+
+            $this->resetNpcForm();
+            $this->showNpcForm = true;
+            $this->npcName = $response['name'] ?? '';
+            $this->npcRole = $response['role'] ?? '';
+            $this->npcDescription = $response['description'] ?? '';
+            $this->npcPersonality = $response['personality'] ?? '';
+            $this->npcMotivation = $response['motivation'] ?? '';
+            $this->npcVoiceDescription = $response['voice_description'] ?? '';
+            $this->npcSpeechPatterns = $response['speech_patterns'] ?? '';
+            $this->npcCatchphrases = isset($response['catchphrases']) ? implode("\n", $response['catchphrases']) : '';
+
+            Flux::toast(__('NPC generated! Review and save below.'));
+        } catch (\Throwable $e) {
+            Flux::toast(__('NPC generation failed: ').$e->getMessage());
+        }
+
+        $this->generatingNpc = false;
     }
 
     public function render()

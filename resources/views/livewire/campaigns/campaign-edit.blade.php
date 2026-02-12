@@ -245,9 +245,14 @@
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
         <div class="mb-4 flex items-center justify-between">
             <flux:heading size="lg">{{ __('NPCs') }}</flux:heading>
-            <flux:button variant="primary" size="sm" wire:click="openNpcForm" icon="plus">
-                {{ __('Add NPC') }}
-            </flux:button>
+            <div class="flex items-center gap-2">
+                <flux:button variant="subtle" size="sm" wire:click="openGenerateNpcModal" icon="sparkles">
+                    {{ __('Generate NPC') }}
+                </flux:button>
+                <flux:button variant="primary" size="sm" wire:click="openNpcForm" icon="plus">
+                    {{ __('Add NPC') }}
+                </flux:button>
+            </div>
         </div>
 
         @if ($showNpcForm)
@@ -289,6 +294,27 @@
                             rows="2"
                         />
                     </div>
+                    <flux:textarea
+                        wire:model="npcVoiceDescription"
+                        label="{{ __('Voice Description') }}"
+                        placeholder="{{ __('How the NPC sounds: accent, pitch, cadence, vocal mannerisms...') }}"
+                        rows="2"
+                    />
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <flux:textarea
+                            wire:model="npcSpeechPatterns"
+                            label="{{ __('Speech Patterns') }}"
+                            placeholder="{{ __('How the NPC structures speech: formal, slang, repetitive...') }}"
+                            rows="2"
+                        />
+                        <flux:textarea
+                            wire:model="npcCatchphrases"
+                            label="{{ __('Catchphrases') }}"
+                            placeholder="{{ __('One per line...') }}"
+                            rows="2"
+                            description="{{ __('Enter one catchphrase per line.') }}"
+                        />
+                    </div>
                     <div class="grid gap-3 sm:grid-cols-3">
                         <flux:select wire:model="npcFactionId" label="{{ __('Faction') }}" placeholder="{{ __('None') }}">
                             <flux:select.option value="">{{ __('None') }}</flux:select.option>
@@ -303,11 +329,7 @@
                             @endforeach
                         </flux:select>
                         <div class="flex items-end pb-1">
-                            <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <input type="checkbox" wire:model="npcIsAlive"
-                                       class="rounded border-zinc-300 text-accent focus:ring-accent dark:border-zinc-600 dark:bg-zinc-700" />
-                                {{ __('Alive') }}
-                            </label>
+                            <flux:checkbox wire:model="npcIsAlive" label="{{ __('Alive') }}" />
                         </div>
                     </div>
                     <div class="flex items-center justify-end gap-2">
@@ -324,7 +346,7 @@
 
         @if ($npcs->isEmpty())
             <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
-                {{ __('No NPCs yet. Add one to get started.') }}
+                {{ __('No NPCs yet. Add one or generate one with AI to get started.') }}
             </flux:text>
         @else
             <div class="space-y-2">
@@ -338,6 +360,9 @@
                                 @endif
                                 @if (! $npc->is_alive)
                                     <flux:badge size="sm" variant="danger">{{ __('Dead') }}</flux:badge>
+                                @endif
+                                @if ($npc->voice_description)
+                                    <flux:badge size="sm" variant="outline" icon="microphone">{{ __('Voice') }}</flux:badge>
                                 @endif
                             </div>
                             <div class="mt-0.5 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
@@ -358,6 +383,31 @@
             </div>
         @endif
     </div>
+
+    {{-- Generate NPC Modal --}}
+    <flux:modal wire:model="showGenerateNpcModal" class="md:w-xl">
+        <flux:heading size="lg">{{ __('Generate NPC with AI') }}</flux:heading>
+        <flux:text class="mt-1">{{ __('Provide optional context to guide the AI, then review and edit the result before saving.') }}</flux:text>
+
+        <div class="mt-4 flex flex-col gap-4">
+            <flux:textarea
+                wire:model="generateNpcContext"
+                label="{{ __('Context (optional)') }}"
+                placeholder="{{ __('e.g., A mysterious elven merchant who deals in forbidden artifacts, associated with the Thieves Guild...') }}"
+                rows="3"
+            />
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+            <flux:button variant="subtle" wire:click="$set('showGenerateNpcModal', false)">
+                {{ __('Cancel') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="generateNpc" icon="sparkles" wire:loading.attr="disabled" wire:target="generateNpc">
+                <span wire:loading.remove wire:target="generateNpc">{{ __('Generate') }}</span>
+                <span wire:loading wire:target="generateNpc">{{ __('Generating...') }}</span>
+            </flux:button>
+        </div>
+    </flux:modal>
 
     {{-- Delete Campaign Modal --}}
     <flux:modal wire:model="showDeleteModal" variant="dialog">

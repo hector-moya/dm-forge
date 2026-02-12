@@ -16,6 +16,9 @@ class Npc extends Model
         'description',
         'personality',
         'motivation',
+        'voice_description',
+        'speech_patterns',
+        'catchphrases',
         'stats',
         'faction_id',
         'location_id',
@@ -25,6 +28,7 @@ class Npc extends Model
     protected function casts(): array
     {
         return [
+            'catchphrases' => 'array',
             'stats' => 'array',
             'is_alive' => 'boolean',
         ];

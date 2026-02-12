@@ -3,7 +3,6 @@
 use App\Models\CustomMonster;
 use App\Models\Encounter;
 use App\Models\SrdMonster;
-use Flux;
 use Livewire\Component;
 
 new class extends Component
@@ -110,7 +109,7 @@ new class extends Component
             ]);
         }
 
-        Flux::toast(__('Monsters added successfully'));
+        \Flux::toast(__('Monsters added successfully'));
         $this->showForm = false;
         $this->dispatch('monster-form-closed');
         $this->dispatch('$refresh');

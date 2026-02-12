@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\BranchOption;
-use Flux;
 use Livewire\Component;
 
 new class extends Component
@@ -42,7 +41,7 @@ new class extends Component
             'description' => $this->description ?: null,
         ]);
 
-        Flux::toast(__('Branch option updated successfully'));
+        \Flux::toast(__('Branch option updated successfully'));
         $this->showForm = false;
         $this->dispatch('$refresh');
     }
@@ -50,14 +49,14 @@ new class extends Component
     public function delete(): void
     {
         $this->branch->delete();
-        Flux::toast(__('Branch option deleted successfully'));
+        \Flux::toast(__('Branch option deleted successfully'));
         $this->dispatch('$refresh');
     }
 
     public function deleteConsequence(int $consequenceId): void
     {
         $this->branch->consequences()->where('id', $consequenceId)->delete();
-        Flux::toast(__('Consequence removed successfully'));
+        \Flux::toast(__('Consequence removed successfully'));
         $this->dispatch('$refresh');
     }
 

@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\BranchOption;
-use Flux;
 use Livewire\Component;
 
 new class extends Component
@@ -27,7 +26,7 @@ new class extends Component
             'description' => $this->description,
         ]);
 
-        Flux::toast(__('Consequence added successfully'));
+        \Flux::toast(__('Consequence added successfully'));
         $this->showForm = false;
         $this->dispatch('$refresh');
     }

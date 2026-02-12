@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Encounter;
-use Flux;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -50,7 +49,7 @@ new class extends Component
             'environment' => $this->environment ?: null,
         ]);
 
-        Flux::toast(__('Encounter updated successfully'));
+        \Flux::toast(__('Encounter updated successfully'));
         $this->showForm = false;
         $this->dispatch('$refresh');
     }
@@ -58,14 +57,14 @@ new class extends Component
     public function delete(): void
     {
         $this->encounter->delete();
-        Flux::toast(__('Encounter deleted successfully'));
+        \Flux::toast(__('Encounter deleted successfully'));
         $this->dispatch('$refresh');
     }
 
     public function deleteMonster(int $monsterId): void
     {
         $this->encounter->monsters()->where('id', $monsterId)->delete();
-        Flux::toast(__('Monster removed successfully'));
+        \Flux::toast(__('Monster removed successfully'));
         $this->dispatch('$refresh');
     }
 

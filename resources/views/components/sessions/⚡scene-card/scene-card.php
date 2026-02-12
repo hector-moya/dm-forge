@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Scene;
-use Flux;
 use Livewire\Component;
 
 new class extends Component
@@ -51,14 +50,14 @@ new class extends Component
 
         if ($this->editingSceneId) {
             Scene::query()->findOrFail($this->editingSceneId)->update($data);
-            Flux::toast(__('Scene updated successfully'));
+            \Flux::toast(__('Scene updated successfully'));
         } else {
             $maxSort = Scene::query()->where('game_session_id', $this->sessionId)->max('sort_order') ?? 0;
             Scene::query()->create(array_merge($data, [
                 'game_session_id' => $this->sessionId,
                 'sort_order' => $maxSort + 1,
             ]));
-            Flux::toast(__('Scene created successfully'));
+            \Flux::toast(__('Scene created successfully'));
         }
 
         $this->resetForm();
@@ -68,7 +67,7 @@ new class extends Component
     public function delete(int $sceneId): void
     {
         Scene::query()->findOrFail($sceneId)->delete();
-        Flux::toast(__('Scene deleted successfully'));
+        \Flux::toast(__('Scene deleted successfully'));
         $this->dispatch('$refresh');
     }
 
