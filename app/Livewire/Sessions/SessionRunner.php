@@ -51,6 +51,9 @@ class SessionRunner extends Component
 
     public bool $loadingAiSuggestion = false;
 
+    // Puzzle hint tracking (puzzleId => highest revealed tier)
+    public array $revealedHints = [];
+
     // Conditions list
     public array $conditionOptions = [
         'blinded', 'charmed', 'deafened', 'frightened', 'grappled',
@@ -386,6 +389,22 @@ class SessionRunner extends Component
         return "{$lawChaos} {$goodEvil}";
     }
 
+    // ── Puzzles ───────────────────────────────────────────────────────
+
+    public function revealHint(int $puzzleId, int $tier): void
+    {
+        $currentTier = $this->revealedHints[$puzzleId] ?? 0;
+        if ($tier > $currentTier && $tier <= 3) {
+            $this->revealedHints[$puzzleId] = $tier;
+        }
+    }
+
+    public function togglePuzzleSolved(int $puzzleId): void
+    {
+        $puzzle = $this->session->campaign->puzzles()->findOrFail($puzzleId);
+        $puzzle->update(['is_solved' => ! $puzzle->is_solved]);
+    }
+
     // ── Session End ───────────────────────────────────────────────────
 
     public function endSession(): void
@@ -397,7 +416,7 @@ class SessionRunner extends Component
 
     public function render()
     {
-        $scenes = $this->session->scenes()->orderBy('sort_order')->get();
+        $scenes = $this->session->scenes()->with('puzzles')->orderBy('sort_order')->get();
 
         $encounters = $this->session->encounters()
             ->with('monsters')

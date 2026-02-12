@@ -205,7 +205,7 @@ class SessionBuilder extends Component
     public function render(): \Illuminate\View\View
     {
         $scenes = $this->session
-            ? $this->session->scenes()->with(['encounters.monsters', 'branchOptions.consequences'])->orderBy('sort_order')->get()
+            ? $this->session->scenes()->with(['encounters.monsters', 'branchOptions.consequences', 'puzzles'])->orderBy('sort_order')->get()
             : collect();
 
         $unscopedEncounters = $this->session

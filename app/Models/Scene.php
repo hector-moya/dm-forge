@@ -46,4 +46,9 @@ class Scene extends Model
     {
         return $this->hasMany(SceneLoot::class);
     }
+
+    public function puzzles(): HasMany
+    {
+        return $this->hasMany(Puzzle::class);
+    }
 }
