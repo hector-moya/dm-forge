@@ -95,6 +95,8 @@ class MonsterLibrary extends Component
     {
         $this->viewingMonsterId = $id;
         $this->viewingMonsterSource = $source;
+
+        $this->modal('view-monster')->show();
     }
 
     public function getViewingMonsterProperty(): ?object

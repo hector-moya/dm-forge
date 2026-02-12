@@ -17,6 +17,15 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('Library')" class="grid">
+                    <flux:sidebar.item icon="bug-ant" :href="route('library.monsters')" :current="request()->routeIs('library.monsters')" wire:navigate>
+                        {{ __('Monsters') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="gift" :href="route('library.loot')" :current="request()->routeIs('library.loot')" wire:navigate>
+                        {{ __('Loot') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 @auth
                     @php
                         $sidebarCampaigns = auth()->user()->campaigns()->where('status', '!=', 'archived')->orderBy('name')->limit(10)->get();

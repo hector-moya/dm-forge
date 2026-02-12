@@ -7,6 +7,8 @@ use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
 use App\Livewire\Characters\CharacterIndex;
 use App\Livewire\Dashboard;
+use App\Livewire\Library\LootLibrary;
+use App\Livewire\Library\MonsterLibrary;
 use App\Livewire\Sessions\SessionBuilder;
 use App\Livewire\Sessions\SessionIndex;
 use App\Livewire\Sessions\SessionRecap;
@@ -30,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('campaigns/{campaign}/characters/create', CharacterForm::class)->name('characters.create');
     Route::get('campaigns/{campaign}/characters/{character}/edit', CharacterForm::class)->name('characters.edit');
     Route::get('characters/{character}/alignment', AlignmentCompass::class)->name('characters.alignment');
+
+    // Library
+    Route::get('library/monsters', MonsterLibrary::class)->name('library.monsters');
+    Route::get('library/loot', LootLibrary::class)->name('library.loot');
 
     // Sessions
     Route::get('campaigns/{campaign}/sessions', SessionIndex::class)->name('campaigns.sessions');
