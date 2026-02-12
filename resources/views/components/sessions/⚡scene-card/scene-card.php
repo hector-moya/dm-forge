@@ -33,6 +33,22 @@ new class extends Component
             $this->resetForm();
         }
     }
+    public function saveNewBranch(): void
+    {
+        $this->validate([
+            'newBranchLabel' => ['required', 'string', 'max:255'],
+            'newBranchDescription' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->session->branchOptions()->create([
+            'label' => $this->newBranchLabel,
+            'description' => $this->newBranchDescription ?: null,
+            'scene_id' => null,
+        ]);
+
+        Flux::toast(__('Branch option created successfully'));
+        $this->showAddBranchForm = false;
+    }
 
     public function save(): void
     {

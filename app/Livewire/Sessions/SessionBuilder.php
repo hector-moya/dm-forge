@@ -4,7 +4,7 @@ namespace App\Livewire\Sessions;
 
 use App\Models\Campaign;
 use App\Models\GameSession;
-use Flux;
+use Flux\Flux;
 use Livewire\Component;
 
 class SessionBuilder extends Component

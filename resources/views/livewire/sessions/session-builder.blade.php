@@ -14,19 +14,8 @@
 
             <div class="flex flex-col gap-4">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input
-                        wire:model="title"
-                        label="{{ __('Title') }}"
-                        placeholder="{{ __('Session title...') }}"
-                        required
-                    />
-                    <flux:input
-                        wire:model="session_number"
-                        type="number"
-                        label="{{ __('Session Number') }}"
-                        min="1"
-                        required
-                    />
+                    <flux:input wire:model="title" label="{{ __('Title') }}" placeholder="{{ __('Session title...') }}" required />
+                    <flux:input wire:model="session_number" type="number" label="{{ __('Session Number') }}" min="1" required />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -43,19 +32,9 @@
                     </flux:select>
                 </div>
 
-                <flux:textarea
-                    wire:model="setup_text"
-                    label="{{ __('Setup Text') }}"
-                    placeholder="{{ __('Read-aloud text or scene-setting description for players...') }}"
-                    rows="4"
-                />
+                <flux:textarea wire:model="setup_text" label="{{ __('Setup Text') }}" placeholder="{{ __('Read-aloud text or scene-setting description for players...') }}" rows="4" />
 
-                <flux:textarea
-                    wire:model="dm_notes"
-                    label="{{ __('DM Notes') }}"
-                    placeholder="{{ __('Private notes, reminders, and prep details...') }}"
-                    rows="4"
-                />
+                <flux:textarea wire:model="dm_notes" label="{{ __('DM Notes') }}" placeholder="{{ __('Private notes, reminders, and prep details...') }}" rows="4" />
             </div>
         </div>
 
@@ -85,9 +64,14 @@
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
             <div class="mb-4 flex items-center justify-between">
                 <flux:heading size="lg">{{ __('Scenes') }}</flux:heading>
-                <flux:button variant="primary" size="sm" wire:click="openAddSceneForm" icon="plus">
+                <flux:modal.trigger name="add-scene-modal">
+                    <flux:button variant="primary" size="sm" icon="plus">
+                        {{ __('Add Scene') }}
+                    </flux:button>
+                </flux:modal.trigger>
+                {{-- <flux:button variant="primary" size="sm" wire:click="openAddSceneForm" icon="plus">
                     {{ __('Add Scene') }}
-                </flux:button>
+                </flux:button> --}}
             </div>
 
             @if ($scenes->isEmpty())
@@ -100,7 +84,9 @@
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-semibold text-zinc-400 dark:text-zinc-500">{{ $index + 1 }}</span>
-                                <livewire:sessions.scene-card :scene="$scene" :sessionId="$session->id" :key="'scene-'.$scene->id" />
+                                <div class="flex-1">
+                                    <livewire:sessions.scene-card :scene="$scene" :sessionId="$session->id" :key="'scene-' . $scene->id" />
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -119,7 +105,7 @@
                 </div>
                 <div class="space-y-2">
                     @foreach ($unscopedEncounters as $encounter)
-                        <livewire:sessions.encounter-card :encounter="$encounter" :sceneId="null" :key="'encounter-'.$encounter->id" />
+                        <livewire:sessions.encounter-card :encounter="$encounter" :sceneId="null" :key="'encounter-' . $encounter->id" />
                     @endforeach
                 </div>
             </div>
@@ -136,95 +122,30 @@
                 </div>
                 <div class="space-y-2">
                     @foreach ($unscopedBranches as $branch)
-                        <livewire:sessions.branch-card :branch="$branch" :sceneId="null" :key="'branch-'.$branch->id" />
+                        <livewire:sessions.branch-card :branch="$branch" :sceneId="null" :key="'branch-' . $branch->id" />
                     @endforeach
                 </div>
             </div>
         @endif
 
         {{-- Add Scene Modal --}}
-        <flux:modal wire:model="showAddSceneForm" class="md:w-xl">
-            <flux:heading size="lg">{{ __('Add Scene') }}</flux:heading>
+        <flux:modal name="add-scene-modal" class="md:w-xl">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">{{ __('Add Scene') }}</flux:heading>
+                </div>
+                <div class="mt-4 flex flex-col gap-4">
+                    <flux:input wire:model="newSceneTitle" label="{{ __('Title') }}" placeholder="{{ __('Scene title...') }}" required />
+                    <flux:textarea wire:model="newSceneDescription" label="{{ __('Description') }}" placeholder="{{ __('What happens in this scene?') }}" rows="3" />
+                    <flux:textarea wire:model="newSceneNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Private notes for this scene...') }}" rows="2" />
+                </div>
 
-            <div class="flex flex-col gap-4 mt-4">
-                <flux:input
-                    wire:model="newSceneTitle"
-                    label="{{ __('Title') }}"
-                    placeholder="{{ __('Scene title...') }}"
-                    required
-                />
-                <flux:textarea
-                    wire:model="newSceneDescription"
-                    label="{{ __('Description') }}"
-                    placeholder="{{ __('What happens in this scene?') }}"
-                    rows="3"
-                />
-                <flux:textarea
-                    wire:model="newSceneNotes"
-                    label="{{ __('DM Notes') }}"
-                    placeholder="{{ __('Private notes for this scene...') }}"
-                    rows="2"
-                />
-            </div>
+                <div class="flex">
+                    <flux:spacer />
 
-            <div class="flex justify-end gap-3">
-                <flux:button variant="subtle" wire:click="$set('showAddSceneForm', false)">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="saveNewScene">{{ __('Add Scene') }}</flux:button>
-            </div>
-        </flux:modal>
-
-        {{-- Add Encounter Modal --}}
-        <flux:modal wire:model="showAddEncounterForm" class="md:w-xl">
-            <flux:heading size="lg">{{ __('Add Encounter') }}</flux:heading>
-
-            <div class="flex flex-col gap-4 mt-4">
-                <flux:input
-                    wire:model="newEncounterName"
-                    label="{{ __('Name') }}"
-                    placeholder="{{ __('Encounter name...') }}"
-                    required
-                />
-                <flux:textarea
-                    wire:model="newEncounterDescription"
-                    label="{{ __('Description') }}"
-                    placeholder="{{ __('Describe the encounter setup...') }}"
-                    rows="3"
-                />
-                <flux:input
-                    wire:model="newEncounterEnvironment"
-                    label="{{ __('Environment') }}"
-                    placeholder="{{ __('e.g., Dark cave, Open field, Castle dungeon...') }}"
-                />
-            </div>
-
-            <div class="flex justify-end gap-3">
-                <flux:button variant="subtle" wire:click="$set('showAddEncounterForm', false)">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="saveNewEncounter">{{ __('Add Encounter') }}</flux:button>
-            </div>
-        </flux:modal>
-
-        {{-- Add Branch Modal --}}
-        <flux:modal wire:model="showAddBranchForm" class="md:w-xl">
-            <flux:heading size="lg">{{ __('Add Branch Option') }}</flux:heading>
-
-            <div class="flex flex-col gap-4 mt-4">
-                <flux:input
-                    wire:model="newBranchLabel"
-                    label="{{ __('Label') }}"
-                    placeholder="{{ __('e.g., Fight the dragon, Negotiate peace, Flee...') }}"
-                    required
-                />
-                <flux:textarea
-                    wire:model="newBranchDescription"
-                    label="{{ __('Description') }}"
-                    placeholder="{{ __('What happens if the party chooses this option?') }}"
-                    rows="3"
-                />
-            </div>
-
-            <div class="flex justify-end gap-3">
-                <flux:button variant="subtle" wire:click="$set('showAddBranchForm', false)">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="saveNewBranch">{{ __('Add Branch') }}</flux:button>
+                    <flux:button variant="subtle" wire:click="$set('showAddSceneForm', false)">{{ __('Cancel') }}</flux:button>
+                    <flux:button variant="primary" wire:click="saveNewScene">{{ __('Add Scene') }}</flux:button>
+                </div>
             </div>
         </flux:modal>
     @endif
