@@ -11,6 +11,7 @@ use App\Livewire\Characters\CharacterIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Library\LootLibrary;
 use App\Livewire\Library\MonsterLibrary;
+use App\Livewire\Sessions\CombatTracker;
 use App\Livewire\Sessions\SessionBuilder;
 use App\Livewire\Sessions\SessionIndex;
 use App\Livewire\Sessions\SessionRecap;
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('campaigns/{campaign}/sessions/create', SessionBuilder::class)->name('sessions.create');
     Route::get('sessions/{session}/edit', SessionBuilder::class)->name('sessions.edit');
     Route::get('sessions/{session}/run', SessionRunner::class)->name('sessions.run');
+    Route::get('sessions/{session}/combat/{encounter}', CombatTracker::class)->name('sessions.combat');
     Route::get('sessions/{session}/recap', SessionRecap::class)->name('sessions.recap');
 });
 

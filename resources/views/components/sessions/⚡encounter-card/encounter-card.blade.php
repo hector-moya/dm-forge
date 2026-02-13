@@ -15,6 +15,7 @@
             <flux:badge size="sm" :variant="$diffVariant">{{ ucfirst($encounter->difficulty) }}</flux:badge>
         </div>
         <div class="flex items-center gap-1">
+            <flux:button variant="subtle" size="sm" href="{{ route('sessions.combat', [$encounter->game_session_id, $encounter]) }}" wire:navigate icon="bolt" title="{{ __('Combat Tracker') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openMonsterForm" icon="plus" title="{{ __('Add Monster') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openLootForm" icon="gift" title="{{ __('Add Loot') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openForm" icon="pencil" title="{{ __('Edit Encounter') }}" />
