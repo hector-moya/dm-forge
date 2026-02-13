@@ -15,8 +15,10 @@ class CustomMonster extends Model
         'name',
         'size',
         'type',
+        'subtype',
         'alignment',
         'armor_class',
+        'armor_class_type',
         'hit_points',
         'hit_dice',
         'speed',
@@ -26,11 +28,13 @@ class CustomMonster extends Model
         'intelligence',
         'wisdom',
         'charisma',
+        'proficiencies',
         'challenge_rating',
         'xp',
         'special_abilities',
         'actions',
         'legendary_actions',
+        'reactions',
         'senses',
         'languages',
         'damage_vulnerabilities',
@@ -38,15 +42,18 @@ class CustomMonster extends Model
         'damage_immunities',
         'condition_immunities',
         'notes',
+        'image_url',
     ];
 
     protected function casts(): array
     {
         return [
             'speed' => 'array',
+            'proficiencies' => 'array',
             'special_abilities' => 'array',
             'actions' => 'array',
             'legendary_actions' => 'array',
+            'reactions' => 'array',
             'senses' => 'array',
             'damage_vulnerabilities' => 'array',
             'damage_resistances' => 'array',

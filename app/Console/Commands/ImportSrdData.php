@@ -309,7 +309,7 @@ class ImportSrdData extends Command
             'cost_gp' => $costGp,
             'weight' => $data['weight'] ?? null,
             'description' => $this->joinDesc($data['desc'] ?? []),
-            'damage' => $data['damage'] ? [
+            'damage' => isset($data['damage']) ? [
                 'damage_dice' => $data['damage']['damage_dice'] ?? null,
                 'damage_type' => $data['damage']['damage_type']['name'] ?? null,
             ] : null,

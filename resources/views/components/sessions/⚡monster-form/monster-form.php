@@ -92,6 +92,35 @@ new class extends Component
 
         $encounter = Encounter::query()->findOrFail($this->encounterId);
 
+        $srdMonsterId = $this->selectedSrdMonsterId;
+        $customMonsterId = $this->selectedCustomMonsterId;
+        $stats = null;
+
+        // Auto-persist manually-entered monsters to custom_monsters
+        if (! $srdMonsterId && ! $customMonsterId) {
+            $customMonster = auth()->user()->customMonsters()->create([
+                'name' => $this->monsterName,
+                'armor_class' => $this->monsterAc,
+                'hit_points' => $this->monsterHpMax,
+                'challenge_rating' => $this->monsterCr,
+                'xp' => $this->monsterXp,
+            ]);
+            $customMonsterId = $customMonster->id;
+        }
+
+        // Build stats from source model
+        if ($srdMonsterId) {
+            $source = SrdMonster::query()->find($srdMonsterId);
+            if ($source) {
+                $stats = $this->extractStats($source);
+            }
+        } elseif ($customMonsterId) {
+            $source = CustomMonster::query()->find($customMonsterId);
+            if ($source) {
+                $stats = $this->extractStats($source);
+            }
+        }
+
         for ($i = 0; $i < $this->monsterCount; $i++) {
             $name = $this->monsterCount > 1
                 ? $this->monsterName.' '.($i + 1)
@@ -102,10 +131,11 @@ new class extends Component
                 'hp_max' => $this->monsterHpMax,
                 'hp_current' => $this->monsterHpMax,
                 'armor_class' => $this->monsterAc,
-                'srd_monster_id' => $this->selectedSrdMonsterId,
-                'custom_monster_id' => $this->selectedCustomMonsterId,
+                'srd_monster_id' => $srdMonsterId,
+                'custom_monster_id' => $customMonsterId,
                 'challenge_rating' => $this->monsterCr,
                 'xp' => $this->monsterXp,
+                'stats' => $stats,
             ]);
         }
 
@@ -113,6 +143,21 @@ new class extends Component
         $this->showForm = false;
         $this->dispatch('monster-form-closed');
         $this->dispatch('$refresh');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractStats(SrdMonster|CustomMonster $source): array
+    {
+        return [
+            'strength' => $source->strength ?? 10,
+            'dexterity' => $source->dexterity ?? 10,
+            'constitution' => $source->constitution ?? 10,
+            'intelligence' => $source->intelligence ?? 10,
+            'wisdom' => $source->wisdom ?? 10,
+            'charisma' => $source->charisma ?? 10,
+        ];
     }
 
     public function close(): void

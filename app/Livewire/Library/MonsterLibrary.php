@@ -54,6 +54,10 @@ class MonsterLibrary extends Component
 
     public int $customCharisma = 10;
 
+    public string $customSubtype = '';
+
+    public string $customArmorClassType = '';
+
     public string $customLanguages = '';
 
     public string $customNotes = '';
@@ -130,8 +134,10 @@ class MonsterLibrary extends Component
         $this->customName = $monster->name;
         $this->customSize = $monster->size ?? 'Medium';
         $this->customType = $monster->type ?? '';
+        $this->customSubtype = $monster->subtype ?? '';
         $this->customAlignment = $monster->alignment ?? '';
         $this->customArmorClass = $monster->armor_class;
+        $this->customArmorClassType = $monster->armor_class_type ?? '';
         $this->customHitPoints = $monster->hit_points;
         $this->customHitDice = $monster->hit_dice ?? '';
         $this->customChallengeRating = $monster->challenge_rating;
@@ -159,8 +165,10 @@ class MonsterLibrary extends Component
             'name' => $this->customName,
             'size' => $this->customSize,
             'type' => $this->customType,
+            'subtype' => $this->customSubtype ?: null,
             'alignment' => $this->customAlignment,
             'armor_class' => $this->customArmorClass,
+            'armor_class_type' => $this->customArmorClassType ?: null,
             'hit_points' => $this->customHitPoints,
             'hit_dice' => $this->customHitDice,
             'challenge_rating' => $this->customChallengeRating,
@@ -226,8 +234,10 @@ class MonsterLibrary extends Component
         $this->customName = '';
         $this->customSize = 'Medium';
         $this->customType = '';
+        $this->customSubtype = '';
         $this->customAlignment = '';
         $this->customArmorClass = 10;
+        $this->customArmorClassType = '';
         $this->customHitPoints = 1;
         $this->customHitDice = '';
         $this->customChallengeRating = null;

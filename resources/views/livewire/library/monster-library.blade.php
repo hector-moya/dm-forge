@@ -230,24 +230,28 @@
             <div class="flex flex-col gap-4">
                 <flux:input wire:model="customName" label="{{ __('Name') }}" placeholder="{{ __('Monster name...') }}" required />
 
-                <div class="grid gap-4 sm:grid-cols-3">
+                <div class="grid gap-4 sm:grid-cols-4">
                     <flux:select wire:model="customSize" label="{{ __('Size') }}">
                         @foreach (['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'] as $size)
                             <flux:select.option value="{{ $size }}">{{ $size }}</flux:select.option>
                         @endforeach
                     </flux:select>
                     <flux:input wire:model="customType" label="{{ __('Type') }}" placeholder="{{ __('e.g., Fiend') }}" />
+                    <flux:input wire:model="customSubtype" label="{{ __('Subtype') }}" placeholder="{{ __('e.g., goblinoid') }}" />
                     <flux:input wire:model="customAlignment" label="{{ __('Alignment') }}" placeholder="{{ __('e.g., Chaotic Evil') }}" />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-4">
                     <flux:input wire:model="customArmorClass" type="number" label="{{ __('Armor Class') }}" min="1" required />
+                    <flux:input wire:model="customArmorClassType" label="{{ __('AC Type') }}" placeholder="{{ __('e.g., natural armor') }}" />
                     <flux:input wire:model="customHitPoints" type="number" label="{{ __('Hit Points') }}" min="1" required />
                     <flux:input wire:model="customHitDice" label="{{ __('Hit Dice') }}" placeholder="{{ __('e.g., 8d8+16') }}" />
-                    <flux:input wire:model="customChallengeRating" type="number" label="{{ __('CR') }}" step="0.125" min="0" />
                 </div>
 
-                <flux:input wire:model="customXp" type="number" label="{{ __('XP') }}" min="0" />
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="customChallengeRating" type="number" label="{{ __('CR') }}" step="0.125" min="0" />
+                    <flux:input wire:model="customXp" type="number" label="{{ __('XP') }}" min="0" />
+                </div>
 
                 {{-- Ability Scores --}}
                 <flux:heading size="sm">{{ __('Ability Scores') }}</flux:heading>
