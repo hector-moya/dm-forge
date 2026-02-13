@@ -6,6 +6,7 @@ use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
 use App\Models\SrdMonster;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 class ImportSrdData extends Command
@@ -18,7 +19,7 @@ class ImportSrdData extends Command
 
     protected $description = 'Import D&D 5e SRD data from dnd5eapi.co';
 
-    private const BASE_URL = 'https://www.dnd5eapi.co/api';
+    private const BASE_URL = 'https://www.dnd5eapi.co/api/2014';
 
     private const BATCH_SIZE = 20;
 
@@ -198,7 +199,7 @@ class ImportSrdData extends Command
         foreach ($items as $item) {
             $response = $responses[$item['index']] ?? null;
 
-            if ($response && $response->successful()) {
+            if ($response instanceof Response && $response->successful()) {
                 $results[$item['index']] = $response->json();
             } else {
                 $this->warn("Failed to fetch {$endpoint}/{$item['index']}");

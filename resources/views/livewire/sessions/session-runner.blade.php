@@ -242,20 +242,83 @@
                 @else
                     <div class="space-y-2">
                         @foreach ($scenes as $scene)
-                            <div class="flex items-start justify-between rounded-lg px-3 py-2 {{ $scene->is_revealed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-zinc-50 dark:bg-zinc-700/50' }}">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $scene->title }}</span>
-                                        @if ($scene->is_revealed)
-                                            <flux:badge size="sm" variant="primary">{{ __('Revealed') }}</flux:badge>
+                            <div class="rounded-lg px-3 py-2 {{ $scene->is_revealed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-zinc-50 dark:bg-zinc-700/50' }}">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $scene->title }}</span>
+                                            @if ($scene->is_revealed)
+                                                <flux:badge size="sm" variant="primary">{{ __('Revealed') }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        @if ($scene->is_revealed && $scene->description)
+                                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $scene->description }}</p>
                                         @endif
                                     </div>
-                                    @if ($scene->is_revealed && $scene->description)
-                                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $scene->description }}</p>
-                                    @endif
+                                    <flux:button variant="subtle" size="sm" wire:click="toggleSceneReveal({{ $scene->id }})"
+                                                 icon="{{ $scene->is_revealed ? 'eye-slash' : 'eye' }}" />
                                 </div>
-                                <flux:button variant="subtle" size="sm" wire:click="toggleSceneReveal({{ $scene->id }})"
-                                             icon="{{ $scene->is_revealed ? 'eye-slash' : 'eye' }}" />
+
+                                {{-- Scene Puzzles --}}
+                                @if ($scene->is_revealed && $scene->puzzles->isNotEmpty())
+                                    <div class="mt-2 space-y-2 border-t border-green-200 pt-2 dark:border-green-800">
+                                        @foreach ($scene->puzzles as $puzzle)
+                                            <div class="rounded-md border border-violet-200 bg-violet-50 p-3 dark:border-violet-700 dark:bg-violet-900/30" wire:key="runner-puzzle-{{ $puzzle->id }}">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center gap-2">
+                                                        <flux:icon.puzzle-piece class="size-4 text-violet-500" />
+                                                        <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $puzzle->name }}</span>
+                                                        <flux:badge size="sm" variant="pill" color="{{ match($puzzle->difficulty) { 'easy' => 'green', 'medium' => 'amber', 'hard' => 'red' } }}">{{ ucfirst($puzzle->difficulty) }}</flux:badge>
+                                                        @if ($puzzle->is_solved)
+                                                            <flux:badge size="sm" variant="pill" color="emerald">{{ __('Solved') }}</flux:badge>
+                                                        @endif
+                                                    </div>
+                                                    <flux:button variant="subtle" size="sm" wire:click="togglePuzzleSolved({{ $puzzle->id }})" icon="{{ $puzzle->is_solved ? 'x-mark' : 'check' }}" title="{{ $puzzle->is_solved ? __('Mark Unsolved') : __('Mark Solved') }}" />
+                                                </div>
+
+                                                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->description }}</p>
+
+                                                {{-- Progressive Hint Buttons --}}
+                                                @php $currentTier = $revealedHints[$puzzle->id] ?? 0; @endphp
+                                                <div class="mt-2 flex flex-wrap gap-2">
+                                                    @if ($puzzle->hint_tier_1)
+                                                        @if ($currentTier >= 1)
+                                                            <div class="w-full rounded bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                                                <span class="font-semibold">{{ __('Hint 1:') }}</span> {{ $puzzle->hint_tier_1 }}
+                                                            </div>
+                                                        @else
+                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 1)" icon="light-bulb">{{ __('Hint 1') }}</flux:button>
+                                                        @endif
+                                                    @endif
+                                                    @if ($puzzle->hint_tier_2)
+                                                        @if ($currentTier >= 2)
+                                                            <div class="w-full rounded bg-orange-50 p-2 text-sm text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                                                                <span class="font-semibold">{{ __('Hint 2:') }}</span> {{ $puzzle->hint_tier_2 }}
+                                                            </div>
+                                                        @elseif ($currentTier >= 1)
+                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 2)" icon="light-bulb">{{ __('Hint 2') }}</flux:button>
+                                                        @endif
+                                                    @endif
+                                                    @if ($puzzle->hint_tier_3)
+                                                        @if ($currentTier >= 3)
+                                                            <div class="w-full rounded bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                                                <span class="font-semibold">{{ __('Hint 3:') }}</span> {{ $puzzle->hint_tier_3 }}
+                                                            </div>
+                                                        @elseif ($currentTier >= 2)
+                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 3)" icon="light-bulb">{{ __('Hint 3') }}</flux:button>
+                                                        @endif
+                                                    @endif
+                                                </div>
+
+                                                {{-- Solution (DM only, collapsible) --}}
+                                                <details class="mt-2">
+                                                    <summary class="cursor-pointer text-xs font-semibold uppercase text-violet-500">{{ __('Solution (DM Eyes Only)') }}</summary>
+                                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->solution }}</p>
+                                                </details>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
                     </div>

@@ -11,13 +11,13 @@ beforeEach(function () {
 
 test('it imports monsters from the SRD API', function () {
     Http::fake([
-        '*/api/monsters' => Http::response([
+        '*/api/2014/monsters' => Http::response([
             'count' => 1,
             'results' => [
                 ['index' => 'goblin', 'name' => 'Goblin', 'url' => '/api/monsters/goblin'],
             ],
         ]),
-        '*/api/monsters/goblin' => Http::response([
+        '*/api/2014/monsters/goblin' => Http::response([
             'index' => 'goblin',
             'name' => 'Goblin',
             'size' => 'Small',
@@ -78,13 +78,13 @@ test('it imports monsters from the SRD API', function () {
 
 test('it imports equipment from the SRD API', function () {
     Http::fake([
-        '*/api/equipment' => Http::response([
+        '*/api/2014/equipment' => Http::response([
             'count' => 1,
             'results' => [
                 ['index' => 'longsword', 'name' => 'Longsword', 'url' => '/api/equipment/longsword'],
             ],
         ]),
-        '*/api/equipment/longsword' => Http::response([
+        '*/api/2014/equipment/longsword' => Http::response([
             'index' => 'longsword',
             'name' => 'Longsword',
             'equipment_category' => ['name' => 'Weapon'],
@@ -128,13 +128,13 @@ test('it imports equipment from the SRD API', function () {
 
 test('it imports magic items from the SRD API', function () {
     Http::fake([
-        '*/api/magic-items' => Http::response([
+        '*/api/2014/magic-items' => Http::response([
             'count' => 1,
             'results' => [
                 ['index' => 'bag-of-holding', 'name' => 'Bag of Holding', 'url' => '/api/magic-items/bag-of-holding'],
             ],
         ]),
-        '*/api/magic-items/bag-of-holding' => Http::response([
+        '*/api/2014/magic-items/bag-of-holding' => Http::response([
             'index' => 'bag-of-holding',
             'name' => 'Bag of Holding',
             'equipment_category' => ['name' => 'Wondrous Items'],
@@ -170,7 +170,7 @@ test('fresh flag truncates existing data before import', function () {
     ]);
 
     Http::fake([
-        '*/api/monsters' => Http::response(['count' => 0, 'results' => []]),
+        '*/api/2014/monsters' => Http::response(['count' => 0, 'results' => []]),
     ]);
 
     $this->artisan('srd:import', ['--monsters-only' => true, '--fresh' => true])
@@ -189,11 +189,11 @@ test('import upserts existing records by index', function () {
     ]);
 
     Http::fake([
-        '*/api/monsters' => Http::response([
+        '*/api/2014/monsters' => Http::response([
             'count' => 1,
             'results' => [['index' => 'goblin', 'name' => 'Goblin', 'url' => '/api/monsters/goblin']],
         ]),
-        '*/api/monsters/goblin' => Http::response([
+        '*/api/2014/monsters/goblin' => Http::response([
             'index' => 'goblin',
             'name' => 'Goblin',
             'armor_class' => [['type' => 'armor', 'value' => 15]],
@@ -223,11 +223,11 @@ test('import upserts existing records by index', function () {
 
 test('cost conversion normalizes to gold pieces', function () {
     Http::fake([
-        '*/api/equipment' => Http::response([
+        '*/api/2014/equipment' => Http::response([
             'count' => 1,
             'results' => [['index' => 'torch', 'name' => 'Torch', 'url' => '/api/equipment/torch']],
         ]),
-        '*/api/equipment/torch' => Http::response([
+        '*/api/2014/equipment/torch' => Http::response([
             'index' => 'torch',
             'name' => 'Torch',
             'equipment_category' => ['name' => 'Adventuring Gear'],
