@@ -19,11 +19,11 @@ class LookupSrdMonster implements Tool
     {
         $query = SrdMonster::query();
 
-        if ($name = $request->string('name')) {
+        if ($name = (string) $request->string('name')) {
             $query->search($name);
         }
 
-        if ($type = $request->string('type')) {
+        if ($type = (string) $request->string('type')) {
             $query->byType($type);
         }
 

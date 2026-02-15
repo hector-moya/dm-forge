@@ -51,6 +51,9 @@
                 <flux:button variant="subtle" href="{{ route('campaigns.sessions', $campaign) }}" wire:navigate>
                     {{ __('Cancel') }}
                 </flux:button>
+                <flux:button type="button" variant="subtle" wire:click="openGenerateModal" icon="sparkles">
+                    {{ __('Generate with AI') }}
+                </flux:button>
                 <flux:button type="submit" variant="primary">
                     {{ $session ? __('Save Changes') : __('Create Session') }}
                 </flux:button>
@@ -149,4 +152,29 @@
             </div>
         </flux:modal>
     @endif
+
+    {{-- Generate Session Modal --}}
+    <flux:modal wire:model="showGenerateModal" class="md:w-xl">
+        <flux:heading size="lg">{{ __('Generate Session with AI') }}</flux:heading>
+        <flux:text class="mt-1">{{ __('Describe the session you want and the AI will generate scenes, encounters, monsters, branches, and puzzles.') }}</flux:text>
+
+        <div class="mt-4 flex flex-col gap-4">
+            <flux:textarea
+                wire:model="generateContext"
+                label="{{ __('Session Concept (optional)') }}"
+                placeholder="{{ __('e.g., A dungeon crawl through an ancient dwarven mine overrun by undead, leading to a confrontation with a lich...') }}"
+                rows="4"
+            />
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+            <flux:button variant="subtle" wire:click="$set('showGenerateModal', false)">
+                {{ __('Cancel') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="generateSession" icon="sparkles" wire:loading.attr="disabled" wire:target="generateSession">
+                <span wire:loading.remove wire:target="generateSession">{{ __('Generate') }}</span>
+                <span wire:loading wire:target="generateSession">{{ __('Generating...') }}</span>
+            </flux:button>
+        </div>
+    </flux:modal>
 </div>

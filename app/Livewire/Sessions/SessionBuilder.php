@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Sessions;
 
+use App\Ai\Agents\SessionGenerator;
 use App\Models\Campaign;
 use App\Models\GameSession;
+use App\Models\SrdMonster;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class SessionBuilder extends Component
@@ -50,6 +53,13 @@ class SessionBuilder extends Component
     public string $newBranchLabel = '';
 
     public string $newBranchDescription = '';
+
+    // Generate session with AI
+    public bool $showGenerateModal = false;
+
+    public string $generateContext = '';
+
+    public bool $generating = false;
 
     public function mount(?Campaign $campaign = null, ?GameSession $session = null): void
     {
@@ -200,6 +210,130 @@ class SessionBuilder extends Component
 
         Flux::toast(__('Branch option created successfully'));
         $this->showAddBranchForm = false;
+    }
+
+    // ── Generate Session with AI ────────────────────────────────────────
+
+    public function openGenerateModal(): void
+    {
+        $this->generateContext = '';
+        $this->showGenerateModal = true;
+    }
+
+    public function generateSession(): void
+    {
+        $this->generating = true;
+
+        try {
+            $generator = new SessionGenerator($this->campaign);
+            $response = $generator->prompt(
+                $this->generateContext
+                    ? "Generate a session based on this concept: {$this->generateContext}"
+                    : 'Generate a creative and engaging session for this campaign.'
+            );
+
+            DB::transaction(function () use ($response) {
+                // Create session if it doesn't exist
+                if (! $this->session) {
+                    $this->session = $this->campaign->gameSessions()->create([
+                        'title' => $response['title'] ?? 'Untitled Session',
+                        'session_number' => $this->session_number,
+                        'type' => $this->type,
+                        'status' => 'draft',
+                        'setup_text' => $response['setup_text'] ?? null,
+                        'dm_notes' => $response['dm_notes'] ?? null,
+                    ]);
+                } else {
+                    // Update existing session metadata
+                    $this->session->update([
+                        'title' => $response['title'] ?? $this->session->title,
+                        'setup_text' => $response['setup_text'] ?? $this->session->setup_text,
+                        'dm_notes' => $response['dm_notes'] ?? $this->session->dm_notes,
+                    ]);
+                }
+
+                $maxSort = $this->session->scenes()->max('sort_order') ?? 0;
+
+                foreach ($response['scenes'] ?? [] as $sceneData) {
+                    $maxSort++;
+
+                    // Append NPC names to scene notes
+                    $notes = $sceneData['notes'] ?? '';
+                    if (! empty($sceneData['npcs_involved'])) {
+                        $npcList = implode(', ', $sceneData['npcs_involved']);
+                        $notes .= "\n\nNPCs in this scene: {$npcList}";
+                    }
+
+                    $scene = $this->session->scenes()->create([
+                        'title' => $sceneData['title'],
+                        'description' => $sceneData['description'] ?? null,
+                        'notes' => trim($notes) ?: null,
+                        'sort_order' => $maxSort,
+                    ]);
+
+                    // Create encounters with monsters
+                    foreach ($sceneData['encounters'] ?? [] as $encounterIndex => $encounterData) {
+                        $encounter = $this->session->encounters()->create([
+                            'scene_id' => $scene->id,
+                            'name' => $encounterData['name'],
+                            'description' => $encounterData['description'] ?? null,
+                            'environment' => $encounterData['environment'] ?? null,
+                            'difficulty' => $encounterData['difficulty'] ?? 'medium',
+                            'sort_order' => $encounterIndex,
+                        ]);
+
+                        foreach ($encounterData['monsters'] ?? [] as $monsterData) {
+                            $srdMonster = SrdMonster::where('name', $monsterData['name'])->first();
+                            $quantity = $monsterData['quantity'] ?? 1;
+
+                            for ($i = 0; $i < $quantity; $i++) {
+                                $encounter->monsters()->create([
+                                    'name' => $monsterData['name'],
+                                    'srd_monster_id' => $srdMonster?->id,
+                                    'hp_max' => $srdMonster?->hit_points ?? 1,
+                                    'armor_class' => $srdMonster?->armor_class ?? 10,
+                                    'challenge_rating' => $srdMonster?->challenge_rating,
+                                    'xp' => $srdMonster?->xp,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // Create branch options
+                    foreach ($sceneData['branch_options'] ?? [] as $branchIndex => $branchData) {
+                        $this->session->branchOptions()->create([
+                            'scene_id' => $scene->id,
+                            'label' => $branchData['label'],
+                            'description' => $branchData['description'] ?? null,
+                            'sort_order' => $branchIndex,
+                        ]);
+                    }
+
+                    // Create puzzle if present
+                    if (! empty($sceneData['puzzle']) && ! empty($sceneData['puzzle']['name'])) {
+                        $this->campaign->puzzles()->create([
+                            'scene_id' => $scene->id,
+                            'name' => $sceneData['puzzle']['name'],
+                            'description' => $sceneData['puzzle']['description'],
+                            'solution' => $sceneData['puzzle']['solution'],
+                            'hint_tier_1' => $sceneData['puzzle']['hint_tier_1'] ?? null,
+                            'hint_tier_2' => $sceneData['puzzle']['hint_tier_2'] ?? null,
+                            'hint_tier_3' => $sceneData['puzzle']['hint_tier_3'] ?? null,
+                            'difficulty' => $sceneData['puzzle']['difficulty'] ?? 'medium',
+                            'puzzle_type' => $sceneData['puzzle']['puzzle_type'] ?? 'riddle',
+                        ]);
+                    }
+                }
+            });
+
+            $this->showGenerateModal = false;
+            Flux::toast(__('Session generated successfully!'));
+            $this->redirect(route('sessions.edit', $this->session), navigate: true);
+        } catch (\Throwable $e) {
+            Flux::toast(__('Generation failed: ').$e->getMessage());
+        }
+
+        $this->generating = false;
     }
 
     public function render(): \Illuminate\View\View

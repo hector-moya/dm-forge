@@ -54,6 +54,22 @@ new class extends Component
 
     public bool $generatingPuzzle = false;
 
+    // Encounter form
+    public bool $showAddEncounterForm = false;
+
+    public string $newEncounterName = '';
+
+    public string $newEncounterDescription = '';
+
+    public string $newEncounterEnvironment = '';
+
+    // Branch form
+    public bool $showAddBranchForm = false;
+
+    public string $newBranchLabel = '';
+
+    public string $newBranchDescription = '';
+
     public function openForm(?int $sceneId = null): void
     {
         $this->showForm = true;
@@ -232,6 +248,66 @@ new class extends Component
         }
 
         $this->generatingPuzzle = false;
+    }
+
+    // ── Encounter CRUD ───────────────────────────────────────────────
+
+    public function saveNewEncounter(): void
+    {
+        $this->validate([
+            'newEncounterName' => ['required', 'string', 'max:255'],
+            'newEncounterDescription' => ['nullable', 'string', 'max:5000'],
+            'newEncounterEnvironment' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $this->scene->encounters()->create([
+            'name' => $this->newEncounterName,
+            'description' => $this->newEncounterDescription ?: null,
+            'environment' => $this->newEncounterEnvironment ?: null,
+            'difficulty' => 'medium',
+            'campaign_id' => $this->scene->gameSession->campaign_id,
+        ]);
+
+        \Flux::toast(__('Encounter added to scene'));
+        $this->resetEncounterForm();
+        $this->dispatch('$refresh');
+    }
+
+    // ── Branch CRUD ──────────────────────────────────────────────────
+
+    public function saveNewBranch(): void
+    {
+        $this->validate([
+            'newBranchLabel' => ['required', 'string', 'max:255'],
+            'newBranchDescription' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $maxSort = $this->scene->branchOptions()->max('sort_order') ?? 0;
+        $this->scene->branchOptions()->create([
+            'label' => $this->newBranchLabel,
+            'description' => $this->newBranchDescription ?: null,
+            'sort_order' => $maxSort + 1,
+            'campaign_id' => $this->scene->gameSession->campaign_id,
+        ]);
+
+        \Flux::toast(__('Branch option added'));
+        $this->resetBranchForm();
+        $this->dispatch('$refresh');
+    }
+
+    private function resetEncounterForm(): void
+    {
+        $this->showAddEncounterForm = false;
+        $this->newEncounterName = '';
+        $this->newEncounterDescription = '';
+        $this->newEncounterEnvironment = '';
+    }
+
+    private function resetBranchForm(): void
+    {
+        $this->showAddBranchForm = false;
+        $this->newBranchLabel = '';
+        $this->newBranchDescription = '';
     }
 
     private function resetPuzzleForm(): void

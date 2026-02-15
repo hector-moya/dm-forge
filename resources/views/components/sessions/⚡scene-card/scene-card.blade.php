@@ -113,7 +113,7 @@
 
         <div class="flex justify-end gap-3">
             <flux:button variant="subtle" wire:click="$set('showAddBranchForm', false)">{{ __('Cancel') }}</flux:button>
-            <flux:button variant="primary" wire:click="$parent.saveNewBranch">{{ __('Add Branch') }}</flux:button>
+            <flux:button variant="primary" wire:click="saveNewBranch">{{ __('Add Branch') }}</flux:button>
         </div>
     </flux:modal>
 
