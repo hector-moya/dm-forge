@@ -177,6 +177,7 @@
                 placeholder="{{ __('e.g., A haunted forest at the border of two kingdoms, an underground dwarven forge...') }}"
                 rows="3"
             />
+            <flux:checkbox wire:model="generateImageOnCreate" label="{{ __('Also generate image') }}" />
         </div>
 
         <div class="mt-4 flex justify-end gap-3">

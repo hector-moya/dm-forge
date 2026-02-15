@@ -19,9 +19,18 @@
             <flux:button variant="subtle" size="sm" wire:click="delete({{ $scene->id }})" wire:confirm="{{ __('Delete this scene?') }}" icon="trash" title="{{ __('Delete Scene') }}" />
         </div>
     </div>
+    @if ($scene->image_path)
+        <img src="{{ $scene->image_url }}" alt="{{ $scene->title }}" class="mt-2 h-32 w-full rounded-lg object-cover" />
+    @endif
     @if ($scene->description)
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($scene->description, 120) }}</p>
     @endif
+    <div class="mt-2">
+        <flux:button variant="subtle" size="xs" wire:click="generateSceneImage" icon="sparkles" wire:loading.attr="disabled" wire:target="generateSceneImage">
+            <span wire:loading.remove wire:target="generateSceneImage">{{ $scene->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
+            <span wire:loading wire:target="generateSceneImage">{{ __('Generating...') }}</span>
+        </flux:button>
+    </div>
 
     {{-- Nested Encounters --}}
     @if ($scene->encounters->isNotEmpty())

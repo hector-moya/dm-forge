@@ -111,11 +111,24 @@
     <flux:modal name="view-item" class="md:w-xl" variant="flyout">
         @if ($viewingItem)
             <div class="space-y-6">
-                @if (!empty($viewingItem->image_url) && $viewingItem instanceof \App\Models\SrdMagicItem)
-                    <div class="flex justify-center">
+                {{-- Image display --}}
+                <div class="flex flex-col items-center gap-3">
+                    @if ($viewingItemSource === 'custom' && $viewingItem->image_path)
+                        <img src="{{ $viewingItem->image_url }}" alt="{{ $viewingItem->name }}" class="h-48 w-full rounded-lg object-cover" />
+                    @elseif (!empty($viewingItem->image_url) && $viewingItem instanceof \App\Models\SrdMagicItem)
                         <img src="{{ $viewingItem->full_image_url }}" alt="{{ $viewingItem->name }}" class="max-h-48 rounded-lg object-contain" loading="lazy" />
-                    </div>
-                @endif
+                    @elseif ($viewingItemSource === 'custom')
+                        <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                            <flux:icon name="gift" class="size-12 text-zinc-400 dark:text-zinc-500" />
+                        </div>
+                    @endif
+                    @if ($viewingItemSource === 'custom')
+                        <flux:button variant="subtle" size="sm" wire:click="generateImage({{ $viewingItem->id }})" icon="sparkles" wire:loading.attr="disabled" wire:target="generateImage({{ $viewingItem->id }})">
+                            <span wire:loading.remove wire:target="generateImage({{ $viewingItem->id }})">{{ $viewingItem->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
+                            <span wire:loading wire:target="generateImage({{ $viewingItem->id }})">{{ __('Generating...') }}</span>
+                        </flux:button>
+                    @endif
+                </div>
 
                 <div>
                     <flux:heading size="lg">{{ $viewingItem->name }}</flux:heading>

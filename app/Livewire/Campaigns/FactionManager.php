@@ -5,6 +5,7 @@ namespace App\Livewire\Campaigns;
 use App\Ai\Agents\FactionGenerator;
 use App\Models\Campaign;
 use App\Models\Faction;
+use App\Services\EntityImageGenerator;
 use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -39,6 +40,10 @@ class FactionManager extends Component
     public string $generateContext = '';
 
     public bool $generating = false;
+
+    public bool $generateImageOnCreate = false;
+
+    public bool $pendingImageGeneration = false;
 
     public function mount(Campaign $campaign): void
     {
@@ -104,8 +109,17 @@ class FactionManager extends Component
             $this->campaign->factions()->findOrFail($this->editingFactionId)->update($data);
             Flux::toast(__('Faction updated.'));
         } else {
-            $this->campaign->factions()->create($data);
+            $faction = $this->campaign->factions()->create($data);
             Flux::toast(__('Faction created.'));
+
+            if ($this->pendingImageGeneration) {
+                try {
+                    app(EntityImageGenerator::class)->generate($faction, 'faction');
+                    Flux::toast(__('Image generated!'));
+                } catch (\Throwable) {
+                    Flux::toast(__('Faction saved, but image generation failed.'));
+                }
+            }
         }
 
         $this->resetForm();
@@ -131,6 +145,7 @@ class FactionManager extends Component
         $this->factionAlignment = '';
         $this->factionGoals = '';
         $this->factionResources = '';
+        $this->pendingImageGeneration = false;
         $this->resetValidation();
     }
 
@@ -166,12 +181,33 @@ class FactionManager extends Component
             $this->factionGoals = $response['goals'] ?? '';
             $this->factionResources = $response['resources'] ?? '';
 
+            $this->pendingImageGeneration = $this->generateImageOnCreate;
+
             Flux::toast(__('Faction generated! Review and save below.'));
         } catch (\Throwable $e) {
             Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateImage(int $factionId): void
+    {
+        $faction = $this->campaign->factions()->findOrFail($factionId);
+
+        try {
+            $path = app(EntityImageGenerator::class)->generate($faction, 'faction');
+
+            if ($path) {
+                Flux::toast(__('Image generated!'));
+            } else {
+                Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            Flux::toast(__('Image generation failed: ').$e->getMessage());
+        }
     }
 
     // ── Render ─────────────────────────────────────────────────────────

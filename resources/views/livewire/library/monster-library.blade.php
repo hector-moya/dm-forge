@@ -86,11 +86,22 @@
     <flux:modal name="view-monster" class="md:w-xl" variant="flyout">
         @if ($viewingMonster)
             <div class="space-y-6">
-                @if ($viewingMonster->full_image_url)
-                    <div class="flex justify-center">
-                        <img src="{{ $viewingMonster->full_image_url }}" alt="{{ $viewingMonster->name }}" class="max-h-48 rounded-lg object-contain" loading="lazy" />
-                    </div>
-                @endif
+                {{-- Monster Image --}}
+                <div class="flex flex-col items-center gap-3">
+                    @if ($viewingMonster->image_url ?? $viewingMonster->full_image_url ?? null)
+                        <img src="{{ $viewingMonster->image_url ?? $viewingMonster->full_image_url }}" alt="{{ $viewingMonster->name }}" class="h-48 w-full rounded-lg object-cover" loading="lazy" />
+                    @else
+                        <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                            <flux:icon name="bug-ant" class="size-12 text-zinc-400 dark:text-zinc-500" />
+                        </div>
+                    @endif
+                    @if ($viewingMonsterSource === 'custom')
+                        <flux:button variant="subtle" size="sm" wire:click="generateImage({{ $viewingMonster->id }})" icon="sparkles" wire:loading.attr="disabled" wire:target="generateImage({{ $viewingMonster->id }})">
+                            <span wire:loading.remove wire:target="generateImage({{ $viewingMonster->id }})">{{ ($viewingMonster->image_path ?? null) ? __('Regenerate Image') : __('Generate Image') }}</span>
+                            <span wire:loading wire:target="generateImage({{ $viewingMonster->id }})">{{ __('Generating...') }}</span>
+                        </flux:button>
+                    @endif
+                </div>
 
                 <div>
                     <flux:heading size="lg">{{ $viewingMonster->name }}</flux:heading>
@@ -297,6 +308,7 @@
                 placeholder="{{ __('e.g., A fire-breathing lizard for a level 5 party, an undead knight guarding a tomb, a swamp creature with poison attacks...') }}"
                 rows="3"
             />
+            <flux:checkbox wire:model="generateImageOnCreate" label="{{ __('Also generate image') }}" />
         </div>
 
         <div class="mt-4 flex justify-end gap-3">

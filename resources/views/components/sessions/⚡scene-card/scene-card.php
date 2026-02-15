@@ -2,6 +2,7 @@
 
 use App\Ai\Agents\PuzzleDesigner;
 use App\Models\Scene;
+use App\Services\EntityImageGenerator;
 use Livewire\Component;
 
 new class extends Component
@@ -248,6 +249,24 @@ new class extends Component
         }
 
         $this->generatingPuzzle = false;
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateSceneImage(): void
+    {
+        try {
+            $path = app(EntityImageGenerator::class)->generate($this->scene, 'scene');
+
+            if ($path) {
+                $this->scene->refresh();
+                \Flux::toast(__('Scene image generated!'));
+            } else {
+                \Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
+        }
     }
 
     // ── Encounter CRUD ───────────────────────────────────────────────

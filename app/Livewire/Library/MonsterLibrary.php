@@ -5,6 +5,7 @@ namespace App\Livewire\Library;
 use App\Ai\Agents\MonsterGenerator;
 use App\Models\CustomMonster;
 use App\Models\SrdMonster;
+use App\Services\EntityImageGenerator;
 use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -70,6 +71,10 @@ class MonsterLibrary extends Component
     public string $generateContext = '';
 
     public bool $generating = false;
+
+    public bool $generateImageOnCreate = false;
+
+    public bool $pendingImageGeneration = false;
 
     public function getMonsters(): Collection
     {
@@ -198,7 +203,16 @@ class MonsterLibrary extends Component
                 ->where('id', $this->editingCustomMonsterId)
                 ->update($data);
         } else {
-            auth()->user()->customMonsters()->create($data);
+            $monster = auth()->user()->customMonsters()->create($data);
+
+            if ($this->pendingImageGeneration) {
+                try {
+                    app(EntityImageGenerator::class)->generate($monster, 'monster');
+                    Flux::toast(__('Image generated!'));
+                } catch (\Throwable) {
+                    Flux::toast(__('Monster saved, but image generation failed.'));
+                }
+            }
         }
 
         $this->resetCustomForm();
@@ -263,12 +277,35 @@ class MonsterLibrary extends Component
             $this->customLanguages = $response['languages'] ?? '';
             $this->customNotes = $response['notes'] ?? '';
 
+            $this->pendingImageGeneration = $this->generateImageOnCreate;
+
             Flux::toast(__('Monster generated! Review and save below.'));
         } catch (\Throwable $e) {
             Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateImage(int $monsterId): void
+    {
+        $monster = CustomMonster::query()
+            ->where('user_id', auth()->id())
+            ->findOrFail($monsterId);
+
+        try {
+            $path = app(EntityImageGenerator::class)->generate($monster, 'monster');
+
+            if ($path) {
+                Flux::toast(__('Image generated!'));
+            } else {
+                Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            Flux::toast(__('Image generation failed: ').$e->getMessage());
+        }
     }
 
     public function getMonsterTypesProperty(): array
@@ -313,6 +350,7 @@ class MonsterLibrary extends Component
         $this->customCharisma = 10;
         $this->customLanguages = '';
         $this->customNotes = '';
+        $this->pendingImageGeneration = false;
     }
 
     /**

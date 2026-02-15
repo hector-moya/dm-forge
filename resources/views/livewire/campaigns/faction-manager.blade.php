@@ -94,6 +94,21 @@
     <flux:modal name="view-faction" class="md:w-xl" variant="flyout">
         @if ($viewingFaction)
             <div class="space-y-6">
+                {{-- Faction Image --}}
+                <div class="flex flex-col items-center gap-3">
+                    @if ($viewingFaction->image_path)
+                        <img src="{{ $viewingFaction->image_url }}" alt="{{ $viewingFaction->name }}" class="h-48 w-full rounded-lg object-cover" />
+                    @else
+                        <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                            <flux:icon name="flag" class="size-12 text-zinc-400 dark:text-zinc-500" />
+                        </div>
+                    @endif
+                    <flux:button variant="subtle" size="sm" wire:click="generateImage({{ $viewingFaction->id }})" icon="sparkles" wire:loading.attr="disabled" wire:target="generateImage({{ $viewingFaction->id }})">
+                        <span wire:loading.remove wire:target="generateImage({{ $viewingFaction->id }})">{{ $viewingFaction->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
+                        <span wire:loading wire:target="generateImage({{ $viewingFaction->id }})">{{ __('Generating...') }}</span>
+                    </flux:button>
+                </div>
+
                 <div>
                     <flux:heading size="lg">{{ $viewingFaction->name }}</flux:heading>
                     @if ($viewingFaction->alignment)
@@ -154,6 +169,7 @@
                 placeholder="{{ __('e.g., A secret guild of assassins, an order of paladins protecting the realm...') }}"
                 rows="3"
             />
+            <flux:checkbox wire:model="generateImageOnCreate" label="{{ __('Also generate image') }}" />
         </div>
 
         <div class="mt-4 flex justify-end gap-3">

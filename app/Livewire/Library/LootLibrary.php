@@ -5,6 +5,8 @@ namespace App\Livewire\Library;
 use App\Models\CustomLoot;
 use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
+use App\Services\EntityImageGenerator;
+use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 
@@ -162,6 +164,27 @@ class LootLibrary extends Component
 
         if ($this->viewingItemId === $id) {
             $this->viewingItemId = null;
+        }
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateImage(int $lootId): void
+    {
+        $loot = CustomLoot::query()
+            ->where('user_id', auth()->id())
+            ->findOrFail($lootId);
+
+        try {
+            $path = app(EntityImageGenerator::class)->generate($loot, 'loot');
+
+            if ($path) {
+                Flux::toast(__('Image generated!'));
+            } else {
+                Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
     }
 
