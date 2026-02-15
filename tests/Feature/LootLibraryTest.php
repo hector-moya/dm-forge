@@ -1,10 +1,13 @@
 <?php
 
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Livewire\Library\LootLibrary;
 use App\Models\CustomLoot;
 use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 test('loot library page requires authentication', function () {
@@ -143,6 +146,23 @@ test('user cannot edit another users custom loot', function () {
     Livewire::actingAs($user)
         ->test(LootLibrary::class)
         ->call('editCustomLoot', $loot->id);
+});
+
+test('loot library can generate image for custom loot', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    $user = User::factory()->create();
+    $loot = CustomLoot::factory()->for($user)->create(['name' => 'Frostbrand']);
+
+    Livewire::actingAs($user)
+        ->test(LootLibrary::class)
+        ->call('generateImage', $loot->id);
+
+    expect($loot->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('loot'));
+    Image::assertGenerated(fn () => true);
 });
 
 test('custom loot validation requires name', function () {

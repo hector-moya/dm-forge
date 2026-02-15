@@ -1,11 +1,14 @@
 <?php
 
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
 use App\Models\Faction;
 use App\Models\Location;
 use App\Models\Npc;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 test('npc manager page loads for campaign owner', function () {
@@ -213,6 +216,24 @@ test('npc manager generates npc with ai', function () {
         ->assertSet('npcVoiceDescription', 'Deep bass');
 
     NpcGenerator::assertPrompted(fn ($prompt) => $prompt->contains('tavern owner'));
+});
+
+test('npc manager can generate image for npc', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $npc = Npc::factory()->for($campaign)->create(['name' => 'Gornik']);
+
+    Livewire::actingAs($user)
+        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->call('generateImage', $npc->id);
+
+    expect($npc->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('npc'));
+    Image::assertGenerated(fn () => true);
 });
 
 test('npc manager handles ai failure gracefully', function () {

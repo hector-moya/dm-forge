@@ -1,9 +1,12 @@
 <?php
 
 use App\Ai\Agents\FactionGenerator;
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Models\Campaign;
 use App\Models\Faction;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 test('faction manager page loads for campaign owner', function () {
@@ -139,6 +142,24 @@ test('faction manager generates faction with ai', function () {
         ->assertSet('factionAlignment', 'Lawful Neutral');
 
     FactionGenerator::assertPrompted(fn ($prompt) => $prompt->contains('warrior guild'));
+});
+
+test('faction manager can generate image for faction', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $faction = Faction::factory()->for($campaign)->create(['name' => 'Iron Brotherhood']);
+
+    Livewire::actingAs($user)
+        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->call('generateImage', $faction->id);
+
+    expect($faction->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('faction'));
+    Image::assertGenerated(fn () => true);
 });
 
 test('faction manager handles ai failure gracefully', function () {

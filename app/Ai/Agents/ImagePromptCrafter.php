@@ -53,7 +53,7 @@ PROMPT;
         return [
             'prompt' => $schema->string()->required()
                 ->description('The DALL-E image generation prompt. 2-4 sentences of vivid, detailed description.'),
-            'orientation' => $schema->enum(['square', 'portrait', 'landscape'])->required()
+            'orientation' => $schema->string()->enum(['square', 'portrait', 'landscape'])->required()
                 ->description('Best orientation: portrait for characters/NPCs, landscape for locations/scenes, square for items/monsters/factions'),
         ];
     }

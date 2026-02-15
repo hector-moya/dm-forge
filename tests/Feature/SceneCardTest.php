@@ -1,9 +1,12 @@
 <?php
 
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Models\Campaign;
 use App\Models\GameSession;
 use App\Models\Scene;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -70,4 +73,20 @@ it('validates branch label is required', function () {
         ->set('newBranchLabel', '')
         ->call('saveNewBranch')
         ->assertHasErrors(['newBranchLabel' => 'required']);
+});
+
+it('can generate an image for a scene', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    Livewire::test('sessions.scene-card', [
+        'scene' => $this->scene,
+        'sessionId' => $this->session->id,
+    ])
+        ->call('generateSceneImage');
+
+    expect($this->scene->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('scene'));
+    Image::assertGenerated(fn () => true);
 });

@@ -1,10 +1,13 @@
 <?php
 
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Ai\Agents\LocationGenerator;
 use App\Models\Campaign;
 use App\Models\Location;
 use App\Models\Npc;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 test('location manager page loads for campaign owner', function () {
@@ -164,6 +167,24 @@ test('location manager generates location with ai', function () {
         ->assertSet('locationRegion', 'Northern Marches');
 
     LocationGenerator::assertPrompted(fn ($prompt) => $prompt->contains('haunted forest'));
+});
+
+test('location manager can generate image for location', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $location = Location::factory()->for($campaign)->create(['name' => 'Dark Forest']);
+
+    Livewire::actingAs($user)
+        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->call('generateImage', $location->id);
+
+    expect($location->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('location'));
+    Image::assertGenerated(fn () => true);
 });
 
 test('location manager handles ai failure gracefully', function () {

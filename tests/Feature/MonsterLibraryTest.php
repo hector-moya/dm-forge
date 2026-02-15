@@ -1,9 +1,12 @@
 <?php
 
+use App\Ai\Agents\ImagePromptCrafter;
 use App\Livewire\Library\MonsterLibrary;
 use App\Models\CustomMonster;
 use App\Models\SrdMonster;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Image;
 use Livewire\Livewire;
 
 test('monster library page requires authentication', function () {
@@ -141,6 +144,23 @@ test('user cannot edit another users custom monster', function () {
     Livewire::actingAs($user)
         ->test(MonsterLibrary::class)
         ->call('editCustomMonster', $monster->id);
+});
+
+test('monster library can generate image for custom monster', function () {
+    Storage::fake('public');
+    ImagePromptCrafter::fake();
+    Image::fake();
+
+    $user = User::factory()->create();
+    $monster = CustomMonster::factory()->for($user)->create(['name' => 'Shadow Drake']);
+
+    Livewire::actingAs($user)
+        ->test(MonsterLibrary::class)
+        ->call('generateImage', $monster->id);
+
+    expect($monster->fresh()->image_path)->not->toBeNull();
+    ImagePromptCrafter::assertPrompted(fn ($prompt) => $prompt->contains('monster'));
+    Image::assertGenerated(fn () => true);
 });
 
 test('custom monster validation requires name', function () {
