@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\LookupFaction;
 use App\Ai\Tools\LookupLocation;
 use App\Ai\Tools\LookupNpc;
 use App\Models\Campaign;
@@ -47,8 +48,10 @@ Guidelines:
 - Voice descriptions should help the DM roleplay the NPC (accent, cadence, pitch, mannerisms)
 - Speech patterns should describe HOW the NPC talks (formal, slang, repetitive, poetic, etc.)
 - Catchphrases should be 2-4 short, memorable phrases the NPC frequently uses
-- Use the lookup tools to reference existing NPCs and locations when relevant
+- Use the lookup tools to reference existing NPCs, locations, and factions when relevant
 - The NPC should feel organic within the campaign's theme and tone
+- Consider how existing faction dynamics shape this NPC's backstory and allegiances
+- Backstory should include past decisions and events that shaped who they are
 - Suggest a faction and location if relevant to the campaign
 PROMPT;
     }
@@ -58,6 +61,7 @@ PROMPT;
         return [
             new LookupNpc($this->campaign),
             new LookupLocation($this->campaign),
+            new LookupFaction($this->campaign),
         ];
     }
 
@@ -81,6 +85,8 @@ PROMPT;
             'catchphrases' => $schema->array()->items(
                 $schema->string()
             )->required()->description('2-4 memorable phrases the NPC frequently uses'),
+            'backstory' => $schema->string()->required()
+                ->description('Brief backstory: past decisions, key events, and experiences that shaped this NPC'),
             'suggested_faction' => $schema->string()
                 ->description('Suggested faction name if relevant to campaign'),
             'suggested_location' => $schema->string()

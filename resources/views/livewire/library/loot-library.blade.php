@@ -111,6 +111,12 @@
     <flux:modal name="view-item" class="md:w-xl" variant="flyout">
         @if ($viewingItem)
             <div class="space-y-6">
+                @if (!empty($viewingItem->image_url) && $viewingItem instanceof \App\Models\SrdMagicItem)
+                    <div class="flex justify-center">
+                        <img src="{{ $viewingItem->full_image_url }}" alt="{{ $viewingItem->name }}" class="max-h-48 rounded-lg object-contain" loading="lazy" />
+                    </div>
+                @endif
+
                 <div>
                     <flux:heading size="lg">{{ $viewingItem->name }}</flux:heading>
                     @if (!empty($viewingItem->rarity))

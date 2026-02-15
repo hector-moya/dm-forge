@@ -83,9 +83,14 @@
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
         <div class="mb-4 flex items-center justify-between">
             <flux:heading size="lg">{{ __('Factions') }}</flux:heading>
-            <flux:button variant="primary" size="sm" wire:click="openFactionForm" icon="plus">
-                {{ __('Add Faction') }}
-            </flux:button>
+            <div class="flex items-center gap-2">
+                <flux:button variant="subtle" size="sm" wire:click="openGenerateFactionModal" icon="sparkles">
+                    {{ __('Generate Faction') }}
+                </flux:button>
+                <flux:button variant="primary" size="sm" wire:click="openFactionForm" icon="plus">
+                    {{ __('Add Faction') }}
+                </flux:button>
+            </div>
         </div>
 
         @if ($showFactionForm)
@@ -166,9 +171,14 @@
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
         <div class="mb-4 flex items-center justify-between">
             <flux:heading size="lg">{{ __('Locations') }}</flux:heading>
-            <flux:button variant="primary" size="sm" wire:click="openLocationForm" icon="plus">
-                {{ __('Add Location') }}
-            </flux:button>
+            <div class="flex items-center gap-2">
+                <flux:button variant="subtle" size="sm" wire:click="openGenerateLocationModal" icon="sparkles">
+                    {{ __('Generate Location') }}
+                </flux:button>
+                <flux:button variant="primary" size="sm" wire:click="openLocationForm" icon="plus">
+                    {{ __('Add Location') }}
+                </flux:button>
+            </div>
         </div>
 
         @if ($showLocationForm)
@@ -405,6 +415,56 @@
             <flux:button variant="primary" wire:click="generateNpc" icon="sparkles" wire:loading.attr="disabled" wire:target="generateNpc">
                 <span wire:loading.remove wire:target="generateNpc">{{ __('Generate') }}</span>
                 <span wire:loading wire:target="generateNpc">{{ __('Generating...') }}</span>
+            </flux:button>
+        </div>
+    </flux:modal>
+
+    {{-- Generate Faction Modal --}}
+    <flux:modal wire:model="showGenerateFactionModal" class="md:w-xl">
+        <flux:heading size="lg">{{ __('Generate Faction with AI') }}</flux:heading>
+        <flux:text class="mt-1">{{ __('Provide optional context to guide the AI, then review and edit the result before saving.') }}</flux:text>
+
+        <div class="mt-4 flex flex-col gap-4">
+            <flux:textarea
+                wire:model="generateFactionContext"
+                label="{{ __('Context (optional)') }}"
+                placeholder="{{ __('e.g., A secret guild of assassins operating from the sewers, neutral evil alignment...') }}"
+                rows="3"
+            />
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+            <flux:button variant="subtle" wire:click="$set('showGenerateFactionModal', false)">
+                {{ __('Cancel') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="generateFaction" icon="sparkles" wire:loading.attr="disabled" wire:target="generateFaction">
+                <span wire:loading.remove wire:target="generateFaction">{{ __('Generate') }}</span>
+                <span wire:loading wire:target="generateFaction">{{ __('Generating...') }}</span>
+            </flux:button>
+        </div>
+    </flux:modal>
+
+    {{-- Generate Location Modal --}}
+    <flux:modal wire:model="showGenerateLocationModal" class="md:w-xl">
+        <flux:heading size="lg">{{ __('Generate Location with AI') }}</flux:heading>
+        <flux:text class="mt-1">{{ __('Provide optional context to guide the AI, then review and edit the result before saving.') }}</flux:text>
+
+        <div class="mt-4 flex flex-col gap-4">
+            <flux:textarea
+                wire:model="generateLocationContext"
+                label="{{ __('Context (optional)') }}"
+                placeholder="{{ __('e.g., A haunted forest at the border of two warring kingdoms, with ancient ruins...') }}"
+                rows="3"
+            />
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+            <flux:button variant="subtle" wire:click="$set('showGenerateLocationModal', false)">
+                {{ __('Cancel') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="generateLocation" icon="sparkles" wire:loading.attr="disabled" wire:target="generateLocation">
+                <span wire:loading.remove wire:target="generateLocation">{{ __('Generate') }}</span>
+                <span wire:loading wire:target="generateLocation">{{ __('Generating...') }}</span>
             </flux:button>
         </div>
     </flux:modal>

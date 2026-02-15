@@ -2,9 +2,14 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <flux:heading size="xl">{{ __('Monster Library') }}</flux:heading>
-        <flux:button variant="primary" wire:click="openCustomForm" icon="plus">
-            {{ __('Custom Monster') }}
-        </flux:button>
+        <div class="flex items-center gap-2">
+            <flux:button variant="subtle" wire:click="openGenerateModal" icon="sparkles">
+                {{ __('Generate Monster') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="openCustomForm" icon="plus">
+                {{ __('Custom Monster') }}
+            </flux:button>
+        </div>
     </div>
 
     {{-- Search & Filters --}}
@@ -81,6 +86,12 @@
     <flux:modal name="view-monster" class="md:w-xl" variant="flyout">
         @if ($viewingMonster)
             <div class="space-y-6">
+                @if ($viewingMonster->full_image_url)
+                    <div class="flex justify-center">
+                        <img src="{{ $viewingMonster->full_image_url }}" alt="{{ $viewingMonster->name }}" class="max-h-48 rounded-lg object-contain" loading="lazy" />
+                    </div>
+                @endif
+
                 <div>
                     <flux:heading size="lg">{{ $viewingMonster->name }}</flux:heading>
                     <flux:text class="mt-1 italic">
@@ -271,6 +282,29 @@
                     {{ $editingCustomMonsterId ? __('Update Monster') : __('Create Monster') }}
                 </flux:button>
             </div>
+        </div>
+    </flux:modal>
+
+    {{-- Generate Monster Modal --}}
+    <flux:modal wire:model="showGenerateModal" class="md:w-xl">
+        <flux:heading size="lg">{{ __('Generate Monster with AI') }}</flux:heading>
+        <flux:text class="mt-1">{{ __('Describe the monster you want and the AI will generate a complete stat block for you to review.') }}</flux:text>
+
+        <div class="mt-4 flex flex-col gap-4">
+            <flux:textarea
+                wire:model="generateContext"
+                label="{{ __('Description (optional)') }}"
+                placeholder="{{ __('e.g., A fire-breathing lizard for a level 5 party, an undead knight guarding a tomb, a swamp creature with poison attacks...') }}"
+                rows="3"
+            />
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+            <flux:button variant="subtle" wire:click="$set('showGenerateModal', false)">{{ __('Cancel') }}</flux:button>
+            <flux:button variant="primary" wire:click="generateMonster" icon="sparkles" wire:loading.attr="disabled" wire:target="generateMonster">
+                <span wire:loading.remove wire:target="generateMonster">{{ __('Generate') }}</span>
+                <span wire:loading wire:target="generateMonster">{{ __('Generating...') }}</span>
+            </flux:button>
         </div>
     </flux:modal>
 </div>

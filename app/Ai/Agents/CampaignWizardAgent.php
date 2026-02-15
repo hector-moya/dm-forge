@@ -66,6 +66,16 @@ PROMPT;
                     ])
                 )->required()->description('3-5 key locations for the campaign'),
             ],
+            'npcs' => [
+                'npcs' => $schema->array()->items(
+                    $schema->object([
+                        'name' => $schema->string()->required(),
+                        'role' => $schema->string()->required(),
+                        'description' => $schema->string()->required(),
+                        'personality' => $schema->string()->required(),
+                    ])
+                )->required()->description('3-5 notable NPCs that fit the campaign'),
+            ],
             default => [
                 'suggestion' => $schema->string()->required()
                     ->description('A creative suggestion for this step'),

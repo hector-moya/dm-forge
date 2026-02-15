@@ -26,65 +26,70 @@
                 @endif
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <flux:button variant="subtle" href="{{ route('campaigns.characters', $campaign) }}" wire:navigate icon="users" size="sm">
-                {{ __('Characters') }}
-            </flux:button>
-            <flux:button variant="subtle" href="{{ route('campaigns.sessions', $campaign) }}" wire:navigate icon="book-open" size="sm">
-                {{ __('Sessions') }}
-            </flux:button>
-            <flux:button variant="primary" href="{{ route('campaigns.edit', $campaign) }}" wire:navigate icon="pencil" size="sm">
-                {{ __('Edit') }}
-            </flux:button>
+        <flux:button variant="subtle" href="{{ route('campaigns.timeline', $campaign) }}" wire:navigate icon="clock" size="sm">
+            {{ __('Timeline') }}
+        </flux:button>
+    </div>
+
+    {{-- Campaign Details Card --}}
+    @if ($campaign->premise || $campaign->lore || $campaign->world_rules || $campaign->special_mechanics)
+        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
+            <div class="mb-4 flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Campaign Details') }}</flux:heading>
+                <flux:button variant="subtle" size="sm" href="{{ route('campaigns.edit', $campaign) }}" wire:navigate icon="pencil">
+                    {{ __('Edit') }}
+                </flux:button>
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-2">
+                @if ($campaign->premise)
+                    <div class="lg:col-span-2">
+                        <flux:heading size="sm" class="mb-1">{{ __('Premise') }}</flux:heading>
+                        <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->premise }}</flux:text>
+                    </div>
+                @endif
+
+                @if ($campaign->lore)
+                    <div class="lg:col-span-2">
+                        <flux:heading size="sm" class="mb-1">{{ __('Lore') }}</flux:heading>
+                        <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->lore }}</flux:text>
+                    </div>
+                @endif
+
+                @if ($campaign->world_rules)
+                    <div>
+                        <flux:heading size="sm" class="mb-1">{{ __('World Rules') }}</flux:heading>
+                        <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->world_rules }}</flux:text>
+                    </div>
+                @endif
+
+                @if ($campaign->special_mechanics)
+                    <div>
+                        <flux:heading size="sm" class="mb-1">{{ __('Special Mechanics') }}</flux:heading>
+                        <ul class="list-inside list-disc space-y-1 text-zinc-600 dark:text-zinc-300">
+                            @foreach ($campaign->special_mechanics as $mechanic)
+                                <li>{{ $mechanic }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
         </div>
-    </div>
-
-    {{-- Campaign Bible Sections --}}
-    <div class="grid gap-6 lg:grid-cols-2">
-        {{-- Premise --}}
-        @if ($campaign->premise)
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800 lg:col-span-2">
-                <flux:heading size="lg" class="mb-3">{{ __('Premise') }}</flux:heading>
-                <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->premise }}</flux:text>
-            </div>
-        @endif
-
-        {{-- Lore --}}
-        @if ($campaign->lore)
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800 lg:col-span-2">
-                <flux:heading size="lg" class="mb-3">{{ __('Lore') }}</flux:heading>
-                <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->lore }}</flux:text>
-            </div>
-        @endif
-
-        {{-- World Rules --}}
-        @if ($campaign->world_rules)
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('World Rules') }}</flux:heading>
-                <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->world_rules }}</flux:text>
-            </div>
-        @endif
-
-        {{-- Special Mechanics --}}
-        @if ($campaign->special_mechanics)
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('Special Mechanics') }}</flux:heading>
-                <ul class="list-inside list-disc space-y-1 text-zinc-600 dark:text-zinc-300">
-                    @foreach ($campaign->special_mechanics as $mechanic)
-                        <li>{{ $mechanic }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    </div>
+    @endif
 
     {{-- Entity Cards --}}
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {{-- Factions --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
             <div class="mb-3 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Factions') }}</flux:heading>
-                <flux:badge size="sm">{{ $campaign->factions->count() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('Factions') }}</flux:heading>
+                    <flux:badge size="sm">{{ $campaign->factions->count() }}</flux:badge>
+                </div>
+                <div class="flex items-center gap-1">
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.factions', $campaign) }}" wire:navigate icon="sparkles" title="{{ __('Generate Faction') }}" />
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.factions', $campaign) }}" wire:navigate icon="plus" title="{{ __('Add Faction') }}" />
+                </div>
             </div>
             @if ($campaign->factions->isEmpty())
                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No factions yet.') }}</flux:text>
@@ -105,8 +110,14 @@
         {{-- Locations --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
             <div class="mb-3 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Locations') }}</flux:heading>
-                <flux:badge size="sm">{{ $campaign->locations->count() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('Locations') }}</flux:heading>
+                    <flux:badge size="sm">{{ $campaign->locations->count() }}</flux:badge>
+                </div>
+                <div class="flex items-center gap-1">
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.locations', $campaign) }}" wire:navigate icon="sparkles" title="{{ __('Generate Location') }}" />
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.locations', $campaign) }}" wire:navigate icon="plus" title="{{ __('Add Location') }}" />
+                </div>
             </div>
             @if ($campaign->locations->isEmpty())
                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No locations yet.') }}</flux:text>
@@ -127,8 +138,14 @@
         {{-- NPCs --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
             <div class="mb-3 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('NPCs') }}</flux:heading>
-                <flux:badge size="sm">{{ $campaign->npcs->count() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('NPCs') }}</flux:heading>
+                    <flux:badge size="sm">{{ $campaign->npcs->count() }}</flux:badge>
+                </div>
+                <div class="flex items-center gap-1">
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.npcs', $campaign) }}" wire:navigate icon="sparkles" title="{{ __('Generate NPC') }}" />
+                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.npcs', $campaign) }}" wire:navigate icon="plus" title="{{ __('Add NPC') }}" />
+                </div>
             </div>
             @if ($campaign->npcs->isEmpty())
                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No NPCs yet.') }}</flux:text>
@@ -154,8 +171,11 @@
         {{-- Characters --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
             <div class="mb-3 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Characters') }}</flux:heading>
-                <flux:badge size="sm">{{ $campaign->characters->count() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('Characters') }}</flux:heading>
+                    <flux:badge size="sm">{{ $campaign->characters->count() }}</flux:badge>
+                </div>
+                <flux:button variant="subtle" size="sm" href="{{ route('campaigns.characters', $campaign) }}" wire:navigate icon="pencil" title="{{ __('Manage Characters') }}" />
             </div>
             @if ($campaign->characters->isEmpty())
                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No characters yet.') }}</flux:text>
@@ -186,30 +206,36 @@
         {{-- Sessions --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800 md:col-span-2 lg:col-span-2">
             <div class="mb-3 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Sessions') }}</flux:heading>
-                <flux:badge size="sm">{{ $campaign->gameSessions->count() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('Sessions') }}</flux:heading>
+                    <flux:badge size="sm">{{ $campaign->gameSessions->count() }}</flux:badge>
+                </div>
+                <flux:button variant="subtle" size="sm" href="{{ route('sessions.create', $campaign) }}" wire:navigate icon="plus">
+                    {{ __('New Session') }}
+                </flux:button>
             </div>
             @if ($campaign->gameSessions->isEmpty())
                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No sessions yet.') }}</flux:text>
             @else
                 <ul class="space-y-2">
                     @foreach ($campaign->gameSessions->sortByDesc('session_number') as $session)
-                        <li class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-700/50">
-                            <div>
+                        <li>
+                            <a href="{{ route('sessions.edit', $session) }}" wire:navigate
+                               class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 transition hover:bg-zinc-100 dark:bg-zinc-700/50 dark:hover:bg-zinc-700">
                                 <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">
                                     #{{ $session->session_number }}: {{ $session->title }}
                                 </span>
-                            </div>
-                            @if ($session->status)
-                                @php
-                                    $sessionVariant = match($session->status) {
-                                        'completed' => 'primary',
-                                        'in_progress' => 'warning',
-                                        default => 'outline',
-                                    };
-                                @endphp
-                                <flux:badge size="sm" :variant="$sessionVariant">{{ ucfirst(str_replace('_', ' ', $session->status)) }}</flux:badge>
-                            @endif
+                                @if ($session->status)
+                                    @php
+                                        $sessionVariant = match($session->status) {
+                                            'completed' => 'primary',
+                                            'in_progress' => 'warning',
+                                            default => 'outline',
+                                        };
+                                    @endphp
+                                    <flux:badge size="sm" :variant="$sessionVariant">{{ ucfirst(str_replace('_', ' ', $session->status)) }}</flux:badge>
+                                @endif
+                            </a>
                         </li>
                     @endforeach
                 </ul>

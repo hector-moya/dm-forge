@@ -4,6 +4,13 @@
 @endphp
 
 <div class="space-y-3">
+    {{-- Image --}}
+    @if (!empty($stat['image_url']))
+        <div class="flex justify-center">
+            <img src="{{ $stat['image_url'] }}" alt="{{ $stat['name'] }}" class="max-h-40 rounded-lg object-contain" loading="lazy" />
+        </div>
+    @endif
+
     {{-- Header --}}
     <div>
         <div class="text-lg font-bold text-red-700 dark:text-red-400">{{ $stat['name'] }}</div>

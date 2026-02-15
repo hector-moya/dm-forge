@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Library;
 
+use App\Ai\Agents\MonsterGenerator;
 use App\Models\CustomMonster;
 use App\Models\SrdMonster;
+use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 
@@ -61,6 +63,13 @@ class MonsterLibrary extends Component
     public string $customLanguages = '';
 
     public string $customNotes = '';
+
+    // Generator
+    public bool $showGenerateModal = false;
+
+    public string $generateContext = '';
+
+    public bool $generating = false;
 
     public function getMonsters(): Collection
     {
@@ -206,6 +215,60 @@ class MonsterLibrary extends Component
         if ($this->viewingMonsterId === $id) {
             $this->viewingMonsterId = null;
         }
+    }
+
+    // ── Generator ─────────────────────────────────────────────────────
+
+    public function openGenerateModal(): void
+    {
+        $this->showGenerateModal = true;
+        $this->generateContext = '';
+        $this->generating = false;
+    }
+
+    public function generateMonster(): void
+    {
+        $this->generating = true;
+
+        try {
+            $generator = new MonsterGenerator;
+            $prompt = 'Generate a unique D&D 5e monster.';
+            if ($this->generateContext) {
+                $prompt .= " Context: {$this->generateContext}";
+            }
+
+            $response = $generator->prompt($prompt);
+
+            $this->showGenerateModal = false;
+
+            $this->resetCustomForm();
+            $this->showCustomForm = true;
+            $this->customName = $response['name'] ?? '';
+            $this->customSize = $response['size'] ?? 'Medium';
+            $this->customType = $response['type'] ?? '';
+            $this->customSubtype = $response['subtype'] ?? '';
+            $this->customAlignment = $response['alignment'] ?? '';
+            $this->customArmorClass = (int) ($response['armor_class'] ?? 10);
+            $this->customArmorClassType = $response['armor_class_type'] ?? '';
+            $this->customHitPoints = (int) ($response['hit_points'] ?? 1);
+            $this->customHitDice = $response['hit_dice'] ?? '';
+            $this->customStrength = (int) ($response['strength'] ?? 10);
+            $this->customDexterity = (int) ($response['dexterity'] ?? 10);
+            $this->customConstitution = (int) ($response['constitution'] ?? 10);
+            $this->customIntelligence = (int) ($response['intelligence'] ?? 10);
+            $this->customWisdom = (int) ($response['wisdom'] ?? 10);
+            $this->customCharisma = (int) ($response['charisma'] ?? 10);
+            $this->customChallengeRating = isset($response['challenge_rating']) ? (float) $response['challenge_rating'] : null;
+            $this->customXp = isset($response['xp']) ? (int) $response['xp'] : null;
+            $this->customLanguages = $response['languages'] ?? '';
+            $this->customNotes = $response['notes'] ?? '';
+
+            Flux::toast(__('Monster generated! Review and save below.'));
+        } catch (\Throwable $e) {
+            Flux::toast(__('Generation failed: ').$e->getMessage());
+        }
+
+        $this->generating = false;
     }
 
     public function getMonsterTypesProperty(): array

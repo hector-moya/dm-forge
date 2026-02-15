@@ -37,4 +37,9 @@ class Faction extends Model
     {
         return $this->hasMany(Npc::class);
     }
+
+    public function worldEvents(): HasMany
+    {
+        return $this->hasMany(WorldEvent::class);
+    }
 }

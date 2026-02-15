@@ -18,6 +18,7 @@ class WorldEvent extends Model
         'event_type',
         'faction_id',
         'location_id',
+        'npc_id',
         'occurred_at',
         'sort_order',
         'metadata',
@@ -50,5 +51,10 @@ class WorldEvent extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function npc(): BelongsTo
+    {
+        return $this->belongsTo(Npc::class);
     }
 }

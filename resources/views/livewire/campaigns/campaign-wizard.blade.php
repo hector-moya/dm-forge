@@ -15,8 +15,9 @@
                 2 => 'World',
                 3 => 'Factions',
                 4 => 'Locations',
-                5 => 'Characters',
-                6 => 'Review',
+                5 => 'NPCs',
+                6 => 'Characters',
+                7 => 'Review',
             ];
         @endphp
         @foreach ($steps as $num => $label)
@@ -186,8 +187,55 @@
                 </div>
             </div>
 
-        {{-- Step 5: Characters --}}
+        {{-- Step 5: NPCs --}}
         @elseif ($currentStep === 5)
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <flux:heading size="lg">{{ __('NPCs') }}</flux:heading>
+                    <flux:text>{{ __('Define notable NPCs in your campaign world.') }}</flux:text>
+                </div>
+                <flux:button variant="subtle" size="sm" wire:click="suggestNpcs" icon="sparkles" wire:loading.attr="disabled" wire:target="suggestNpcs">
+                    <span wire:loading.remove wire:target="suggestNpcs">{{ __('AI Suggest') }}</span>
+                    <span wire:loading wire:target="suggestNpcs">{{ __('Generating...') }}</span>
+                </flux:button>
+            </div>
+
+            @if (count($npcs) > 0)
+                <div class="mb-4 space-y-2">
+                    @foreach ($npcs as $index => $npc)
+                        <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-4 py-3 dark:bg-zinc-700/50">
+                            <div>
+                                <span class="font-medium text-zinc-700 dark:text-zinc-200">{{ $npc['name'] }}</span>
+                                @if ($npc['role'])
+                                    <flux:badge size="sm" variant="outline" class="ml-2">{{ $npc['role'] }}</flux:badge>
+                                @endif
+                                @if ($npc['description'])
+                                    <p class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($npc['description'], 80) }}</p>
+                                @endif
+                            </div>
+                            <flux:button variant="subtle" size="sm" wire:click="removeNpc({{ $index }})" icon="x-mark" />
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700/50">
+                <flux:heading size="base" class="mb-3">{{ __('Add NPC') }}</flux:heading>
+                <div class="flex flex-col gap-3">
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <flux:input wire:model="npcName" label="{{ __('Name') }}" placeholder="{{ __('NPC name...') }}" />
+                        <flux:input wire:model="npcRole" label="{{ __('Role') }}" placeholder="{{ __('e.g., Blacksmith, Quest Giver') }}" />
+                    </div>
+                    <flux:textarea wire:model="npcDescription" label="{{ __('Description') }}" placeholder="{{ __('Physical appearance, background...') }}" rows="2" />
+                    <flux:textarea wire:model="npcPersonality" label="{{ __('Personality') }}" placeholder="{{ __('Traits, temperament, quirks...') }}" rows="2" />
+                    <div class="flex justify-end">
+                        <flux:button variant="primary" size="sm" wire:click="addNpc" icon="plus">{{ __('Add') }}</flux:button>
+                    </div>
+                </div>
+            </div>
+
+        {{-- Step 6: Characters --}}
+        @elseif ($currentStep === 6)
             <flux:heading size="lg" class="mb-1">{{ __('Party Members') }}</flux:heading>
             <flux:text class="mb-4">{{ __('Add the player characters for this campaign. You can add more later.') }}</flux:text>
 
@@ -227,8 +275,8 @@
                 </div>
             </div>
 
-        {{-- Step 6: Review --}}
-        @elseif ($currentStep === 6)
+        {{-- Step 7: Review --}}
+        @elseif ($currentStep === 7)
             <flux:heading size="lg" class="mb-4">{{ __('Review & Create') }}</flux:heading>
             <flux:text class="mb-4">{{ __('Review your campaign details before creating.') }}</flux:text>
 
@@ -277,6 +325,17 @@
                         <div class="flex flex-wrap gap-2">
                             @foreach ($locations as $location)
                                 <flux:badge>{{ $location['name'] }}</flux:badge>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                @if (count($npcs) > 0)
+                    <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-700/50">
+                        <flux:heading size="base" class="mb-2">{{ __('NPCs') }} ({{ count($npcs) }})</flux:heading>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($npcs as $npc)
+                                <flux:badge>{{ $npc['name'] }}{{ $npc['role'] ? " — {$npc['role']}" : '' }}</flux:badge>
                             @endforeach
                         </div>
                     </div>

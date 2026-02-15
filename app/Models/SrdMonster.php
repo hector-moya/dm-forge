@@ -3,11 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class SrdMonster extends Model
 {
+    private const IMAGE_BASE_URL = 'https://www.dnd5eapi.co';
+
     protected $guarded = [];
+
+    protected function fullImageUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->image_url
+            ? self::IMAGE_BASE_URL.$this->image_url
+            : null
+        );
+    }
 
     protected function casts(): array
     {

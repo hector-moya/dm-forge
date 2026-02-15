@@ -11,7 +11,7 @@ class CampaignWizard extends Component
 {
     public int $currentStep = 1;
 
-    public int $totalSteps = 6;
+    public int $totalSteps = 7;
 
     // Step 1: Basics
     public string $name = '';
@@ -47,7 +47,19 @@ class CampaignWizard extends Component
 
     public string $locationRegion = '';
 
-    // Step 5: Characters
+    // Step 5: NPCs
+    /** @var array<int, array{name: string, role: string, description: string, personality: string}> */
+    public array $npcs = [];
+
+    public string $npcName = '';
+
+    public string $npcRole = '';
+
+    public string $npcDescription = '';
+
+    public string $npcPersonality = '';
+
+    // Step 6: Characters
     /** @var array<int, array{name: string, player_name: string, class: string, level: int}> */
     public array $characters = [];
 
@@ -180,6 +192,37 @@ class CampaignWizard extends Component
         $this->generating = false;
     }
 
+    public function suggestNpcs(): void
+    {
+        $this->generating = true;
+
+        try {
+            $agent = new CampaignWizardAgent('npcs', [
+                'name' => $this->name,
+                'premise' => $this->premise,
+                'theme_tone' => $this->theme_tone,
+                'lore' => $this->lore,
+            ]);
+
+            $response = $agent->prompt('Suggest notable NPCs for this campaign.');
+
+            foreach ($response['npcs'] ?? [] as $npc) {
+                $this->npcs[] = [
+                    'name' => $npc['name'],
+                    'role' => $npc['role'],
+                    'description' => $npc['description'],
+                    'personality' => $npc['personality'],
+                ];
+            }
+
+            Flux::toast(__('NPCs suggested!'));
+        } catch (\Throwable $e) {
+            Flux::toast(__('Generation failed: ').$e->getMessage());
+        }
+
+        $this->generating = false;
+    }
+
     // ── Faction CRUD ──────────────────────────────────────────────────
 
     public function addFaction(): void
@@ -235,6 +278,36 @@ class CampaignWizard extends Component
     {
         unset($this->locations[$index]);
         $this->locations = array_values($this->locations);
+    }
+
+    // ── NPC CRUD ───────────────────────────────────────────────────────
+
+    public function addNpc(): void
+    {
+        $this->validate([
+            'npcName' => ['required', 'string', 'max:255'],
+            'npcRole' => ['nullable', 'string', 'max:255'],
+            'npcDescription' => ['nullable', 'string', 'max:5000'],
+            'npcPersonality' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->npcs[] = [
+            'name' => $this->npcName,
+            'role' => $this->npcRole,
+            'description' => $this->npcDescription,
+            'personality' => $this->npcPersonality,
+        ];
+
+        $this->npcName = '';
+        $this->npcRole = '';
+        $this->npcDescription = '';
+        $this->npcPersonality = '';
+    }
+
+    public function removeNpc(int $index): void
+    {
+        unset($this->npcs[$index]);
+        $this->npcs = array_values($this->npcs);
     }
 
     // ── Character CRUD ────────────────────────────────────────────────
@@ -298,6 +371,16 @@ class CampaignWizard extends Component
                 'name' => $location['name'],
                 'description' => $location['description'] ?: null,
                 'region' => $location['region'] ?: null,
+            ]);
+        }
+
+        foreach ($this->npcs as $npc) {
+            $campaign->npcs()->create([
+                'name' => $npc['name'],
+                'role' => $npc['role'] ?: null,
+                'description' => $npc['description'] ?: null,
+                'personality' => $npc['personality'] ?: null,
+                'is_alive' => true,
             ]);
         }
 

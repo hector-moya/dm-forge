@@ -411,6 +411,7 @@ class CombatTracker extends Component
             'actions' => $source->actions ?? [],
             'legendary_actions' => $source->legendary_actions ?? [],
             'reactions' => $source->reactions ?? [],
+            'image_url' => $source->full_image_url ?? null,
         ];
     }
 

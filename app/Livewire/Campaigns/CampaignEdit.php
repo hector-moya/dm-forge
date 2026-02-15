@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Campaigns;
 
+use App\Ai\Agents\FactionGenerator;
+use App\Ai\Agents\LocationGenerator;
 use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
 use App\Models\Faction;
@@ -83,6 +85,20 @@ class CampaignEdit extends Component
     public string $npcSpeechPatterns = '';
 
     public string $npcCatchphrases = '';
+
+    // Faction Generator
+    public bool $showGenerateFactionModal = false;
+
+    public string $generateFactionContext = '';
+
+    public bool $generatingFaction = false;
+
+    // Location Generator
+    public bool $showGenerateLocationModal = false;
+
+    public string $generateLocationContext = '';
+
+    public bool $generatingLocation = false;
 
     // NPC Generator
     public bool $showGenerateNpcModal = false;
@@ -378,6 +394,88 @@ class CampaignEdit extends Component
         $this->npcLocationId = null;
         $this->npcIsAlive = true;
         $this->resetValidation();
+    }
+
+    // ── Faction Generator ──────────────────────────────────────────────
+
+    public function openGenerateFactionModal(): void
+    {
+        $this->showGenerateFactionModal = true;
+        $this->generateFactionContext = '';
+        $this->generatingFaction = false;
+    }
+
+    public function generateFaction(): void
+    {
+        $this->generatingFaction = true;
+
+        try {
+            $generator = new FactionGenerator($this->campaign);
+            $prompt = 'Generate a unique faction for this campaign.';
+            if ($this->generateFactionContext) {
+                $prompt .= " Context: {$this->generateFactionContext}";
+            }
+
+            $response = $generator->prompt($prompt);
+
+            $this->showGenerateFactionModal = false;
+
+            $this->resetFactionForm();
+            $this->showFactionForm = true;
+            $this->factionName = $response['name'] ?? '';
+            $this->factionDescription = $response['description'] ?? '';
+            $this->factionAlignment = $response['alignment'] ?? '';
+            $this->factionGoals = $response['goals'] ?? '';
+            $this->factionResources = $response['resources'] ?? '';
+
+            Flux::toast(__('Faction generated! Review and save below.'));
+        } catch (\Throwable $e) {
+            Flux::toast(__('Faction generation failed: ').$e->getMessage());
+        }
+
+        $this->generatingFaction = false;
+    }
+
+    // ── Location Generator ────────────────────────────────────────────
+
+    public function openGenerateLocationModal(): void
+    {
+        $this->showGenerateLocationModal = true;
+        $this->generateLocationContext = '';
+        $this->generatingLocation = false;
+    }
+
+    public function generateLocation(): void
+    {
+        $this->generatingLocation = true;
+
+        try {
+            $generator = new LocationGenerator($this->campaign);
+            $prompt = 'Generate a unique location for this campaign.';
+            if ($this->generateLocationContext) {
+                $prompt .= " Context: {$this->generateLocationContext}";
+            }
+
+            $response = $generator->prompt($prompt);
+
+            $this->showGenerateLocationModal = false;
+
+            $this->resetLocationForm();
+            $this->showLocationForm = true;
+            $this->locationName = $response['name'] ?? '';
+            $this->locationDescription = $response['description'] ?? '';
+            $this->locationRegion = $response['region'] ?? '';
+
+            if (! empty($response['history'])) {
+                $this->locationDescription .= "\n\nHistory: ".$response['history'];
+            }
+
+            Flux::toast(__('Location generated! Review and save below.'));
+        } catch (\Throwable $e) {
+            Flux::toast(__('Location generation failed: ').$e->getMessage());
+        }
+
+        $this->generatingLocation = false;
     }
 
     // ── NPC Generator ─────────────────────────────────────────────────
