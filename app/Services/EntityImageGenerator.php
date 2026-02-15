@@ -39,7 +39,8 @@ class EntityImageGenerator
 
             $image = Image::of($prompt)->{$orientation}()->generate();
 
-            $filename = "images/{$entityType}s/{$entity->getKey()}_{time()}.webp";
+            $timestamp = time();
+            $filename = "images/{$entityType}s/{$entity->getKey()}_{$timestamp}.webp";
             $image->storePubliclyAs($filename);
 
             $this->deleteOldImage($entity);
