@@ -11,7 +11,7 @@ beforeEach(function () {
     $this->campaign = Campaign::factory()->create(['user_id' => $this->user->id]);
     $this->session = GameSession::factory()->create(['campaign_id' => $this->campaign->id]);
     $this->scene = Scene::factory()->create(['game_session_id' => $this->session->id]);
-    
+
     $this->actingAs($this->user);
 });
 

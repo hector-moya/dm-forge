@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class CustomLoot extends Model
 {
@@ -21,6 +23,7 @@ class CustomLoot extends Model
         'value_gp',
         'weight',
         'properties',
+        'image_path',
     ];
 
     protected function casts(): array
@@ -30,6 +33,13 @@ class CustomLoot extends Model
             'value_gp' => 'float',
             'weight' => 'float',
         ];
+    }
+
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->image_path
+            ? Storage::disk('public')->url($this->image_path)
+            : null);
     }
 
     public function user(): BelongsTo
