@@ -265,7 +265,7 @@ new class extends Component
             'description' => $this->newEncounterDescription ?: null,
             'environment' => $this->newEncounterEnvironment ?: null,
             'difficulty' => 'medium',
-            'campaign_id' => $this->scene->gameSession->campaign_id,
+            'game_session_id' => $this->scene->game_session_id,
         ]);
 
         \Flux::toast(__('Encounter added to scene'));
@@ -287,7 +287,7 @@ new class extends Component
             'label' => $this->newBranchLabel,
             'description' => $this->newBranchDescription ?: null,
             'sort_order' => $maxSort + 1,
-            'campaign_id' => $this->scene->gameSession->campaign_id,
+            'game_session_id' => $this->scene->game_session_id,
         ]);
 
         \Flux::toast(__('Branch option added'));

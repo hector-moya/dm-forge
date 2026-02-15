@@ -18,6 +18,7 @@ class Encounter extends Model
         'difficulty',
         'sort_order',
         'scene_id',
+        'game_session_id',
     ];
 
     protected function casts(): array
