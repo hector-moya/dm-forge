@@ -5,6 +5,7 @@ namespace App\Livewire\Campaigns;
 use App\Ai\Agents\LocationGenerator;
 use App\Models\Campaign;
 use App\Models\Location;
+use App\Services\EntityImageGenerator;
 use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -39,6 +40,10 @@ class LocationManager extends Component
     public string $generateContext = '';
 
     public bool $generating = false;
+
+    public bool $generateImageOnCreate = false;
+
+    public bool $pendingImageGeneration = false;
 
     public function mount(Campaign $campaign): void
     {
@@ -101,8 +106,17 @@ class LocationManager extends Component
             $this->campaign->locations()->findOrFail($this->editingLocationId)->update($data);
             Flux::toast(__('Location updated.'));
         } else {
-            $this->campaign->locations()->create($data);
+            $location = $this->campaign->locations()->create($data);
             Flux::toast(__('Location created.'));
+
+            if ($this->pendingImageGeneration) {
+                try {
+                    app(EntityImageGenerator::class)->generate($location, 'location');
+                    Flux::toast(__('Image generated!'));
+                } catch (\Throwable) {
+                    Flux::toast(__('Location saved, but image generation failed.'));
+                }
+            }
         }
 
         $this->resetForm();
@@ -127,6 +141,7 @@ class LocationManager extends Component
         $this->locationDescription = '';
         $this->locationRegion = '';
         $this->locationParentId = null;
+        $this->pendingImageGeneration = false;
         $this->resetValidation();
     }
 
@@ -164,12 +179,33 @@ class LocationManager extends Component
                 $this->locationDescription .= "\n\nHistory: ".$response['history'];
             }
 
+            $this->pendingImageGeneration = $this->generateImageOnCreate;
+
             Flux::toast(__('Location generated! Review and save below.'));
         } catch (\Throwable $e) {
             Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateImage(int $locationId): void
+    {
+        $location = $this->campaign->locations()->findOrFail($locationId);
+
+        try {
+            $path = app(EntityImageGenerator::class)->generate($location, 'location');
+
+            if ($path) {
+                Flux::toast(__('Image generated!'));
+            } else {
+                Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            Flux::toast(__('Image generation failed: ').$e->getMessage());
+        }
     }
 
     // ── Render ─────────────────────────────────────────────────────────

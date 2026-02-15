@@ -5,6 +5,7 @@ namespace App\Livewire\Campaigns;
 use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
 use App\Models\Npc;
+use App\Services\EntityImageGenerator;
 use Flux;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -55,6 +56,10 @@ class NpcManager extends Component
     public string $generateContext = '';
 
     public bool $generating = false;
+
+    public bool $generateImageOnCreate = false;
+
+    public bool $pendingImageGeneration = false;
 
     public function mount(Campaign $campaign): void
     {
@@ -142,8 +147,17 @@ class NpcManager extends Component
             $this->campaign->npcs()->findOrFail($this->editingNpcId)->update($data);
             Flux::toast(__('NPC updated.'));
         } else {
-            $this->campaign->npcs()->create($data);
+            $npc = $this->campaign->npcs()->create($data);
             Flux::toast(__('NPC created.'));
+
+            if ($this->pendingImageGeneration) {
+                try {
+                    app(EntityImageGenerator::class)->generate($npc, 'npc');
+                    Flux::toast(__('Image generated!'));
+                } catch (\Throwable) {
+                    Flux::toast(__('NPC saved, but image generation failed.'));
+                }
+            }
         }
 
         $this->resetForm();
@@ -175,6 +189,7 @@ class NpcManager extends Component
         $this->npcFactionId = null;
         $this->npcLocationId = null;
         $this->npcIsAlive = true;
+        $this->pendingImageGeneration = false;
         $this->resetValidation();
     }
 
@@ -212,6 +227,7 @@ class NpcManager extends Component
             $this->npcVoiceDescription = $response['voice_description'] ?? '';
             $this->npcSpeechPatterns = $response['speech_patterns'] ?? '';
             $this->npcCatchphrases = isset($response['catchphrases']) ? implode("\n", $response['catchphrases']) : '';
+            $this->pendingImageGeneration = $this->generateImageOnCreate;
 
             Flux::toast(__('NPC generated! Review and save below.'));
         } catch (\Throwable $e) {
@@ -219,6 +235,25 @@ class NpcManager extends Component
         }
 
         $this->generating = false;
+    }
+
+    // ── Image Generation ──────────────────────────────────────────────
+
+    public function generateImage(int $npcId): void
+    {
+        $npc = $this->campaign->npcs()->findOrFail($npcId);
+
+        try {
+            $path = app(EntityImageGenerator::class)->generate($npc, 'npc');
+
+            if ($path) {
+                Flux::toast(__('Image generated!'));
+            } else {
+                Flux::toast(__('Image generation failed.'));
+            }
+        } catch (\Throwable $e) {
+            Flux::toast(__('Image generation failed: ').$e->getMessage());
+        }
     }
 
     // ── Render ─────────────────────────────────────────────────────────

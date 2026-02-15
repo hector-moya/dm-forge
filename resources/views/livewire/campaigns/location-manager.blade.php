@@ -102,6 +102,21 @@
     <flux:modal name="view-location" class="md:w-xl" variant="flyout">
         @if ($viewingLocation)
             <div class="space-y-6">
+                {{-- Location Image --}}
+                <div class="flex flex-col items-center gap-3">
+                    @if ($viewingLocation->image_path)
+                        <img src="{{ $viewingLocation->image_url }}" alt="{{ $viewingLocation->name }}" class="h-48 w-full rounded-lg object-cover" />
+                    @else
+                        <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                            <flux:icon name="map-pin" class="size-12 text-zinc-400 dark:text-zinc-500" />
+                        </div>
+                    @endif
+                    <flux:button variant="subtle" size="sm" wire:click="generateImage({{ $viewingLocation->id }})" icon="sparkles" wire:loading.attr="disabled" wire:target="generateImage({{ $viewingLocation->id }})">
+                        <span wire:loading.remove wire:target="generateImage({{ $viewingLocation->id }})">{{ $viewingLocation->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
+                        <span wire:loading wire:target="generateImage({{ $viewingLocation->id }})">{{ __('Generating...') }}</span>
+                    </flux:button>
+                </div>
+
                 <div>
                     <flux:heading size="lg">{{ $viewingLocation->name }}</flux:heading>
                     @if ($viewingLocation->region)
