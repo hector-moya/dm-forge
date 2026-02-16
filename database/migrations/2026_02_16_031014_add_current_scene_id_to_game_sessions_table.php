@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('game_sessions', function (Blueprint $table) {
-            //
+            $table->foreignId('current_scene_id')->nullable()->constrained('scenes')->nullOnDelete();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('game_sessions', function (Blueprint $table) {
-            //
+            $table->dropConstrainedForeignId('current_scene_id');
         });
     }
 };
