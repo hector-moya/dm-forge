@@ -75,6 +75,37 @@ it('validates branch label is required', function () {
         ->assertHasErrors(['newBranchLabel' => 'required']);
 });
 
+it('auto-creates branch option when adding encounter', function () {
+    Livewire::test('sessions.scene-card', [
+        'scene' => $this->scene,
+        'sessionId' => $this->session->id,
+    ])
+        ->set('newEncounterName', 'Dragon Fight')
+        ->call('saveNewEncounter');
+
+    $branch = $this->scene->branchOptions()->where('label', 'like', '%Dragon Fight%')->first();
+    expect($branch)->not->toBeNull()
+        ->and($branch->label)->toBe('Combat: Dragon Fight')
+        ->and($branch->game_session_id)->toBe($this->session->id);
+});
+
+it('auto-creates branch option when adding puzzle', function () {
+    Livewire::test('sessions.scene-card', [
+        'scene' => $this->scene,
+        'sessionId' => $this->session->id,
+    ])
+        ->set('puzzleName', 'Rune Puzzle')
+        ->set('puzzleDescription', 'Ancient runes glow on the wall')
+        ->set('puzzleSolution', 'Arrange them in order')
+        ->set('puzzleDifficulty', 'hard')
+        ->set('puzzleType', 'pattern')
+        ->call('savePuzzle');
+
+    $branch = $this->scene->branchOptions()->where('label', 'like', '%Rune Puzzle%')->first();
+    expect($branch)->not->toBeNull()
+        ->and($branch->label)->toBe('Puzzle: Rune Puzzle');
+});
+
 it('can generate an image for a scene', function () {
     Storage::fake('public');
     ImagePromptCrafter::fake();

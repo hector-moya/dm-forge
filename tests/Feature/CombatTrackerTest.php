@@ -4,6 +4,7 @@ use App\Models\Campaign;
 use App\Models\Character;
 use App\Models\CustomMonster;
 use App\Models\Encounter;
+use App\Models\EncounterNpc;
 use App\Models\GameSession;
 use App\Models\Npc;
 use App\Models\SrdMonster;
@@ -413,6 +414,97 @@ test('remove combatant works correctly', function () {
     $combatants = $component->get('combatants');
     expect($combatants)->toHaveCount(1)
         ->and($combatants[0]['name'])->toBe('Goblin B');
+});
+
+test('combat tracker loads encounter npcs on mount', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $session = GameSession::factory()->for($campaign)->create();
+    $encounter = Encounter::factory()->for($session)->create();
+    $npc = Npc::factory()->for($campaign)->create(['name' => 'Elara']);
+
+    $encounter->npcs()->create([
+        'npc_id' => $npc->id,
+        'name' => 'Elara',
+        'hp_max' => 30,
+        'hp_current' => 30,
+        'armor_class' => 14,
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+
+    $combatants = $component->get('combatants');
+    $encounterNpc = collect($combatants)->where('source_type', 'encounter_npc')->first();
+
+    expect($encounterNpc)->not->toBeNull()
+        ->and($encounterNpc['name'])->toBe('Elara')
+        ->and($encounterNpc['hp_max'])->toBe(30)
+        ->and($encounterNpc['armor_class'])->toBe(14);
+});
+
+test('end combat syncs encounter npc data to database', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $session = GameSession::factory()->for($campaign)->create();
+    $encounter = Encounter::factory()->for($session)->create();
+
+    $encounterNpc = $encounter->npcs()->create([
+        'name' => 'Guard',
+        'hp_max' => 20,
+        'hp_current' => 20,
+        'armor_class' => 16,
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+
+    // Find the encounter NPC index
+    $combatants = $component->get('combatants');
+    $npcIndex = collect($combatants)->search(fn ($c) => $c['source_type'] === 'encounter_npc' && $c['source_id'] === $encounterNpc->id);
+
+    $component->call('startCombat')
+        ->call('setInitiative', $npcIndex, 15)
+        ->call('adjustHp', $npcIndex, -8)
+        ->call('toggleCondition', $npcIndex, 'stunned')
+        ->call('endCombat');
+
+    $encounterNpc->refresh();
+    expect($encounterNpc->hp_current)->toBe(12)
+        ->and($encounterNpc->initiative)->toBe(15)
+        ->and($encounterNpc->conditions)->toContain('stunned');
+});
+
+test('stat block loads for encounter npc', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $session = GameSession::factory()->for($campaign)->create();
+    $encounter = Encounter::factory()->for($session)->create();
+
+    $npc = Npc::factory()->for($campaign)->create([
+        'name' => 'Captain Vex',
+        'role' => 'Guard Captain',
+        'personality' => 'Stern but fair',
+    ]);
+
+    $encounter->npcs()->create([
+        'npc_id' => $npc->id,
+        'name' => 'Captain Vex',
+        'hp_max' => 40,
+        'armor_class' => 17,
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+
+    // Find the encounter NPC index
+    $combatants = $component->get('combatants');
+    $npcIndex = collect($combatants)->search(fn ($c) => $c['source_type'] === 'encounter_npc');
+
+    $component->call('selectCombatant', $npcIndex);
+
+    $component->assertSee('Captain Vex')
+        ->assertSee('Guard Captain');
 });
 
 test('next and previous turn cycle through combatants', function () {

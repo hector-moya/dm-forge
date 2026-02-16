@@ -219,23 +219,29 @@
             @else
                 <ul class="space-y-2">
                     @foreach ($campaign->gameSessions->sortByDesc('session_number') as $session)
-                        <li>
-                            <a href="{{ route('sessions.edit', $session) }}" wire:navigate
-                               class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 transition hover:bg-zinc-100 dark:bg-zinc-700/50 dark:hover:bg-zinc-700">
+                        <li class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-700/50">
+                            <a href="{{ route('sessions.edit', $session) }}" wire:navigate class="flex-1 transition hover:opacity-75">
                                 <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">
                                     #{{ $session->session_number }}: {{ $session->title }}
                                 </span>
+                            </a>
+                            <div class="flex items-center gap-2">
                                 @if ($session->status)
                                     @php
                                         $sessionVariant = match($session->status) {
                                             'completed' => 'primary',
-                                            'in_progress' => 'warning',
+                                            'running' => 'warning',
                                             default => 'outline',
                                         };
                                     @endphp
-                                    <flux:badge size="sm" :variant="$sessionVariant">{{ ucfirst(str_replace('_', ' ', $session->status)) }}</flux:badge>
+                                    <flux:badge size="sm" :variant="$sessionVariant">{{ ucfirst($session->status) }}</flux:badge>
                                 @endif
-                            </a>
+                                @if (in_array($session->status, ['prepared', 'running']))
+                                    <flux:button variant="primary" size="sm" href="{{ route('sessions.run', $session) }}" wire:navigate icon="play">
+                                        {{ $session->status === 'running' ? __('Resume') : __('Run') }}
+                                    </flux:button>
+                                @endif
+                            </div>
                         </li>
                     @endforeach
                 </ul>
