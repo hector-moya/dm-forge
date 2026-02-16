@@ -114,7 +114,10 @@ class FactionManager extends Component
 
             if ($this->pendingImageGeneration) {
                 try {
-                    app(EntityImageGenerator::class)->generate($faction, 'faction');
+                    app(EntityImageGenerator::class)->generate(
+                        $faction, 'faction', null,
+                        fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+                    );
                     Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
                     Flux::toast(__('Faction saved, but image generation failed.'));
@@ -198,7 +201,10 @@ class FactionManager extends Component
         $faction = $this->campaign->factions()->findOrFail($factionId);
 
         try {
-            $path = app(EntityImageGenerator::class)->generate($faction, 'faction');
+            $path = app(EntityImageGenerator::class)->generate(
+                $faction, 'faction', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 Flux::toast(__('Image generated!'));

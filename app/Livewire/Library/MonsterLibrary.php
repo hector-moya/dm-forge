@@ -207,7 +207,10 @@ class MonsterLibrary extends Component
 
             if ($this->pendingImageGeneration) {
                 try {
-                    app(EntityImageGenerator::class)->generate($monster, 'monster');
+                    app(EntityImageGenerator::class)->generate(
+                        $monster, 'monster', null,
+                        fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+                    );
                     Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
                     Flux::toast(__('Monster saved, but image generation failed.'));
@@ -296,7 +299,10 @@ class MonsterLibrary extends Component
             ->findOrFail($monsterId);
 
         try {
-            $path = app(EntityImageGenerator::class)->generate($monster, 'monster');
+            $path = app(EntityImageGenerator::class)->generate(
+                $monster, 'monster', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 Flux::toast(__('Image generated!'));

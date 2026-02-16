@@ -256,7 +256,10 @@ new class extends Component
     public function generateSceneImage(): void
     {
         try {
-            $path = app(EntityImageGenerator::class)->generate($this->scene, 'scene');
+            $path = app(EntityImageGenerator::class)->generate(
+                $this->scene, 'scene', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 $this->scene->refresh();

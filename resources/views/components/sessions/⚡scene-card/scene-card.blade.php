@@ -25,11 +25,12 @@
     @if ($scene->description)
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($scene->description, 120) }}</p>
     @endif
-    <div class="mt-2">
+    <div class="mt-2 flex items-center gap-2">
         <flux:button variant="subtle" size="xs" wire:click="generateSceneImage" icon="sparkles" wire:loading.attr="disabled" wire:target="generateSceneImage">
             <span wire:loading.remove wire:target="generateSceneImage">{{ $scene->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
             <span wire:loading wire:target="generateSceneImage">{{ __('Generating...') }}</span>
         </flux:button>
+        <span wire:stream.replace="imageStatus" class="text-xs text-zinc-500 italic"></span>
     </div>
 
     {{-- Nested Encounters --}}

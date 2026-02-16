@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Ai\Agents\ImagePromptCrafter;
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -25,10 +26,14 @@ class EntityImageGenerator
     /**
      * Generate an image for the given entity and persist the path.
      */
-    public function generate(Model $entity, string $entityType, ?string $extraContext = null): ?string
+    public function generate(Model $entity, string $entityType, ?string $extraContext = null, ?Closure $onProgress = null): ?string
     {
+        $onProgress ??= fn () => null;
+
         try {
             $context = $this->buildContext($entity, $entityType, $extraContext);
+
+            $onProgress('Crafting image prompt...');
 
             $crafted = (new ImagePromptCrafter)->prompt(
                 "Entity type: {$entityType}\n\n{$context}"
@@ -37,11 +42,15 @@ class EntityImageGenerator
             $orientation = $crafted['orientation'] ?? 'square';
             $prompt = $crafted['prompt'];
 
+            $onProgress('Generating image...');
+
             $image = Image::of($prompt)->{$orientation}()->generate();
+
+            $onProgress('Saving image...');
 
             $timestamp = time();
             $filename = "images/{$entityType}s/{$entity->getKey()}_{$timestamp}.webp";
-            $image->storePubliclyAs($filename);
+            Storage::disk('public')->put($filename, (string) $image);
 
             $this->deleteOldImage($entity);
 

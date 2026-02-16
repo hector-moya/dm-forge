@@ -176,7 +176,10 @@ class LootLibrary extends Component
             ->findOrFail($lootId);
 
         try {
-            $path = app(EntityImageGenerator::class)->generate($loot, 'loot');
+            $path = app(EntityImageGenerator::class)->generate(
+                $loot, 'loot', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 Flux::toast(__('Image generated!'));

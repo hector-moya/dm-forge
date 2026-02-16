@@ -111,7 +111,10 @@ class LocationManager extends Component
 
             if ($this->pendingImageGeneration) {
                 try {
-                    app(EntityImageGenerator::class)->generate($location, 'location');
+                    app(EntityImageGenerator::class)->generate(
+                        $location, 'location', null,
+                        fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+                    );
                     Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
                     Flux::toast(__('Location saved, but image generation failed.'));
@@ -196,7 +199,10 @@ class LocationManager extends Component
         $location = $this->campaign->locations()->findOrFail($locationId);
 
         try {
-            $path = app(EntityImageGenerator::class)->generate($location, 'location');
+            $path = app(EntityImageGenerator::class)->generate(
+                $location, 'location', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 Flux::toast(__('Image generated!'));

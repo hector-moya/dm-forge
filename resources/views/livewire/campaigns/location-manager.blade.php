@@ -115,6 +115,7 @@
                         <span wire:loading.remove wire:target="generateImage({{ $viewingLocation->id }})">{{ $viewingLocation->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
                         <span wire:loading wire:target="generateImage({{ $viewingLocation->id }})">{{ __('Generating...') }}</span>
                     </flux:button>
+                    <span wire:stream.replace="imageStatus" class="text-xs text-zinc-500 italic"></span>
                 </div>
 
                 <div>

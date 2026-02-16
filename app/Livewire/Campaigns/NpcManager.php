@@ -152,7 +152,10 @@ class NpcManager extends Component
 
             if ($this->pendingImageGeneration) {
                 try {
-                    app(EntityImageGenerator::class)->generate($npc, 'npc');
+                    app(EntityImageGenerator::class)->generate(
+                        $npc, 'npc', null,
+                        fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+                    );
                     Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
                     Flux::toast(__('NPC saved, but image generation failed.'));
@@ -244,7 +247,10 @@ class NpcManager extends Component
         $npc = $this->campaign->npcs()->findOrFail($npcId);
 
         try {
-            $path = app(EntityImageGenerator::class)->generate($npc, 'npc');
+            $path = app(EntityImageGenerator::class)->generate(
+                $npc, 'npc', null,
+                fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
+            );
 
             if ($path) {
                 Flux::toast(__('Image generated!'));
