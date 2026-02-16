@@ -27,6 +27,7 @@ class GameSession extends Model
         'generated_world_state',
         'started_at',
         'ended_at',
+        'current_scene_id',
     ];
 
     protected function casts(): array
@@ -41,6 +42,11 @@ class GameSession extends Model
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    public function currentScene(): BelongsTo
+    {
+        return $this->belongsTo(Scene::class, 'current_scene_id');
     }
 
     public function scenes(): HasMany

@@ -43,6 +43,11 @@ class Encounter extends Model
         return $this->hasMany(EncounterMonster::class);
     }
 
+    public function npcs(): HasMany
+    {
+        return $this->hasMany(EncounterNpc::class);
+    }
+
     public function loot(): HasMany
     {
         return $this->hasMany(EncounterLoot::class);

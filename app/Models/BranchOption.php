@@ -18,6 +18,7 @@ class BranchOption extends Model
         'chosen',
         'scene_id',
         'game_session_id',
+        'destination_scene_id',
     ];
 
     protected function casts(): array
@@ -36,6 +37,11 @@ class BranchOption extends Model
     public function scene(): BelongsTo
     {
         return $this->belongsTo(Scene::class);
+    }
+
+    public function destinationScene(): BelongsTo
+    {
+        return $this->belongsTo(Scene::class, 'destination_scene_id');
     }
 
     public function consequences(): HasMany

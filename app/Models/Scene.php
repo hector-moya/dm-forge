@@ -57,6 +57,11 @@ class Scene extends Model
         return $this->hasMany(SceneLoot::class);
     }
 
+    public function incomingBranches(): HasMany
+    {
+        return $this->hasMany(BranchOption::class, 'destination_scene_id');
+    }
+
     public function puzzles(): HasMany
     {
         return $this->hasMany(Puzzle::class);
