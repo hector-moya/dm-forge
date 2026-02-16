@@ -177,6 +177,14 @@ new class extends Component
             \Flux::toast(__('Puzzle updated successfully'));
         } else {
             $this->scene->puzzles()->create($data);
+
+            $maxSort = $this->scene->branchOptions()->max('sort_order') ?? 0;
+            $this->scene->branchOptions()->create([
+                'label' => __('Puzzle: :name', ['name' => $this->puzzleName]),
+                'game_session_id' => $this->scene->game_session_id,
+                'sort_order' => $maxSort + 1,
+            ]);
+
             \Flux::toast(__('Puzzle added to scene'));
         }
 
@@ -288,6 +296,13 @@ new class extends Component
             'environment' => $this->newEncounterEnvironment ?: null,
             'difficulty' => 'medium',
             'game_session_id' => $this->scene->game_session_id,
+        ]);
+
+        $maxSort = $this->scene->branchOptions()->max('sort_order') ?? 0;
+        $this->scene->branchOptions()->create([
+            'label' => __('Combat: :name', ['name' => $this->newEncounterName]),
+            'game_session_id' => $this->scene->game_session_id,
+            'sort_order' => $maxSort + 1,
         ]);
 
         \Flux::toast(__('Encounter added to scene'));

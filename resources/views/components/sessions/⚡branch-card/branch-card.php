@@ -17,9 +17,12 @@ new class extends Component
 
     public string $description = '';
 
+    public ?int $destinationSceneId = null;
+
     public function mount(): void
     {
         $this->sceneId = $this->branch->scene_id;
+        $this->destinationSceneId = $this->branch->destination_scene_id;
     }
 
     public function openForm(): void
@@ -27,6 +30,7 @@ new class extends Component
         $this->showForm = true;
         $this->label = $this->branch->label;
         $this->description = $this->branch->description ?? '';
+        $this->destinationSceneId = $this->branch->destination_scene_id;
     }
 
     public function save(): void
@@ -34,11 +38,13 @@ new class extends Component
         $this->validate([
             'label' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'destinationSceneId' => ['nullable', 'integer', 'exists:scenes,id'],
         ]);
 
         $this->branch->update([
             'label' => $this->label,
             'description' => $this->description ?: null,
+            'destination_scene_id' => $this->destinationSceneId ?: null,
         ]);
 
         \Flux::toast(__('Branch option updated successfully'));

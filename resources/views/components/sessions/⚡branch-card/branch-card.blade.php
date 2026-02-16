@@ -3,6 +3,9 @@
         <div class="flex items-center gap-2">
             <flux:icon name="arrows-right-left" class="size-4 text-indigo-500" />
             <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $branch->label }}</span>
+            @if ($branch->destinationScene)
+                <flux:badge size="sm" variant="outline" icon="arrow-right">{{ $branch->destinationScene->title }}</flux:badge>
+            @endif
         </div>
         <div class="flex items-center gap-1">
             <flux:button variant="subtle" size="sm" wire:click="openConsequenceForm" icon="plus" title="{{ __('Add Consequence') }}" />
@@ -56,6 +59,13 @@
                 placeholder="{{ __('What happens if the party chooses this option?') }}"
                 rows="3"
             />
+            @php $sessionScenes = $branch->gameSession->scenes()->orderBy('sort_order')->get(); @endphp
+            <flux:select wire:model="destinationSceneId" label="{{ __('Destination Scene') }}" placeholder="{{ __('None (no navigation)') }}" size="sm">
+                <flux:select.option :value="null">{{ __('None (no navigation)') }}</flux:select.option>
+                @foreach ($sessionScenes as $scene)
+                    <flux:select.option :value="$scene->id">{{ $scene->title }}</flux:select.option>
+                @endforeach
+            </flux:select>
         </div>
 
         <div class="flex justify-end gap-3">

@@ -17,6 +17,7 @@
         <div class="flex items-center gap-1">
             <flux:button variant="subtle" size="sm" href="{{ route('sessions.combat', [$encounter->game_session_id, $encounter]) }}" wire:navigate icon="bolt" title="{{ __('Combat Tracker') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openMonsterForm" icon="plus" title="{{ __('Add Monster') }}" />
+            <flux:button variant="subtle" size="sm" wire:click="openNpcForm" icon="user-plus" title="{{ __('Add NPC') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openLootForm" icon="gift" title="{{ __('Add Loot') }}" />
             <flux:button variant="subtle" size="sm" wire:click="openForm" icon="pencil" title="{{ __('Edit Encounter') }}" />
             <flux:button variant="subtle" size="sm" wire:click="delete" wire:confirm="{{ __('Delete this encounter?') }}" icon="trash" title="{{ __('Delete Encounter') }}" />
@@ -38,6 +39,42 @@
                     </button>
                 </div>
             @endforeach
+        </div>
+    @endif
+
+    {{-- NPCs --}}
+    @if ($encounter->npcs->isNotEmpty())
+        <div class="mt-2 flex flex-wrap gap-2">
+            @foreach ($encounter->npcs as $encounterNpc)
+                <div class="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs dark:bg-emerald-900/30">
+                    <span class="font-medium text-emerald-700 dark:text-emerald-300">{{ $encounterNpc->name }}</span>
+                    <span class="text-emerald-500 dark:text-emerald-400">HP {{ $encounterNpc->hp_max }} AC {{ $encounterNpc->armor_class }}</span>
+                    <button type="button" wire:click="deleteNpc({{ $encounterNpc->id }})" wire:confirm="{{ __('Remove this NPC?') }}" class="ml-1 text-emerald-400 hover:text-red-500 dark:text-emerald-500">
+                        &times;
+                    </button>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Add NPC Form --}}
+    @if ($showNpcForm)
+        @php $campaignNpcs = $encounter->gameSession->campaign->npcs()->orderBy('name')->get(); @endphp
+        <div class="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-700 dark:bg-emerald-900/20">
+            <span class="mb-2 block text-xs font-semibold uppercase text-emerald-600 dark:text-emerald-400">{{ __('Add NPC to Encounter') }}</span>
+            <div class="flex flex-col gap-2">
+                <flux:select wire:model="selectedNpcId" placeholder="{{ __('Select NPC...') }}" size="sm">
+                    @foreach ($campaignNpcs as $npc)
+                        <flux:select.option :value="$npc->id">{{ $npc->name }} ({{ $npc->role }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <div class="flex items-end gap-2">
+                    <flux:input wire:model="npcHpMax" type="number" label="{{ __('HP') }}" size="sm" class="w-20" />
+                    <flux:input wire:model="npcArmorClass" type="number" label="{{ __('AC') }}" size="sm" class="w-20" />
+                    <flux:button variant="primary" size="sm" wire:click="addNpcToEncounter">{{ __('Add') }}</flux:button>
+                    <flux:button variant="subtle" size="sm" wire:click="$set('showNpcForm', false)">{{ __('Cancel') }}</flux:button>
+                </div>
+            </div>
         </div>
     @endif
 

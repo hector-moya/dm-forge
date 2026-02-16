@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CustomMonster;
 use App\Models\Encounter;
 use App\Models\EncounterMonster;
+use App\Models\EncounterNpc;
 use App\Models\GameSession;
 use App\Models\Npc;
 use App\Models\SrdMonster;
@@ -57,6 +58,11 @@ class CombatTracker extends Component
         // Auto-load encounter monsters
         foreach ($encounter->monsters()->get() as $monster) {
             $this->combatants[] = $this->buildMonsterCombatant($monster);
+        }
+
+        // Auto-load encounter NPCs
+        foreach ($encounter->npcs()->get() as $encounterNpc) {
+            $this->combatants[] = $this->buildEncounterNpcCombatant($encounterNpc);
         }
 
         // Auto-load campaign characters
@@ -257,7 +263,7 @@ class CombatTracker extends Component
             return $this->getCharacterStatBlock($combatant);
         }
 
-        if ($combatant['source_type'] === 'npc') {
+        if ($combatant['source_type'] === 'npc' || $combatant['source_type'] === 'encounter_npc') {
             return $this->getNpcStatBlock($combatant);
         }
 
@@ -335,6 +341,26 @@ class CombatTracker extends Component
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildEncounterNpcCombatant(EncounterNpc $encounterNpc): array
+    {
+        return [
+            'name' => $encounterNpc->name,
+            'initiative' => $encounterNpc->initiative ?? 0,
+            'hp_max' => $encounterNpc->hp_max,
+            'hp_current' => $encounterNpc->hp_current ?? $encounterNpc->hp_max,
+            'armor_class' => $encounterNpc->armor_class,
+            'conditions' => $encounterNpc->conditions ?? [],
+            'source_type' => 'encounter_npc',
+            'source_id' => $encounterNpc->id,
+            'monster_source_type' => null,
+            'monster_source_id' => null,
+            'is_pc' => false,
+        ];
+    }
+
     private function sortCombatants(): void
     {
         usort($this->combatants, fn ($a, $b) => $b['initiative'] <=> $a['initiative']);
@@ -348,6 +374,14 @@ class CombatTracker extends Component
         foreach ($this->combatants as $combatant) {
             if ($combatant['source_type'] === 'monster' && $combatant['source_id']) {
                 EncounterMonster::where('id', $combatant['source_id'])->update([
+                    'hp_current' => $combatant['hp_current'],
+                    'initiative' => $combatant['initiative'],
+                    'conditions' => $combatant['conditions'],
+                ]);
+            }
+
+            if ($combatant['source_type'] === 'encounter_npc' && $combatant['source_id']) {
+                EncounterNpc::where('id', $combatant['source_id'])->update([
                     'hp_current' => $combatant['hp_current'],
                     'initiative' => $combatant['initiative'],
                     'conditions' => $combatant['conditions'],
@@ -446,7 +480,15 @@ class CombatTracker extends Component
      */
     private function getNpcStatBlock(array $combatant): ?array
     {
-        $npc = Npc::find($combatant['source_id']);
+        $npc = null;
+
+        if ($combatant['source_type'] === 'encounter_npc') {
+            $encounterNpc = EncounterNpc::find($combatant['source_id']);
+            $npc = $encounterNpc?->npc;
+        } else {
+            $npc = Npc::find($combatant['source_id']);
+        }
+
         if (! $npc) {
             return null;
         }

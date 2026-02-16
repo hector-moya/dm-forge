@@ -37,9 +37,252 @@
         @endif
     </div>
 
+    {{-- Scene Navigation Bar --}}
+    @if ($allScenes->isNotEmpty())
+        <div class="flex items-center gap-2">
+            <flux:button variant="subtle" size="sm" wire:click="previousScene" icon="chevron-left" :disabled="!$currentSceneId" />
+            <div class="flex flex-1 items-center gap-1.5 overflow-x-auto">
+                @foreach ($allScenes as $scene)
+                    <button
+                        type="button"
+                        wire:click="navigateToScene({{ $scene->id }})"
+                        class="shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition
+                            {{ $scene->id === $currentSceneId
+                                ? 'bg-blue-600 text-white'
+                                : ($scene->is_revealed
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-400') }}"
+                    >
+                        {{ $scene->title }}
+                    </button>
+                @endforeach
+            </div>
+            <flux:button variant="subtle" size="sm" wire:click="nextScene" icon="chevron-right" :disabled="!$currentSceneId" />
+        </div>
+    @endif
+
     {{-- Two-column layout --}}
-    <div class="grid gap-4 lg:grid-cols-2">
-        {{-- LEFT COLUMN --}}
+    <div class="grid gap-4 lg:grid-cols-3">
+        {{-- LEFT COLUMN (2 cols) --}}
+        <div class="flex flex-col gap-4 lg:col-span-2">
+            {{-- Current Scene --}}
+            @if ($currentScene)
+                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="mb-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <flux:heading size="lg">{{ $currentScene->title }}</flux:heading>
+                            @if ($currentScene->is_revealed)
+                                <flux:badge size="sm" variant="primary">{{ __('Revealed') }}</flux:badge>
+                            @endif
+                        </div>
+                        <flux:button variant="subtle" size="sm" wire:click="toggleSceneReveal({{ $currentScene->id }})"
+                                     icon="{{ $currentScene->is_revealed ? 'eye-slash' : 'eye' }}"
+                                     title="{{ $currentScene->is_revealed ? __('Hide') : __('Reveal') }}" />
+                    </div>
+
+                    @if ($currentScene->image_url)
+                        <img src="{{ $currentScene->image_url }}" alt="{{ $currentScene->title }}" class="mb-3 max-h-48 w-full rounded-lg object-cover" />
+                    @endif
+
+                    @if ($currentScene->description)
+                        <flux:text class="whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $currentScene->description }}</flux:text>
+                    @endif
+
+                    @if ($currentScene->notes)
+                        <details class="mt-3">
+                            <summary class="cursor-pointer text-xs font-semibold uppercase text-zinc-400">{{ __('Scene Notes (DM)') }}</summary>
+                            <p class="mt-1 whitespace-pre-line text-sm text-zinc-500 dark:text-zinc-400">{{ $currentScene->notes }}</p>
+                        </details>
+                    @endif
+                </div>
+
+                {{-- Scene Encounters --}}
+                @if ($sceneEncounters->isNotEmpty())
+                    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:heading size="lg" class="mb-3">{{ __('Encounters') }}</flux:heading>
+                        <div class="space-y-3">
+                            @foreach ($sceneEncounters as $encounter)
+                                <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-900/20" wire:key="runner-enc-{{ $encounter->id }}">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <flux:icon name="bolt" class="size-4 text-amber-500" />
+                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $encounter->name }}</span>
+                                            @if ($encounter->difficulty)
+                                                @php
+                                                    $diffColor = match($encounter->difficulty) {
+                                                        'easy' => 'green', 'medium' => 'amber', 'hard' => 'red', 'deadly' => 'red', default => 'zinc',
+                                                    };
+                                                @endphp
+                                                <flux:badge size="sm" variant="pill" :color="$diffColor">{{ ucfirst($encounter->difficulty) }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <flux:button variant="subtle" size="sm" wire:click="addMonstersToCombat({{ $encounter->id }})" icon="plus" title="{{ __('Add to Initiative') }}" />
+                                            <flux:button variant="primary" size="sm" href="{{ route('sessions.combat', [$session, $encounter]) }}" wire:navigate icon="bolt" title="{{ __('Launch Combat') }}" />
+                                        </div>
+                                    </div>
+                                    @if ($encounter->description)
+                                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $encounter->description }}</p>
+                                    @endif
+
+                                    {{-- Monsters --}}
+                                    @if ($encounter->monsters->isNotEmpty())
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            @foreach ($encounter->monsters as $monster)
+                                                <div class="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs dark:bg-red-900/30">
+                                                    <span class="font-medium text-red-700 dark:text-red-300">{{ $monster->name }}</span>
+                                                    <span class="text-red-400 dark:text-red-500">HP {{ $monster->hp_current ?? $monster->hp_max }}/{{ $monster->hp_max }} AC {{ $monster->armor_class }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    {{-- NPCs --}}
+                                    @if ($encounter->npcs->isNotEmpty())
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            @foreach ($encounter->npcs as $encounterNpc)
+                                                <div class="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs dark:bg-emerald-900/30">
+                                                    <span class="font-medium text-emerald-700 dark:text-emerald-300">{{ $encounterNpc->name }}</span>
+                                                    <span class="text-emerald-400 dark:text-emerald-500">HP {{ $encounterNpc->hp_current ?? $encounterNpc->hp_max }}/{{ $encounterNpc->hp_max }} AC {{ $encounterNpc->armor_class }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Scene Puzzles --}}
+                @if ($scenePuzzles->isNotEmpty())
+                    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:heading size="lg" class="mb-3">{{ __('Puzzles') }}</flux:heading>
+                        <div class="space-y-3">
+                            @foreach ($scenePuzzles as $puzzle)
+                                <div class="rounded-md border border-violet-200 bg-violet-50 p-3 dark:border-violet-700 dark:bg-violet-900/30" wire:key="runner-puzzle-{{ $puzzle->id }}">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <flux:icon.puzzle-piece class="size-4 text-violet-500" />
+                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $puzzle->name }}</span>
+                                            <flux:badge size="sm" variant="pill" color="{{ match($puzzle->difficulty) { 'easy' => 'green', 'medium' => 'amber', 'hard' => 'red' } }}">{{ ucfirst($puzzle->difficulty) }}</flux:badge>
+                                            @if ($puzzle->is_solved)
+                                                <flux:badge size="sm" variant="pill" color="emerald">{{ __('Solved') }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        <flux:button variant="subtle" size="sm" wire:click="togglePuzzleSolved({{ $puzzle->id }})" icon="{{ $puzzle->is_solved ? 'x-mark' : 'check' }}" title="{{ $puzzle->is_solved ? __('Mark Unsolved') : __('Mark Solved') }}" />
+                                    </div>
+
+                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->description }}</p>
+
+                                    {{-- Progressive Hint Buttons --}}
+                                    @php $currentTier = $revealedHints[$puzzle->id] ?? 0; @endphp
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @if ($puzzle->hint_tier_1)
+                                            @if ($currentTier >= 1)
+                                                <div class="w-full rounded bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                                    <span class="font-semibold">{{ __('Hint 1:') }}</span> {{ $puzzle->hint_tier_1 }}
+                                                </div>
+                                            @else
+                                                <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 1)" icon="light-bulb">{{ __('Hint 1') }}</flux:button>
+                                            @endif
+                                        @endif
+                                        @if ($puzzle->hint_tier_2)
+                                            @if ($currentTier >= 2)
+                                                <div class="w-full rounded bg-orange-50 p-2 text-sm text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                                                    <span class="font-semibold">{{ __('Hint 2:') }}</span> {{ $puzzle->hint_tier_2 }}
+                                                </div>
+                                            @elseif ($currentTier >= 1)
+                                                <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 2)" icon="light-bulb">{{ __('Hint 2') }}</flux:button>
+                                            @endif
+                                        @endif
+                                        @if ($puzzle->hint_tier_3)
+                                            @if ($currentTier >= 3)
+                                                <div class="w-full rounded bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                                    <span class="font-semibold">{{ __('Hint 3:') }}</span> {{ $puzzle->hint_tier_3 }}
+                                                </div>
+                                            @elseif ($currentTier >= 2)
+                                                <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 3)" icon="light-bulb">{{ __('Hint 3') }}</flux:button>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    {{-- Solution (DM only, collapsible) --}}
+                                    <details class="mt-2">
+                                        <summary class="cursor-pointer text-xs font-semibold uppercase text-violet-500">{{ __('Solution (DM Eyes Only)') }}</summary>
+                                        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->solution }}</p>
+                                    </details>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Scene Branch Options --}}
+                @if ($sceneBranches->isNotEmpty())
+                    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:heading size="lg" class="mb-3">{{ __('Branch Options') }}</flux:heading>
+                        <div class="space-y-2">
+                            @foreach ($sceneBranches as $branch)
+                                <button
+                                    type="button"
+                                    wire:click="chooseBranch({{ $branch->id }})"
+                                    @if ($branch->chosen) disabled @endif
+                                    class="flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left transition
+                                        {{ $branch->chosen
+                                            ? 'border-indigo-300 bg-indigo-50 dark:border-indigo-600 dark:bg-indigo-900/20'
+                                            : 'border-zinc-200 bg-zinc-50 hover:border-indigo-300 hover:bg-indigo-50 dark:border-zinc-600 dark:bg-zinc-700/50 dark:hover:border-indigo-600 dark:hover:bg-indigo-900/20' }}"
+                                >
+                                    <flux:icon name="arrows-right-left" class="mt-0.5 size-4 shrink-0 {{ $branch->chosen ? 'text-indigo-500' : 'text-zinc-400' }}" />
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $branch->label }}</span>
+                                            @if ($branch->chosen)
+                                                <flux:badge size="sm" variant="primary">{{ __('Chosen') }}</flux:badge>
+                                            @endif
+                                            @if ($branch->destinationScene)
+                                                <span class="flex items-center gap-1 text-xs text-zinc-400">
+                                                    <flux:icon name="arrow-right" class="size-3" />
+                                                    {{ $branch->destinationScene->title }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if ($branch->description)
+                                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($branch->description, 150) }}</p>
+                                        @endif
+                                        @if ($branch->chosen && $branch->consequences->isNotEmpty())
+                                            <div class="mt-2 space-y-1">
+                                                @foreach ($branch->consequences as $consequence)
+                                                    @php
+                                                        $cTypeColor = match($consequence->type) {
+                                                            'immediate' => 'text-amber-600 dark:text-amber-400',
+                                                            'delayed' => 'text-blue-600 dark:text-blue-400',
+                                                            'meta' => 'text-purple-600 dark:text-purple-400',
+                                                            default => 'text-zinc-500',
+                                                        };
+                                                    @endphp
+                                                    <div class="text-xs">
+                                                        <span class="font-semibold {{ $cTypeColor }}">{{ ucfirst($consequence->type) }}:</span>
+                                                        <span class="text-zinc-600 dark:text-zinc-400">{{ $consequence->description }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            @else
+                <div class="rounded-xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-800">
+                    <flux:icon name="map" class="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-600" />
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No scenes planned for this session.') }}</flux:text>
+                </div>
+            @endif
+        </div>
+
+        {{-- RIGHT COLUMN (1 col) --}}
         <div class="flex flex-col gap-4">
             {{-- Initiative Tracker --}}
             <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
@@ -77,13 +320,13 @@
                                 </div>
                             </div>
                         @endif
-                        @if ($encounters->isNotEmpty())
+                        @if ($sceneEncounters->isNotEmpty())
                             <div>
                                 <span class="mb-1 block text-xs font-semibold uppercase text-zinc-400">{{ __('Encounters') }}</span>
                                 <div class="flex flex-wrap gap-1">
-                                    @foreach ($encounters as $encounter)
+                                    @foreach ($sceneEncounters as $encounter)
                                         <flux:button variant="outline" size="sm" wire:click="addMonstersToCombat({{ $encounter->id }})">
-                                            {{ $encounter->name }} ({{ $encounter->monsters->count() }})
+                                            {{ $encounter->name }} ({{ $encounter->monsters->count() + $encounter->npcs->count() }})
                                         </flux:button>
                                     @endforeach
                                 </div>
@@ -118,11 +361,18 @@
                                                onclick="event.stopPropagation()" />
                                     </div>
                                     <div>
-                                        <span class="text-sm font-medium {{ $combatant['is_pc'] ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }}">
+                                        @php
+                                            $nameColor = match($combatant['source_type']) {
+                                                'character' => 'text-blue-600 dark:text-blue-400',
+                                                'encounter_npc' => 'text-emerald-600 dark:text-emerald-400',
+                                                default => 'text-red-600 dark:text-red-400',
+                                            };
+                                        @endphp
+                                        <span class="text-sm font-medium {{ $nameColor }}">
                                             {{ $combatant['name'] }}
                                         </span>
                                         @if (!empty($combatant['conditions']))
-                                            <div class="flex flex-wrap gap-1 mt-0.5">
+                                            <div class="mt-0.5 flex flex-wrap gap-1">
                                                 @foreach ($combatant['conditions'] as $cond)
                                                     <span class="rounded bg-purple-100 px-1 text-xs text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">{{ $cond }}</span>
                                                 @endforeach
@@ -160,7 +410,7 @@
                             </span>
                         </div>
                         <div class="h-3 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
-                            <div class="h-full rounded-full transition-all {{ $selected['hp_current'] < $selected['hp_max'] / 2 ? 'bg-amber-500' : 'bg-green-500' }} {{ $selected['hp_current'] <= 0 ? '!bg-red-500' : '' }}"
+                            <div class="h-full rounded-full transition-all {{ $selected['hp_current'] < $selected['hp_max'] / 2 ? 'bg-amber-500' : 'bg-green-500' }} {{ $selected['hp_current'] <= 0 ? 'bg-red-500!' : '' }}"
                                  style="width: {{ $selected['hp_max'] > 0 ? min(100, ($selected['hp_current'] / $selected['hp_max']) * 100) : 0 }}%"></div>
                         </div>
                     </div>
@@ -192,6 +442,21 @@
                     </div>
                 </div>
             @endif
+
+            {{-- Quick Actions --}}
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                <flux:heading size="lg" class="mb-3">{{ __('Quick Actions') }}</flux:heading>
+                <div class="flex flex-wrap gap-2">
+                    <flux:button variant="primary" size="sm" wire:click="openDecisionModal" icon="scale">
+                        {{ __('Major Decision') }}
+                    </flux:button>
+                    @if ($session->status === 'completed')
+                        <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open">
+                            {{ __('View Recap') }}
+                        </flux:button>
+                    @endif
+                </div>
+            </div>
 
             {{-- Session Log --}}
             <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
@@ -231,156 +496,6 @@
                 @endif
             </div>
         </div>
-
-        {{-- RIGHT COLUMN --}}
-        <div class="flex flex-col gap-4">
-            {{-- Scenes --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('Scenes') }}</flux:heading>
-                @if ($scenes->isEmpty())
-                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No scenes planned.') }}</flux:text>
-                @else
-                    <div class="space-y-2">
-                        @foreach ($scenes as $scene)
-                            <div class="rounded-lg px-3 py-2 {{ $scene->is_revealed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-zinc-50 dark:bg-zinc-700/50' }}">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $scene->title }}</span>
-                                            @if ($scene->is_revealed)
-                                                <flux:badge size="sm" variant="primary">{{ __('Revealed') }}</flux:badge>
-                                            @endif
-                                        </div>
-                                        @if ($scene->is_revealed && $scene->description)
-                                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $scene->description }}</p>
-                                        @endif
-                                    </div>
-                                    <flux:button variant="subtle" size="sm" wire:click="toggleSceneReveal({{ $scene->id }})"
-                                                 icon="{{ $scene->is_revealed ? 'eye-slash' : 'eye' }}" />
-                                </div>
-
-                                {{-- Scene Puzzles --}}
-                                @if ($scene->is_revealed && $scene->puzzles->isNotEmpty())
-                                    <div class="mt-2 space-y-2 border-t border-green-200 pt-2 dark:border-green-800">
-                                        @foreach ($scene->puzzles as $puzzle)
-                                            <div class="rounded-md border border-violet-200 bg-violet-50 p-3 dark:border-violet-700 dark:bg-violet-900/30" wire:key="runner-puzzle-{{ $puzzle->id }}">
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center gap-2">
-                                                        <flux:icon.puzzle-piece class="size-4 text-violet-500" />
-                                                        <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $puzzle->name }}</span>
-                                                        <flux:badge size="sm" variant="pill" color="{{ match($puzzle->difficulty) { 'easy' => 'green', 'medium' => 'amber', 'hard' => 'red' } }}">{{ ucfirst($puzzle->difficulty) }}</flux:badge>
-                                                        @if ($puzzle->is_solved)
-                                                            <flux:badge size="sm" variant="pill" color="emerald">{{ __('Solved') }}</flux:badge>
-                                                        @endif
-                                                    </div>
-                                                    <flux:button variant="subtle" size="sm" wire:click="togglePuzzleSolved({{ $puzzle->id }})" icon="{{ $puzzle->is_solved ? 'x-mark' : 'check' }}" title="{{ $puzzle->is_solved ? __('Mark Unsolved') : __('Mark Solved') }}" />
-                                                </div>
-
-                                                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->description }}</p>
-
-                                                {{-- Progressive Hint Buttons --}}
-                                                @php $currentTier = $revealedHints[$puzzle->id] ?? 0; @endphp
-                                                <div class="mt-2 flex flex-wrap gap-2">
-                                                    @if ($puzzle->hint_tier_1)
-                                                        @if ($currentTier >= 1)
-                                                            <div class="w-full rounded bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                                                                <span class="font-semibold">{{ __('Hint 1:') }}</span> {{ $puzzle->hint_tier_1 }}
-                                                            </div>
-                                                        @else
-                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 1)" icon="light-bulb">{{ __('Hint 1') }}</flux:button>
-                                                        @endif
-                                                    @endif
-                                                    @if ($puzzle->hint_tier_2)
-                                                        @if ($currentTier >= 2)
-                                                            <div class="w-full rounded bg-orange-50 p-2 text-sm text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                                                                <span class="font-semibold">{{ __('Hint 2:') }}</span> {{ $puzzle->hint_tier_2 }}
-                                                            </div>
-                                                        @elseif ($currentTier >= 1)
-                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 2)" icon="light-bulb">{{ __('Hint 2') }}</flux:button>
-                                                        @endif
-                                                    @endif
-                                                    @if ($puzzle->hint_tier_3)
-                                                        @if ($currentTier >= 3)
-                                                            <div class="w-full rounded bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                                                <span class="font-semibold">{{ __('Hint 3:') }}</span> {{ $puzzle->hint_tier_3 }}
-                                                            </div>
-                                                        @elseif ($currentTier >= 2)
-                                                            <flux:button variant="subtle" size="sm" wire:click="revealHint({{ $puzzle->id }}, 3)" icon="light-bulb">{{ __('Hint 3') }}</flux:button>
-                                                        @endif
-                                                    @endif
-                                                </div>
-
-                                                {{-- Solution (DM only, collapsible) --}}
-                                                <details class="mt-2">
-                                                    <summary class="cursor-pointer text-xs font-semibold uppercase text-violet-500">{{ __('Solution (DM Eyes Only)') }}</summary>
-                                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $puzzle->solution }}</p>
-                                                </details>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            {{-- Quick Actions --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('Quick Actions') }}</flux:heading>
-                <div class="flex flex-wrap gap-2">
-                    <flux:button variant="primary" size="sm" wire:click="openDecisionModal" icon="scale">
-                        {{ __('Major Decision') }}
-                    </flux:button>
-                    @if ($session->status === 'completed')
-                        <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open">
-                            {{ __('View Recap') }}
-                        </flux:button>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Branch Options --}}
-            @if ($branches->isNotEmpty())
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                    <flux:heading size="lg" class="mb-3">{{ __('Branch Options') }}</flux:heading>
-                    <div class="space-y-2">
-                        @foreach ($branches as $branch)
-                            <div class="flex items-start gap-3 rounded-lg px-3 py-2 {{ $branch->chosen ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'bg-zinc-50 dark:bg-zinc-700/50' }}">
-                                <input type="checkbox"
-                                       {{ $branch->chosen ? 'checked' : '' }}
-                                       wire:click="chooseBranch({{ $branch->id }})"
-                                       class="mt-1 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 dark:border-zinc-600 dark:bg-zinc-700" />
-                                <div class="flex-1">
-                                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $branch->label }}</span>
-                                    @if ($branch->description)
-                                        <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($branch->description, 100) }}</p>
-                                    @endif
-                                    @if ($branch->chosen && $branch->consequences->isNotEmpty())
-                                        <div class="mt-2 space-y-1">
-                                            @foreach ($branch->consequences as $consequence)
-                                                @php
-                                                    $cTypeColor = match($consequence->type) {
-                                                        'immediate' => 'text-amber-600 dark:text-amber-400',
-                                                        'delayed' => 'text-blue-600 dark:text-blue-400',
-                                                        'meta' => 'text-purple-600 dark:text-purple-400',
-                                                        default => 'text-zinc-500',
-                                                    };
-                                                @endphp
-                                                <div class="text-xs">
-                                                    <span class="font-semibold {{ $cTypeColor }}">{{ ucfirst($consequence->type) }}:</span>
-                                                    <span class="text-zinc-600 dark:text-zinc-400">{{ $consequence->description }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-        </div>
     </div>
 
     {{-- Decision Recorder Modal --}}
@@ -400,7 +515,7 @@
                 <span class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Characters involved') }}</span>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($characters as $character)
-                        <label class="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600 cursor-pointer
+                        <label class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600
                             {{ in_array($character->id, $decisionCharacterIds) ? 'bg-blue-50 border-blue-300 dark:bg-blue-900/30 dark:border-blue-600' : '' }}">
                             <input type="checkbox" value="{{ $character->id }}" wire:model="decisionCharacterIds"
                                    class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700" />

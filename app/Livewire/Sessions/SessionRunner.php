@@ -5,12 +5,16 @@ namespace App\Livewire\Sessions;
 use App\Ai\Agents\AlignmentAdvisor;
 use App\Models\Character;
 use App\Models\EncounterMonster;
+use App\Models\EncounterNpc;
 use App\Models\GameSession;
 use Livewire\Component;
 
 class SessionRunner extends Component
 {
     public GameSession $session;
+
+    // Scene navigation
+    public ?int $currentSceneId = null;
 
     // Initiative tracker
     public array $combatants = [];
@@ -71,6 +75,49 @@ class SessionRunner extends Component
             $session->update(['status' => 'running', 'started_at' => now()]);
             $this->session->refresh();
         }
+
+        // Initialize current scene
+        $this->currentSceneId = $session->current_scene_id
+            ?? $session->scenes()->orderBy('sort_order')->first()?->id;
+    }
+
+    // ── Scene Navigation ────────────────────────────────────────────
+
+    public function navigateToScene(int $sceneId): void
+    {
+        $scene = $this->session->scenes()->findOrFail($sceneId);
+        $this->currentSceneId = $scene->id;
+        $this->session->update(['current_scene_id' => $scene->id]);
+
+        if (! $scene->is_revealed) {
+            $scene->update(['is_revealed' => true]);
+        }
+    }
+
+    public function nextScene(): void
+    {
+        $currentSort = $this->session->scenes()->find($this->currentSceneId)?->sort_order ?? 0;
+        $next = $this->session->scenes()
+            ->where('sort_order', '>', $currentSort)
+            ->orderBy('sort_order')
+            ->first();
+
+        if ($next) {
+            $this->navigateToScene($next->id);
+        }
+    }
+
+    public function previousScene(): void
+    {
+        $currentSort = $this->session->scenes()->find($this->currentSceneId)?->sort_order ?? 0;
+        $prev = $this->session->scenes()
+            ->where('sort_order', '<', $currentSort)
+            ->orderByDesc('sort_order')
+            ->first();
+
+        if ($prev) {
+            $this->navigateToScene($prev->id);
+        }
     }
 
     // ── Initiative ────────────────────────────────────────────────────
@@ -100,7 +147,7 @@ class SessionRunner extends Component
 
     public function addMonstersToCombat(int $encounterId): void
     {
-        $encounter = $this->session->encounters()->with('monsters')->findOrFail($encounterId);
+        $encounter = $this->session->encounters()->with(['monsters', 'npcs'])->findOrFail($encounterId);
 
         foreach ($encounter->monsters as $monster) {
             if (collect($this->combatants)->where('source_type', 'monster')->where('source_id', $monster->id)->isNotEmpty()) {
@@ -116,6 +163,24 @@ class SessionRunner extends Component
                 'conditions' => $monster->conditions ?? [],
                 'source_type' => 'monster',
                 'source_id' => $monster->id,
+                'is_pc' => false,
+            ];
+        }
+
+        foreach ($encounter->npcs as $encounterNpc) {
+            if (collect($this->combatants)->where('source_type', 'encounter_npc')->where('source_id', $encounterNpc->id)->isNotEmpty()) {
+                continue;
+            }
+
+            $this->combatants[] = [
+                'name' => $encounterNpc->name,
+                'initiative' => $encounterNpc->initiative ?? 0,
+                'hp_max' => $encounterNpc->hp_max,
+                'hp_current' => $encounterNpc->hp_current ?? $encounterNpc->hp_max,
+                'armor_class' => $encounterNpc->armor_class,
+                'conditions' => $encounterNpc->conditions ?? [],
+                'source_type' => 'encounter_npc',
+                'source_id' => $encounterNpc->id,
                 'is_pc' => false,
             ];
         }
@@ -190,7 +255,7 @@ class SessionRunner extends Component
     {
         $this->inCombat = false;
         $this->currentTurnIndex = 0;
-        $this->syncMonstersToDb();
+        $this->syncCombatToDb();
     }
 
     private function sortCombatants(): void
@@ -239,11 +304,19 @@ class SessionRunner extends Component
         $this->combatants[$index]['conditions'] = $conditions;
     }
 
-    private function syncMonstersToDb(): void
+    private function syncCombatToDb(): void
     {
         foreach ($this->combatants as $combatant) {
             if ($combatant['source_type'] === 'monster' && $combatant['source_id']) {
                 EncounterMonster::where('id', $combatant['source_id'])->update([
+                    'hp_current' => $combatant['hp_current'],
+                    'initiative' => $combatant['initiative'],
+                    'conditions' => $combatant['conditions'],
+                ]);
+            }
+
+            if ($combatant['source_type'] === 'encounter_npc' && $combatant['source_id']) {
+                EncounterNpc::where('id', $combatant['source_id'])->update([
                     'hp_current' => $combatant['hp_current'],
                     'initiative' => $combatant['initiative'],
                     'conditions' => $combatant['conditions'],
@@ -265,7 +338,17 @@ class SessionRunner extends Component
     public function chooseBranch(int $branchId): void
     {
         $branch = $this->session->branchOptions()->findOrFail($branchId);
-        $branch->update(['chosen' => ! $branch->chosen]);
+        $branch->update(['chosen' => true]);
+
+        $this->session->sessionLogs()->create([
+            'entry' => "Branch chosen: {$branch->label}",
+            'type' => 'decision',
+            'logged_at' => now(),
+        ]);
+
+        if ($branch->destination_scene_id) {
+            $this->navigateToScene($branch->destination_scene_id);
+        }
     }
 
     // ── Quick Log ─────────────────────────────────────────────────────
@@ -409,24 +492,32 @@ class SessionRunner extends Component
 
     public function endSession(): void
     {
-        $this->syncMonstersToDb();
+        $this->syncCombatToDb();
         $this->session->update(['status' => 'completed', 'ended_at' => now()]);
         $this->session->refresh();
     }
 
     public function render()
     {
-        $scenes = $this->session->scenes()->with('puzzles')->orderBy('sort_order')->get();
+        $allScenes = $this->session->scenes()->orderBy('sort_order')->get();
 
-        $encounters = $this->session->encounters()
-            ->with('monsters')
-            ->orderBy('sort_order')
-            ->get();
+        $currentScene = $this->currentSceneId
+            ? $this->session->scenes()
+                ->with(['encounters.monsters', 'encounters.npcs', 'branchOptions.consequences', 'branchOptions.destinationScene', 'puzzles', 'loot'])
+                ->find($this->currentSceneId)
+            : null;
 
-        $branches = $this->session->branchOptions()
-            ->with('consequences')
-            ->orderBy('sort_order')
-            ->get();
+        $sceneEncounters = $currentScene
+            ? $currentScene->encounters()->with(['monsters', 'npcs'])->orderBy('sort_order')->get()
+            : collect();
+
+        $sceneBranches = $currentScene
+            ? $currentScene->branchOptions()->with(['consequences', 'destinationScene'])->orderBy('sort_order')->get()
+            : collect();
+
+        $scenePuzzles = $currentScene
+            ? $currentScene->puzzles()->get()
+            : collect();
 
         $logs = $this->session->sessionLogs()
             ->orderByDesc('logged_at')
@@ -436,9 +527,11 @@ class SessionRunner extends Component
         $characters = $this->session->campaign->characters()->get();
 
         return view('livewire.sessions.session-runner', [
-            'scenes' => $scenes,
-            'encounters' => $encounters,
-            'branches' => $branches,
+            'allScenes' => $allScenes,
+            'currentScene' => $currentScene,
+            'sceneEncounters' => $sceneEncounters,
+            'sceneBranches' => $sceneBranches,
+            'scenePuzzles' => $scenePuzzles,
             'logs' => $logs,
             'characters' => $characters,
         ])->title(__('Session').' #'.$this->session->session_number.' — '.$this->session->title);
