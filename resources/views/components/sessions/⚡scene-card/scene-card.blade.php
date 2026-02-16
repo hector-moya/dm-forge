@@ -20,7 +20,7 @@
         </div>
     </div>
     @if ($scene->image_path)
-        <img src="{{ $scene->image_url }}" alt="{{ $scene->title }}" class="mt-2 h-32 w-full rounded-lg object-cover" />
+        <x-image-lightbox :src="$scene->image_url" :alt="$scene->title" class="mt-2 h-32 w-full rounded-lg object-cover" />
     @endif
     @if ($scene->description)
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($scene->description, 120) }}</p>

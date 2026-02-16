@@ -7,7 +7,7 @@
     {{-- Image --}}
     @if (!empty($stat['image_url']))
         <div class="flex justify-center">
-            <img src="{{ $stat['image_url'] }}" alt="{{ $stat['name'] }}" class="max-h-40 rounded-lg object-contain" loading="lazy" />
+            <x-image-lightbox :src="$stat['image_url']" :alt="$stat['name']" class="max-h-40 rounded-lg object-contain" />
         </div>
     @endif
 

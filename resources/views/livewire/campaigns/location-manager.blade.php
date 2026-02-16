@@ -105,7 +105,7 @@
                 {{-- Location Image --}}
                 <div class="flex flex-col items-center gap-3">
                     @if ($viewingLocation->image_path)
-                        <img src="{{ $viewingLocation->image_url }}" alt="{{ $viewingLocation->name }}" class="h-48 w-full rounded-lg object-cover" />
+                        <x-image-lightbox :src="$viewingLocation->image_url" :alt="$viewingLocation->name" />
                     @else
                         <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
                             <flux:icon name="map-pin" class="size-12 text-zinc-400 dark:text-zinc-500" />

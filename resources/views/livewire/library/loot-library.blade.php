@@ -114,9 +114,9 @@
                 {{-- Image display --}}
                 <div class="flex flex-col items-center gap-3">
                     @if ($viewingItemSource === 'custom' && $viewingItem->image_path)
-                        <img src="{{ $viewingItem->image_url }}" alt="{{ $viewingItem->name }}" class="h-48 w-full rounded-lg object-cover" />
+                        <x-image-lightbox :src="$viewingItem->image_url" :alt="$viewingItem->name" />
                     @elseif (!empty($viewingItem->image_url) && $viewingItem instanceof \App\Models\SrdMagicItem)
-                        <img src="{{ $viewingItem->full_image_url }}" alt="{{ $viewingItem->name }}" class="max-h-48 rounded-lg object-contain" loading="lazy" />
+                        <x-image-lightbox :src="$viewingItem->full_image_url" :alt="$viewingItem->name" class="max-h-48 rounded-lg object-contain" />
                     @elseif ($viewingItemSource === 'custom')
                         <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
                             <flux:icon name="gift" class="size-12 text-zinc-400 dark:text-zinc-500" />

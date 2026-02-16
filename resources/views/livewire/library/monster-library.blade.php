@@ -88,8 +88,13 @@
             <div class="space-y-6">
                 {{-- Monster Image --}}
                 <div class="flex flex-col items-center gap-3">
-                    @if ($viewingMonster->image_url ?? $viewingMonster->full_image_url ?? null)
-                        <img src="{{ $viewingMonster->image_url ?? $viewingMonster->full_image_url }}" alt="{{ $viewingMonster->name }}" class="h-48 w-full rounded-lg object-cover" loading="lazy" />
+                    @php
+                        $monsterImageSrc = $viewingMonsterSource === 'srd'
+                            ? $viewingMonster->full_image_url
+                            : ($viewingMonster->image_url ?? null);
+                    @endphp
+                    @if ($monsterImageSrc)
+                        <x-image-lightbox :src="$monsterImageSrc" :alt="$viewingMonster->name" />
                     @else
                         <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
                             <flux:icon name="bug-ant" class="size-12 text-zinc-400 dark:text-zinc-500" />

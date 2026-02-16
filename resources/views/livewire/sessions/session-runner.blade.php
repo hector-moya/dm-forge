@@ -81,7 +81,7 @@
                     </div>
 
                     @if ($currentScene->image_url)
-                        <img src="{{ $currentScene->image_url }}" alt="{{ $currentScene->title }}" class="mb-3 max-h-48 w-full rounded-lg object-cover" />
+                        <x-image-lightbox :src="$currentScene->image_url" :alt="$currentScene->title" class="mb-3 max-h-48 w-full rounded-lg object-cover" />
                     @endif
 
                     @if ($currentScene->description)

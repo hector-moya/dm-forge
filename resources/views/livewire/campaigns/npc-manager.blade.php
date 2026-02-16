@@ -137,7 +137,7 @@
                 {{-- NPC Image --}}
                 <div class="flex flex-col items-center gap-3">
                     @if ($viewingNpc->image_path)
-                        <img src="{{ $viewingNpc->image_url }}" alt="{{ $viewingNpc->name }}" class="h-48 w-full rounded-lg object-cover" />
+                        <x-image-lightbox :src="$viewingNpc->image_url" :alt="$viewingNpc->name" />
                     @else
                         <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
                             <flux:icon name="user" class="size-12 text-zinc-400 dark:text-zinc-500" />
