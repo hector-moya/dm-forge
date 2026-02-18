@@ -64,6 +64,7 @@
                         <a href="#features" class="text-sm text-zinc-400 hover:text-white transition-colors duration-150">Features</a>
                         <a href="#ai" class="text-sm text-zinc-400 hover:text-white transition-colors duration-150">AI Tools</a>
                         <a href="#how-it-works" class="text-sm text-zinc-400 hover:text-white transition-colors duration-150">How It Works</a>
+                        <a href="{{ route('docs') }}" class="text-sm text-zinc-400 hover:text-white transition-colors duration-150">Docs</a>
                     </div>
 
                     {{-- Auth buttons --}}
@@ -617,6 +618,7 @@
 
                     @if (Route::has('login'))
                         <div class="flex items-center gap-5 text-xs text-zinc-600">
+                            <a href="{{ route('docs') }}" class="hover:text-zinc-400 transition-colors duration-150">Docs</a>
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="hover:text-zinc-400 transition-colors duration-150">Dashboard</a>
                             @else

@@ -25,6 +25,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/docs', function () {
+    return view('docs');
+})->name('docs');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Dashboard::class)->name('dashboard');
 
