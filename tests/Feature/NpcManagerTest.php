@@ -36,7 +36,7 @@ test('npc manager lists npcs', function () {
     Npc::factory()->for($campaign)->create(['name' => 'Gornik the Bold']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->assertSee('Gornik the Bold');
 });
 
@@ -45,7 +45,7 @@ test('npc manager can create an npc', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
         ->set('npcName', 'Elena Darkwood')
@@ -65,7 +65,7 @@ test('npc manager can create npc with faction and location', function () {
     $location = Location::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->set('npcName', 'Guard Captain')
         ->set('npcFactionId', $faction->id)
@@ -83,7 +83,7 @@ test('npc manager can edit an npc', function () {
     $npc = Npc::factory()->for($campaign)->create(['name' => 'Old Name', 'role' => 'Guard']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm', $npc->id)
         ->assertSet('npcName', 'Old Name')
         ->assertSet('npcRole', 'Guard')
@@ -99,7 +99,7 @@ test('npc manager can delete an npc', function () {
     $npc = Npc::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('delete', $npc->id);
 
     expect($campaign->npcs()->count())->toBe(0);
@@ -112,7 +112,7 @@ test('npc manager search filters npcs', function () {
     Npc::factory()->for($campaign)->create(['name' => 'Elena Darkwood']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->set('search', 'Elena')
         ->assertSee('Elena Darkwood')
         ->assertDontSee('Gornik the Bold');
@@ -126,7 +126,7 @@ test('npc manager faction filter works', function () {
     Npc::factory()->for($campaign)->create(['name' => 'Loner', 'faction_id' => null]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->set('factionFilter', $faction->id)
         ->assertSee('Member')
         ->assertDontSee('Loner');
@@ -139,7 +139,7 @@ test('npc manager alive filter works', function () {
     Npc::factory()->for($campaign)->create(['name' => 'Dead NPC', 'is_alive' => false]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->set('aliveFilter', 'dead')
         ->assertSee('Dead NPC')
         ->assertDontSee('Living NPC');
@@ -150,7 +150,7 @@ test('npc manager saves voice fields and catchphrases', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->set('npcName', 'Voiced NPC')
         ->set('npcVoiceDescription', 'Deep, rumbling')
@@ -178,7 +178,7 @@ test('npc manager shows detail flyout with history', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('viewNpc', $npc->id)
         ->assertSet('viewingNpcId', $npc->id);
 });
@@ -204,7 +204,7 @@ test('npc manager generates npc with ai', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->assertSet('showGenerateModal', true)
         ->set('generateContext', 'A tavern owner')
@@ -228,7 +228,7 @@ test('npc manager can generate image for npc', function () {
     $npc = Npc::factory()->for($campaign)->create(['name' => 'Gornik']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('generateImage', $npc->id);
 
     expect($npc->fresh()->image_path)->not->toBeNull();
@@ -245,7 +245,7 @@ test('npc manager handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\NpcManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->call('generate')
         ->assertSet('generating', false)

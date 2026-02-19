@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
 use App\Models\Npc;
 use App\Services\EntityImageGenerator;
-use Flux;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class NpcManager extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -74,7 +72,8 @@ class NpcManager extends Component
         $this->modal('view-npc')->show();
     }
 
-    public function getViewingNpcProperty(): ?Npc
+    #[Computed]
+    public function viewingNpc(): ?Npc
     {
         if (! $this->viewingNpcId) {
             return null;
@@ -145,10 +144,10 @@ class NpcManager extends Component
 
         if ($this->editingNpcId) {
             $this->campaign->npcs()->findOrFail($this->editingNpcId)->update($data);
-            Flux::toast(__('NPC updated.'));
+            \Flux::toast(__('NPC updated.'));
         } else {
             $npc = $this->campaign->npcs()->create($data);
-            Flux::toast(__('NPC created.'));
+            \Flux::toast(__('NPC created.'));
 
             if ($this->pendingImageGeneration) {
                 try {
@@ -156,9 +155,9 @@ class NpcManager extends Component
                         $npc, 'npc', null,
                         fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
                     );
-                    Flux::toast(__('Image generated!'));
+                    \Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
-                    Flux::toast(__('NPC saved, but image generation failed.'));
+                    \Flux::toast(__('NPC saved, but image generation failed.'));
                 }
             }
         }
@@ -174,7 +173,7 @@ class NpcManager extends Component
             $this->viewingNpcId = null;
         }
 
-        Flux::toast(__('NPC deleted.'));
+        \Flux::toast(__('NPC deleted.'));
     }
 
     private function resetForm(): void
@@ -232,9 +231,9 @@ class NpcManager extends Component
             $this->npcCatchphrases = isset($response['catchphrases']) ? implode("\n", $response['catchphrases']) : '';
             $this->pendingImageGeneration = $this->generateImageOnCreate;
 
-            Flux::toast(__('NPC generated! Review and save below.'));
+            \Flux::toast(__('NPC generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -253,12 +252,12 @@ class NpcManager extends Component
             );
 
             if ($path) {
-                Flux::toast(__('Image generated!'));
+                \Flux::toast(__('Image generated!'));
             } else {
-                Flux::toast(__('Image generation failed.'));
+                \Flux::toast(__('Image generation failed.'));
             }
         } catch (\Throwable $e) {
-            Flux::toast(__('Image generation failed: ').$e->getMessage());
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
     }
 
@@ -285,11 +284,11 @@ class NpcManager extends Component
         return $query->orderBy('name')->get();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $viewingNpc = $this->viewingNpc;
 
-        return view('livewire.campaigns.npc-manager', [
+        return view('pages.campaigns.⚡npc-manager.npc-manager', [
             'npcs' => $this->getNpcs(),
             'viewingNpc' => $viewingNpc,
             'factions' => $this->campaign->factions()->orderBy('name')->get(),
@@ -299,4 +298,4 @@ class NpcManager extends Component
                 : collect(),
         ])->title(__('NPCs').' — '.$this->campaign->name);
     }
-}
+};
