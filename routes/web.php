@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Campaigns\FactionManager;
 use App\Livewire\Campaigns\LocationManager;
 use App\Livewire\Campaigns\NpcManager;
 use App\Livewire\Characters\AlignmentCompass;
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/{campaign}', 'pages::campaigns.show')->name('campaigns.show');
     Route::livewire('campaigns/{campaign}/edit', 'pages::campaigns.edit')->name('campaigns.edit');
     Route::livewire('campaigns/{campaign}/timeline', 'pages::campaigns.world-timeline')->name('campaigns.timeline');
-    Route::get('campaigns/{campaign}/factions', FactionManager::class)->name('campaigns.factions');
+    Route::livewire('campaigns/{campaign}/factions', 'pages::campaigns.faction-manager')->name('campaigns.factions');
     Route::get('campaigns/{campaign}/locations', LocationManager::class)->name('campaigns.locations');
     Route::get('campaigns/{campaign}/npcs', NpcManager::class)->name('campaigns.npcs');
 

@@ -34,7 +34,7 @@ test('faction manager lists factions', function () {
     Faction::factory()->for($campaign)->create(['name' => 'Order of the Flame']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->assertSee('Order of the Flame');
 });
 
@@ -43,7 +43,7 @@ test('faction manager can create a faction', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
         ->set('factionName', 'Shadow Guild')
@@ -60,7 +60,7 @@ test('faction manager can edit a faction', function () {
     $faction = Faction::factory()->for($campaign)->create(['name' => 'Old Name']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openForm', $faction->id)
         ->assertSet('factionName', 'Old Name')
         ->set('factionName', 'New Name')
@@ -75,7 +75,7 @@ test('faction manager can delete a faction', function () {
     $faction = Faction::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('delete', $faction->id);
 
     expect($campaign->factions()->count())->toBe(0);
@@ -88,7 +88,7 @@ test('faction manager search filters factions', function () {
     Faction::factory()->for($campaign)->create(['name' => 'Shadow Guild']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->set('search', 'Shadow')
         ->assertSee('Shadow Guild')
         ->assertDontSee('Order of the Flame');
@@ -108,7 +108,7 @@ test('faction manager shows detail flyout with history', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('viewFaction', $faction->id)
         ->assertSet('viewingFactionId', $faction->id);
 });
@@ -131,7 +131,7 @@ test('faction manager generates faction with ai', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->assertSet('showGenerateModal', true)
         ->set('generateContext', 'A warrior guild')
@@ -154,7 +154,7 @@ test('faction manager can generate image for faction', function () {
     $faction = Faction::factory()->for($campaign)->create(['name' => 'Iron Brotherhood']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('generateImage', $faction->id);
 
     expect($faction->fresh()->image_path)->not->toBeNull();
@@ -171,7 +171,7 @@ test('faction manager handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\FactionManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->call('generate')
         ->assertSet('generating', false)

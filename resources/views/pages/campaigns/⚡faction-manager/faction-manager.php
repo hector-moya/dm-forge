@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Ai\Agents\FactionGenerator;
 use App\Models\Campaign;
 use App\Models\Faction;
 use App\Services\EntityImageGenerator;
-use Flux;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class FactionManager extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -58,7 +56,8 @@ class FactionManager extends Component
         $this->modal('view-faction')->show();
     }
 
-    public function getViewingFactionProperty(): ?Faction
+    #[Computed]
+    public function viewingFaction(): ?Faction
     {
         if (! $this->viewingFactionId) {
             return null;
@@ -107,10 +106,10 @@ class FactionManager extends Component
 
         if ($this->editingFactionId) {
             $this->campaign->factions()->findOrFail($this->editingFactionId)->update($data);
-            Flux::toast(__('Faction updated.'));
+            \Flux::toast(__('Faction updated.'));
         } else {
             $faction = $this->campaign->factions()->create($data);
-            Flux::toast(__('Faction created.'));
+            \Flux::toast(__('Faction created.'));
 
             if ($this->pendingImageGeneration) {
                 try {
@@ -118,9 +117,9 @@ class FactionManager extends Component
                         $faction, 'faction', null,
                         fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
                     );
-                    Flux::toast(__('Image generated!'));
+                    \Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
-                    Flux::toast(__('Faction saved, but image generation failed.'));
+                    \Flux::toast(__('Faction saved, but image generation failed.'));
                 }
             }
         }
@@ -136,7 +135,7 @@ class FactionManager extends Component
             $this->viewingFactionId = null;
         }
 
-        Flux::toast(__('Faction deleted.'));
+        \Flux::toast(__('Faction deleted.'));
     }
 
     private function resetForm(): void
@@ -186,9 +185,9 @@ class FactionManager extends Component
 
             $this->pendingImageGeneration = $this->generateImageOnCreate;
 
-            Flux::toast(__('Faction generated! Review and save below.'));
+            \Flux::toast(__('Faction generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -207,12 +206,12 @@ class FactionManager extends Component
             );
 
             if ($path) {
-                Flux::toast(__('Image generated!'));
+                \Flux::toast(__('Image generated!'));
             } else {
-                Flux::toast(__('Image generation failed.'));
+                \Flux::toast(__('Image generation failed.'));
             }
         } catch (\Throwable $e) {
-            Flux::toast(__('Image generation failed: ').$e->getMessage());
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
     }
 
@@ -229,11 +228,11 @@ class FactionManager extends Component
         return $query->orderBy('name')->get();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $viewingFaction = $this->viewingFaction;
 
-        return view('livewire.campaigns.faction-manager', [
+        return view('pages.campaigns.⚡faction-manager.faction-manager', [
             'factions' => $this->getFactions(),
             'viewingFaction' => $viewingFaction,
             'history' => $viewingFaction
@@ -241,4 +240,4 @@ class FactionManager extends Component
                 : collect(),
         ])->title(__('Factions').' — '.$this->campaign->name);
     }
-}
+};

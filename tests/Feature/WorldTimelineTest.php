@@ -35,7 +35,7 @@ test('users can create a world event', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\WorldTimeline::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.world-timeline', ['campaign' => $campaign])
         ->call('openEventForm')
         ->assertSet('showEventForm', true)
         ->set('eventTitle', 'The Dragon Awakens')
@@ -53,7 +53,7 @@ test('users can edit a world event', function () {
     $event = WorldEvent::factory()->for($campaign)->create(['title' => 'Original Title']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\WorldTimeline::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.world-timeline', ['campaign' => $campaign])
         ->call('openEventForm', $event->id)
         ->assertSet('eventTitle', 'Original Title')
         ->set('eventTitle', 'Updated Title')
@@ -68,7 +68,7 @@ test('users can delete a world event', function () {
     $event = WorldEvent::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\WorldTimeline::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.world-timeline', ['campaign' => $campaign])
         ->call('deleteEvent', $event->id);
 
     expect(WorldEvent::find($event->id))->toBeNull();
@@ -82,7 +82,7 @@ test('timeline can be filtered by event type', function () {
     WorldEvent::factory()->for($campaign)->create(['event_type' => 'custom', 'title' => 'Custom Event']);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\WorldTimeline::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.world-timeline', ['campaign' => $campaign])
         ->assertSee('Faction Event')
         ->assertSee('Custom Event');
 
@@ -98,7 +98,7 @@ test('world event can be associated with faction and location', function () {
     $location = $campaign->locations()->create(['name' => 'Shadow Keep']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\WorldTimeline::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.world-timeline', ['campaign' => $campaign])
         ->call('openEventForm')
         ->set('eventTitle', 'Brotherhood Moves')
         ->set('eventDescription', 'They march on Shadow Keep')
