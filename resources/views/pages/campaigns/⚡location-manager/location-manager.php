@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Ai\Agents\LocationGenerator;
 use App\Models\Campaign;
 use App\Models\Location;
 use App\Services\EntityImageGenerator;
-use Flux;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class LocationManager extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -58,7 +56,8 @@ class LocationManager extends Component
         $this->modal('view-location')->show();
     }
 
-    public function getViewingLocationProperty(): ?Location
+    #[Computed]
+    public function viewingLocation(): ?Location
     {
         if (! $this->viewingLocationId) {
             return null;
@@ -67,6 +66,19 @@ class LocationManager extends Component
         return $this->campaign->locations()
             ->with(['children', 'parent', 'npcs'])
             ->find($this->viewingLocationId);
+    }
+
+    #[Computed]
+    public function regions(): array
+    {
+        return $this->campaign->locations()
+            ->distinct()
+            ->whereNotNull('region')
+            ->where('region', '!=', '')
+            ->pluck('region')
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
     // ── CRUD ──────────────────────────────────────────────────────────
@@ -104,10 +116,10 @@ class LocationManager extends Component
 
         if ($this->editingLocationId) {
             $this->campaign->locations()->findOrFail($this->editingLocationId)->update($data);
-            Flux::toast(__('Location updated.'));
+            \Flux::toast(__('Location updated.'));
         } else {
             $location = $this->campaign->locations()->create($data);
-            Flux::toast(__('Location created.'));
+            \Flux::toast(__('Location created.'));
 
             if ($this->pendingImageGeneration) {
                 try {
@@ -115,9 +127,9 @@ class LocationManager extends Component
                         $location, 'location', null,
                         fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
                     );
-                    Flux::toast(__('Image generated!'));
+                    \Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
-                    Flux::toast(__('Location saved, but image generation failed.'));
+                    \Flux::toast(__('Location saved, but image generation failed.'));
                 }
             }
         }
@@ -133,7 +145,7 @@ class LocationManager extends Component
             $this->viewingLocationId = null;
         }
 
-        Flux::toast(__('Location deleted.'));
+        \Flux::toast(__('Location deleted.'));
     }
 
     private function resetForm(): void
@@ -184,9 +196,9 @@ class LocationManager extends Component
 
             $this->pendingImageGeneration = $this->generateImageOnCreate;
 
-            Flux::toast(__('Location generated! Review and save below.'));
+            \Flux::toast(__('Location generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -205,28 +217,16 @@ class LocationManager extends Component
             );
 
             if ($path) {
-                Flux::toast(__('Image generated!'));
+                \Flux::toast(__('Image generated!'));
             } else {
-                Flux::toast(__('Image generation failed.'));
+                \Flux::toast(__('Image generation failed.'));
             }
         } catch (\Throwable $e) {
-            Flux::toast(__('Image generation failed: ').$e->getMessage());
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
     }
 
     // ── Render ─────────────────────────────────────────────────────────
-
-    public function getRegionsProperty(): array
-    {
-        return $this->campaign->locations()
-            ->distinct()
-            ->whereNotNull('region')
-            ->where('region', '!=', '')
-            ->pluck('region')
-            ->sort()
-            ->values()
-            ->toArray();
-    }
 
     public function getLocations(): Collection
     {
@@ -243,11 +243,11 @@ class LocationManager extends Component
         return $query->orderBy('name')->get();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $viewingLocation = $this->viewingLocation;
 
-        return view('livewire.campaigns.location-manager', [
+        return view('pages.campaigns.⚡location-manager.location-manager', [
             'locations' => $this->getLocations(),
             'allLocations' => $this->campaign->locations()->orderBy('name')->get(),
             'viewingLocation' => $viewingLocation,
@@ -257,4 +257,4 @@ class LocationManager extends Component
                 : collect(),
         ])->title(__('Locations').' — '.$this->campaign->name);
     }
-}
+};

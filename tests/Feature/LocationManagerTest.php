@@ -35,7 +35,7 @@ test('location manager lists locations', function () {
     Location::factory()->for($campaign)->create(['name' => 'Whispering Woods']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->assertSee('Whispering Woods');
 });
 
@@ -44,7 +44,7 @@ test('location manager can create a location', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
         ->set('locationName', 'Dragon Peak')
@@ -63,7 +63,7 @@ test('location manager can edit a location', function () {
     $location = Location::factory()->for($campaign)->create(['name' => 'Old Forest']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm', $location->id)
         ->assertSet('locationName', 'Old Forest')
         ->set('locationName', 'New Forest')
@@ -78,7 +78,7 @@ test('location manager can delete a location', function () {
     $location = Location::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('delete', $location->id);
 
     expect($campaign->locations()->count())->toBe(0);
@@ -91,7 +91,7 @@ test('location manager search filters locations', function () {
     Location::factory()->for($campaign)->create(['name' => 'Dragon Peak']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->set('search', 'Dragon')
         ->assertSee('Dragon Peak')
         ->assertDontSee('Whispering Woods');
@@ -104,7 +104,7 @@ test('location manager region filter works', function () {
     Location::factory()->for($campaign)->create(['name' => 'Ice Castle', 'region' => 'Northern Wastes']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->set('regionFilter', 'Northern Wastes')
         ->assertSee('Ice Castle')
         ->assertDontSee('Forest Town');
@@ -116,7 +116,7 @@ test('location manager can set parent location', function () {
     $parent = Location::factory()->for($campaign)->create(['name' => 'Kingdom']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->set('locationName', 'Castle')
         ->set('locationParentId', $parent->id)
@@ -134,7 +134,7 @@ test('location manager shows detail with sub-locations and npcs', function () {
     Npc::factory()->for($campaign)->create(['name' => 'Guard Captain', 'location_id' => $location->id]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('viewLocation', $location->id)
         ->assertSet('viewingLocationId', $location->id);
 });
@@ -156,7 +156,7 @@ test('location manager generates location with ai', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->assertSet('showGenerateModal', true)
         ->set('generateContext', 'A haunted forest')
@@ -179,7 +179,7 @@ test('location manager can generate image for location', function () {
     $location = Location::factory()->for($campaign)->create(['name' => 'Dark Forest']);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('generateImage', $location->id);
 
     expect($location->fresh()->image_path)->not->toBeNull();
@@ -196,7 +196,7 @@ test('location manager handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\LocationManager::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->call('generate')
         ->assertSet('generating', false)
