@@ -24,7 +24,7 @@ test('campaign edit generates faction with ai', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateFactionModal')
         ->assertSet('showGenerateFactionModal', true)
         ->set('generateFactionContext', 'A warrior guild')
@@ -54,7 +54,7 @@ test('campaign edit generates location with ai', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateLocationModal')
         ->assertSet('showGenerateLocationModal', true)
         ->set('generateLocationContext', 'A haunted forest')
@@ -76,7 +76,7 @@ test('campaign edit handles faction generation failure', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateFactionModal')
         ->call('generateFaction')
         ->assertSet('generatingFaction', false)
@@ -92,7 +92,7 @@ test('campaign edit handles location generation failure', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateLocationModal')
         ->call('generateLocation')
         ->assertSet('generatingLocation', false)

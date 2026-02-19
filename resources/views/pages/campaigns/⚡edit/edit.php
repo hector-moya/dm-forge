@@ -1,18 +1,12 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Ai\Agents\FactionGenerator;
 use App\Ai\Agents\LocationGenerator;
 use App\Ai\Agents\NpcGenerator;
 use App\Models\Campaign;
-use App\Models\Faction;
-use App\Models\Location;
-use App\Models\Npc;
-use Flux;
 use Livewire\Component;
 
-class CampaignEdit extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -428,9 +422,9 @@ class CampaignEdit extends Component
             $this->factionGoals = $response['goals'] ?? '';
             $this->factionResources = $response['resources'] ?? '';
 
-            Flux::toast(__('Faction generated! Review and save below.'));
+            \Flux::toast(__('Faction generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Faction generation failed: ').$e->getMessage());
+            \Flux::toast(__('Faction generation failed: ').$e->getMessage());
         }
 
         $this->generatingFaction = false;
@@ -470,9 +464,9 @@ class CampaignEdit extends Component
                 $this->locationDescription .= "\n\nHistory: ".$response['history'];
             }
 
-            Flux::toast(__('Location generated! Review and save below.'));
+            \Flux::toast(__('Location generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Location generation failed: ').$e->getMessage());
+            \Flux::toast(__('Location generation failed: ').$e->getMessage());
         }
 
         $this->generatingLocation = false;
@@ -513,20 +507,20 @@ class CampaignEdit extends Component
             $this->npcSpeechPatterns = $response['speech_patterns'] ?? '';
             $this->npcCatchphrases = isset($response['catchphrases']) ? implode("\n", $response['catchphrases']) : '';
 
-            Flux::toast(__('NPC generated! Review and save below.'));
+            \Flux::toast(__('NPC generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('NPC generation failed: ').$e->getMessage());
+            \Flux::toast(__('NPC generation failed: ').$e->getMessage());
         }
 
         $this->generatingNpc = false;
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
-        return view('livewire.campaigns.campaign-edit', [
+        return view('pages.campaigns.⚡edit.edit', [
             'factions' => $this->campaign->factions()->orderBy('sort_order')->orderBy('name')->get(),
             'locations' => $this->campaign->locations()->orderBy('name')->get(),
             'npcs' => $this->campaign->npcs()->with(['faction', 'location'])->orderBy('name')->get(),
         ])->title(__('Edit').' '.$this->campaign->name);
     }
-}
+};

@@ -37,7 +37,7 @@ test('npc generator populates form with ai response', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateNpcModal')
         ->assertSet('showGenerateNpcModal', true)
         ->set('generateNpcContext', 'A tavern owner in the docks district')
@@ -60,7 +60,7 @@ test('npc can be saved with voice fields', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openNpcForm')
         ->set('npcName', 'Test NPC')
         ->set('npcRole', 'Guard')
@@ -89,7 +89,7 @@ test('npc voice fields can be edited', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openNpcForm', $npc->id)
         ->assertSet('npcVoiceDescription', 'Original voice')
         ->assertSet('npcSpeechPatterns', 'Original patterns')
@@ -111,7 +111,7 @@ test('npc generator handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->call('openGenerateNpcModal')
         ->call('generateNpc')
         ->assertSet('generatingNpc', false)

@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Campaigns\CampaignEdit;
 use App\Livewire\Campaigns\FactionManager;
 use App\Livewire\Campaigns\LocationManager;
 use App\Livewire\Campaigns\NpcManager;
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/wizard', 'pages::campaigns.wizard')->name('campaigns.wizard');
     Route::livewire('campaigns/create', 'pages::campaigns.create')->name('campaigns.create');
     Route::livewire('campaigns/{campaign}', 'pages::campaigns.show')->name('campaigns.show');
-    Route::get('campaigns/{campaign}/edit', CampaignEdit::class)->name('campaigns.edit');
+    Route::livewire('campaigns/{campaign}/edit', 'pages::campaigns.edit')->name('campaigns.edit');
     Route::get('campaigns/{campaign}/timeline', WorldTimeline::class)->name('campaigns.timeline');
     Route::get('campaigns/{campaign}/factions', FactionManager::class)->name('campaigns.factions');
     Route::get('campaigns/{campaign}/locations', LocationManager::class)->name('campaigns.locations');

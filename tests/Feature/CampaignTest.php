@@ -47,7 +47,7 @@ test('users can edit their campaign', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignEdit::class, ['campaign' => $campaign])
+        ->test('pages::campaigns.edit', ['campaign' => $campaign])
         ->set('name', 'Updated Name')
         ->call('save')
         ->assertRedirect();
