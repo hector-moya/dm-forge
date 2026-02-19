@@ -3,7 +3,6 @@
 use App\Livewire\Campaigns\CampaignCreate;
 use App\Livewire\Campaigns\CampaignEdit;
 use App\Livewire\Campaigns\CampaignShow;
-use App\Livewire\Campaigns\CampaignWizard;
 use App\Livewire\Campaigns\FactionManager;
 use App\Livewire\Campaigns\LocationManager;
 use App\Livewire\Campaigns\NpcManager;
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
 
     // Campaigns
-    Route::get('campaigns/wizard', CampaignWizard::class)->name('campaigns.wizard');
+    Route::livewire('campaigns/wizard', 'pages::campaigns.wizard')->name('campaigns.wizard');
     Route::get('campaigns/create', CampaignCreate::class)->name('campaigns.create');
     Route::get('campaigns/{campaign}', CampaignShow::class)->name('campaigns.show');
     Route::get('campaigns/{campaign}/edit', CampaignEdit::class)->name('campaigns.edit');

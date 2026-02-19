@@ -21,7 +21,7 @@ test('wizard step navigation works', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->assertSet('currentStep', 1)
         ->set('name', 'Test Campaign')
         ->call('nextStep')
@@ -36,7 +36,7 @@ test('wizard requires name on step 1', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->call('nextStep')
         ->assertHasErrors(['name']);
 });
@@ -45,7 +45,7 @@ test('wizard can add and remove factions', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('factionName', 'The Iron Guard')
         ->set('factionDescription', 'A military order')
         ->set('factionAlignment', 'Lawful Neutral')
@@ -60,7 +60,7 @@ test('wizard can add and remove locations', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('locationName', 'Dragon Keep')
         ->set('locationDescription', 'A fortress atop a mountain')
         ->set('locationRegion', 'Northern Peaks')
@@ -74,7 +74,7 @@ test('wizard can add and remove characters', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('characterName', 'Thorin')
         ->set('characterPlayerName', 'John')
         ->set('characterClass', 'Fighter')
@@ -89,7 +89,7 @@ test('wizard creates campaign with all entities', function () {
     $user = User::factory()->create();
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('name', 'Epic Quest')
         ->set('premise', 'Save the world')
         ->set('theme_tone', 'Dark fantasy')
@@ -135,7 +135,7 @@ test('wizard ai suggests world details', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('name', 'Dragon Age')
         ->set('premise', 'Dragons return')
         ->call('suggestWorld')
@@ -158,7 +158,7 @@ test('wizard ai suggests factions', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('name', 'Dragon Age')
         ->call('suggestFactions')
         ->assertCount('factions', 2);
@@ -176,7 +176,7 @@ test('wizard ai suggests locations', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignWizard::class)
+        ->test('pages::campaigns.wizard')
         ->set('name', 'Dragon Age')
         ->call('suggestLocations')
         ->assertCount('locations', 1);

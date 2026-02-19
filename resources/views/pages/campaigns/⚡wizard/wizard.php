@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Ai\Agents\CampaignWizardAgent;
 use App\Models\Campaign;
-use Flux;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
-class CampaignWizard extends Component
+new #[Title('Campaign Wizard')] class extends Component
 {
     public int $currentStep = 1;
 
@@ -123,9 +121,9 @@ class CampaignWizard extends Component
             $this->lore = $response['lore'] ?? '';
             $this->world_rules = $response['world_rules'] ?? '';
 
-            Flux::toast(__('World details generated!'));
+            \Flux::toast(__('World details generated!'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -154,9 +152,9 @@ class CampaignWizard extends Component
                 ];
             }
 
-            Flux::toast(__('Factions suggested!'));
+            \Flux::toast(__('Factions suggested!'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -184,9 +182,9 @@ class CampaignWizard extends Component
                 ];
             }
 
-            Flux::toast(__('Locations suggested!'));
+            \Flux::toast(__('Locations suggested!'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -215,9 +213,9 @@ class CampaignWizard extends Component
                 ];
             }
 
-            Flux::toast(__('NPCs suggested!'));
+            \Flux::toast(__('NPCs suggested!'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -396,14 +394,8 @@ class CampaignWizard extends Component
             ]);
         }
 
-        Flux::toast(__('Campaign created successfully!'));
+        \Flux::toast(__('Campaign created successfully!'));
 
         $this->redirect(route('campaigns.show', $campaign), navigate: true);
     }
-
-    public function render()
-    {
-        return view('livewire.campaigns.campaign-wizard')
-            ->title(__('Campaign Wizard'));
-    }
-}
+};
