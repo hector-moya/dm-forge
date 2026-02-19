@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Campaigns\CampaignCreate;
 use App\Livewire\Campaigns\CampaignEdit;
 use App\Livewire\Campaigns\CampaignShow;
 use App\Livewire\Campaigns\FactionManager;
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Campaigns
     Route::livewire('campaigns/wizard', 'pages::campaigns.wizard')->name('campaigns.wizard');
-    Route::get('campaigns/create', CampaignCreate::class)->name('campaigns.create');
+    Route::livewire('campaigns/create', 'pages::campaigns.create')->name('campaigns.create');
     Route::get('campaigns/{campaign}', CampaignShow::class)->name('campaigns.show');
     Route::get('campaigns/{campaign}/edit', CampaignEdit::class)->name('campaigns.edit');
     Route::get('campaigns/{campaign}/timeline', WorldTimeline::class)->name('campaigns.timeline');

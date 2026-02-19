@@ -13,7 +13,7 @@ test('users can create a campaign', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Campaigns\CampaignCreate::class)
+        ->test('pages::campaigns.create')
         ->set('name', 'The Lost Mine')
         ->set('premise', 'A forgotten mine holds ancient secrets')
         ->call('save')

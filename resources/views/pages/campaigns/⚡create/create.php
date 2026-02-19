@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Create Campaign')]
-class CampaignCreate extends Component
+new #[Title('Create Campaign')] class extends Component
 {
     public string $name = '';
 
@@ -56,9 +53,4 @@ class CampaignCreate extends Component
 
         $this->redirect(route('campaigns.show', $campaign), navigate: true);
     }
-
-    public function render()
-    {
-        return view('livewire.campaigns.campaign-create');
-    }
-}
+};
