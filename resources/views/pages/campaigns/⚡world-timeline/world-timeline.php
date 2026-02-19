@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Livewire\Campaigns;
-
 use App\Models\Campaign;
-use Flux;
 use Livewire\Component;
 
-class WorldTimeline extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -82,10 +79,10 @@ class WorldTimeline extends Component
 
         if ($this->editingEventId) {
             $this->campaign->worldEvents()->findOrFail($this->editingEventId)->update($data);
-            Flux::toast(__('Event updated successfully'));
+            \Flux::toast(__('Event updated successfully'));
         } else {
             $this->campaign->worldEvents()->create($data);
-            Flux::toast(__('Event created successfully'));
+            \Flux::toast(__('Event created successfully'));
         }
 
         $this->resetEventForm();
@@ -94,7 +91,7 @@ class WorldTimeline extends Component
     public function deleteEvent(int $eventId): void
     {
         $this->campaign->worldEvents()->findOrFail($eventId)->delete();
-        Flux::toast(__('Event deleted successfully'));
+        \Flux::toast(__('Event deleted successfully'));
     }
 
     private function resetEventForm(): void
@@ -111,7 +108,7 @@ class WorldTimeline extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $query = $this->campaign->worldEvents()
             ->with(['faction', 'location', 'gameSession'])
@@ -121,11 +118,11 @@ class WorldTimeline extends Component
             $query->where('event_type', $this->filterType);
         }
 
-        return view('livewire.campaigns.world-timeline', [
+        return view('pages.campaigns.⚡world-timeline.world-timeline', [
             'events' => $query->get(),
             'factions' => $this->campaign->factions()->orderBy('name')->get(),
             'locations' => $this->campaign->locations()->orderBy('name')->get(),
             'sessions' => $this->campaign->gameSessions()->orderBy('session_number')->get(),
         ])->title(__('Timeline').' — '.$this->campaign->name);
     }
-}
+};

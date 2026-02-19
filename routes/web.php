@@ -3,7 +3,6 @@
 use App\Livewire\Campaigns\FactionManager;
 use App\Livewire\Campaigns\LocationManager;
 use App\Livewire\Campaigns\NpcManager;
-use App\Livewire\Campaigns\WorldTimeline;
 use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
 use App\Livewire\Characters\CharacterIndex;
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/create', 'pages::campaigns.create')->name('campaigns.create');
     Route::livewire('campaigns/{campaign}', 'pages::campaigns.show')->name('campaigns.show');
     Route::livewire('campaigns/{campaign}/edit', 'pages::campaigns.edit')->name('campaigns.edit');
-    Route::get('campaigns/{campaign}/timeline', WorldTimeline::class)->name('campaigns.timeline');
+    Route::livewire('campaigns/{campaign}/timeline', 'pages::campaigns.world-timeline')->name('campaigns.timeline');
     Route::get('campaigns/{campaign}/factions', FactionManager::class)->name('campaigns.factions');
     Route::get('campaigns/{campaign}/locations', LocationManager::class)->name('campaigns.locations');
     Route::get('campaigns/{campaign}/npcs', NpcManager::class)->name('campaigns.npcs');
