@@ -6,7 +6,7 @@
         </flux:button>
     </div>
 
-    @if ($campaigns->isEmpty())
+    @if ($this->campaigns->isEmpty())
         <div class="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-12 dark:border-zinc-600">
             <div class="text-center">
                 <flux:icon name="map" class="mx-auto mb-4 size-12 text-zinc-400 dark:text-zinc-500" />
@@ -21,7 +21,7 @@
         </div>
     @else
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ($campaigns as $campaign)
+            @foreach ($this->campaigns as $campaign)
                 <a href="{{ route('campaigns.show', $campaign) }}" wire:navigate
                    class="group rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600">
                     <div class="mb-3 flex items-start justify-between">

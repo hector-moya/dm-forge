@@ -11,7 +11,6 @@ use App\Livewire\Campaigns\WorldTimeline;
 use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
 use App\Livewire\Characters\CharacterIndex;
-use App\Livewire\Dashboard;
 use App\Livewire\Library\LootLibrary;
 use App\Livewire\Library\MonsterLibrary;
 use App\Livewire\Sessions\CombatTracker;
@@ -30,7 +29,7 @@ Route::get('/docs', function () {
 })->name('docs');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', Dashboard::class)->name('dashboard');
+    Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
 
     // Campaigns
     Route::get('campaigns/wizard', CampaignWizard::class)->name('campaigns.wizard');
