@@ -92,7 +92,7 @@
                                 default => 'text-zinc-400',
                             };
                         @endphp
-                        <span class="shrink-0 w-16 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
+                        <span class="w-16 shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
                         <span class="text-zinc-700 dark:text-zinc-300">{{ $log->entry }}</span>
                     </div>
                 @endforeach

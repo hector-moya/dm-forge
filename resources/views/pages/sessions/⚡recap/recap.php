@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Livewire\Sessions;
-
 use App\Ai\Agents\NarrativeWriter;
 use App\Models\GameSession;
 use Livewire\Component;
 
-class SessionRecap extends Component
+new class extends Component
 {
     public GameSession $session;
 
@@ -93,14 +91,14 @@ class SessionRecap extends Component
         $this->session->refresh();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $logs = $this->session->sessionLogs()
             ->orderBy('logged_at')
             ->get();
 
-        return view('livewire.sessions.session-recap', [
+        return view('pages.sessions.⚡recap.recap', [
             'logs' => $logs,
         ])->title(__('Recap').' — Session #'.$this->session->session_number);
     }
-}
+};

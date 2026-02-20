@@ -4,7 +4,6 @@ use App\Models\Campaign;
 use App\Models\Character;
 use App\Models\CustomMonster;
 use App\Models\Encounter;
-use App\Models\EncounterNpc;
 use App\Models\GameSession;
 use App\Models\Npc;
 use App\Models\SrdMonster;
@@ -25,7 +24,7 @@ test('combat tracker mounts and loads encounter monsters', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->assertOk()
         ->assertSee('Goblin');
 });
@@ -39,7 +38,7 @@ test('combat tracker loads campaign characters on mount', function () {
     Character::factory()->for($campaign)->create(['name' => 'Aragorn', 'hp_max' => 100, 'hp_current' => 100, 'armor_class' => 18]);
 
     Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->assertSee('Aragorn');
 });
 
@@ -52,7 +51,7 @@ test('add character to combat', function () {
     $character = Character::factory()->for($campaign)->create(['name' => 'Legolas']);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     // Character is auto-loaded on mount, verify it exists
     $combatants = $component->get('combatants');
@@ -68,7 +67,7 @@ test('add character to combat prevents duplicates', function () {
     $character = Character::factory()->for($campaign)->create(['name' => 'Legolas']);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('addCharacterToCombat', $character->id);
 
     $combatants = $component->get('combatants');
@@ -85,13 +84,13 @@ test('add npc to combat', function () {
     $npc = Npc::factory()->for($campaign)->create(['name' => 'Gandalf']);
 
     Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('addNpcToCombat', $npc->id)
         ->assertOk();
 
     // Verify NPC is in combatants
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('addNpcToCombat', $npc->id);
 
     $combatants = $component->get('combatants');
@@ -105,7 +104,7 @@ test('add custom combatant', function () {
     $encounter = Encounter::factory()->for($session)->create();
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->set('combatantName', 'Dire Wolf')
         ->set('combatantInitiative', 15)
         ->set('combatantHpMax', 37)
@@ -131,7 +130,7 @@ test('set initiative auto-sorts combatants', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     // Set Goblin B to higher initiative — find its index first
     $combatants = $component->get('combatants');
@@ -164,7 +163,7 @@ test('hp adjustment clamps between zero and max', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('selectCombatant', 0)
         ->call('adjustHp', 0, -5);
 
@@ -193,7 +192,7 @@ test('heal full restores hp to max', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('adjustHp', 0, -5)
         ->call('healFull', 0);
 
@@ -214,7 +213,7 @@ test('condition toggle adds and removes conditions', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('toggleCondition', 0, 'poisoned');
 
     expect($component->get('combatants.0.conditions'))->toContain('poisoned');
@@ -238,7 +237,7 @@ test('end combat syncs monster data to database', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('startCombat')
         ->call('setInitiative', 0, 18)
         ->call('adjustHp', 0, -3)
@@ -266,7 +265,7 @@ test('end combat syncs character hp to database', function () {
 
     // Find character index (auto-loaded on mount)
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     $combatants = $component->get('combatants');
     $charIndex = collect($combatants)->search(fn ($c) => $c['source_type'] === 'character' && $c['source_id'] === $character->id);
@@ -316,7 +315,7 @@ test('stat block loads for srd monster', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('selectCombatant', 0);
 
     // The stat block should be rendered in the view
@@ -353,7 +352,7 @@ test('stat block loads for custom monster', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('selectCombatant', 0);
 
     $component->assertSee('Large dragon')
@@ -376,7 +375,7 @@ test('stat block loads for character', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('selectCombatant', 0);
 
     $component->assertSee('Gandalf')
@@ -392,7 +391,7 @@ test('combat tracker denies access to other users', function () {
     $encounter = Encounter::factory()->for($session)->create();
 
     Livewire::actingAs($other)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->assertForbidden();
 });
 
@@ -408,7 +407,7 @@ test('remove combatant works correctly', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('removeCombatant', 0);
 
     $combatants = $component->get('combatants');
@@ -432,7 +431,7 @@ test('combat tracker loads encounter npcs on mount', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     $combatants = $component->get('combatants');
     $encounterNpc = collect($combatants)->where('source_type', 'encounter_npc')->first();
@@ -457,7 +456,7 @@ test('end combat syncs encounter npc data to database', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     // Find the encounter NPC index
     $combatants = $component->get('combatants');
@@ -495,7 +494,7 @@ test('stat block loads for encounter npc', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter]);
 
     // Find the encounter NPC index
     $combatants = $component->get('combatants');
@@ -519,7 +518,7 @@ test('next and previous turn cycle through combatants', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test('sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
+        ->test('pages::sessions.combat-tracker', ['session' => $session, 'encounter' => $encounter])
         ->call('startCombat');
 
     expect($component->get('currentTurnIndex'))->toBe(0);

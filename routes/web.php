@@ -1,7 +1,5 @@
 <?php
 
-use App\Livewire\Sessions\CombatTracker;
-use App\Livewire\Sessions\SessionRecap;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,8 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/{campaign}/sessions/create', 'pages::sessions.builder')->name('sessions.create');
     Route::livewire('sessions/{session}/edit', 'pages::sessions.builder')->name('sessions.edit');
     Route::livewire('sessions/{session}/run', 'pages::sessions.runner')->name('sessions.run');
-    Route::get('sessions/{session}/combat/{encounter}', CombatTracker::class)->name('sessions.combat');
-    Route::get('sessions/{session}/recap', SessionRecap::class)->name('sessions.recap');
+    Route::livewire('sessions/{session}/combat/{encounter}', 'pages::sessions.combat-tracker')->name('sessions.combat');
+    Route::livewire('sessions/{session}/recap', 'pages::sessions.recap')->name('sessions.recap');
 });
 
 require __DIR__.'/settings.php';
