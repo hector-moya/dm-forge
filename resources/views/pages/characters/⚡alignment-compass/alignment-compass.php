@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Livewire\Characters;
-
 use App\Models\Character;
 use Livewire\Component;
 
-class AlignmentCompass extends Component
+new class extends Component
 {
     public Character $character;
 
@@ -84,13 +82,13 @@ class AlignmentCompass extends Component
         return "$lawChaos $goodEvil";
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
-        return view('livewire.characters.alignment-compass', [
+        return view('pages.characters.⚡alignment-compass.alignment-compass', [
             'events' => $this->character->alignmentEvents()
                 ->latest()
                 ->limit(20)
                 ->get(),
         ])->title(__('Alignment').' — '.$this->character->name);
     }
-}
+};

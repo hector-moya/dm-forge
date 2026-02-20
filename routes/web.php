@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Library\LootLibrary;
 use App\Livewire\Library\MonsterLibrary;
 use App\Livewire\Sessions\CombatTracker;
@@ -35,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/{campaign}/characters', 'pages::characters.index')->name('campaigns.characters');
     Route::livewire('campaigns/{campaign}/characters/create', 'pages::characters.form')->name('characters.create');
     Route::livewire('campaigns/{campaign}/characters/{character}/edit', 'pages::characters.form')->name('characters.edit');
-    Route::get('characters/{character}/alignment', AlignmentCompass::class)->name('characters.alignment');
+    Route::livewire('characters/{character}/alignment', 'pages::characters.alignment-compass')->name('characters.alignment');
 
     // Library
     Route::get('library/monsters', MonsterLibrary::class)->name('library.monsters');
