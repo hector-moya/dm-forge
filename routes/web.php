@@ -2,7 +2,6 @@
 
 use App\Livewire\Characters\AlignmentCompass;
 use App\Livewire\Characters\CharacterForm;
-use App\Livewire\Characters\CharacterIndex;
 use App\Livewire\Library\LootLibrary;
 use App\Livewire\Library\MonsterLibrary;
 use App\Livewire\Sessions\CombatTracker;
@@ -34,7 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/{campaign}/npcs', 'pages::campaigns.npc-manager')->name('campaigns.npcs');
 
     // Characters
-    Route::get('campaigns/{campaign}/characters', CharacterIndex::class)->name('campaigns.characters');
+    Route::livewire('campaigns/{campaign}/characters', 'pages::characters.index')->name('campaigns.characters');
     Route::get('campaigns/{campaign}/characters/create', CharacterForm::class)->name('characters.create');
     Route::get('campaigns/{campaign}/characters/{character}/edit', CharacterForm::class)->name('characters.edit');
     Route::get('characters/{character}/alignment', AlignmentCompass::class)->name('characters.alignment');

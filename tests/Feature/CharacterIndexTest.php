@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Characters\CharacterIndex;
 use App\Models\Campaign;
 use App\Models\Character;
 use App\Models\User;
@@ -14,7 +13,7 @@ it('renders the character index page with characters', function () {
     $this->actingAs($user)
         ->get(route('campaigns.characters', $campaign))
         ->assertSuccessful()
-        ->assertSeeLivewire(CharacterIndex::class);
+        ->assertSeeLivewire('pages::characters.index');
 });
 
 it('renders edit links with correct route parameters', function () {
@@ -23,7 +22,7 @@ it('renders edit links with correct route parameters', function () {
     $character = Character::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(CharacterIndex::class, ['campaign' => $campaign])
+        ->test('pages::characters.index', ['campaign' => $campaign])
         ->assertSeeHtml(route('characters.edit', [$campaign, $character]))
         ->assertSuccessful();
 });
@@ -33,7 +32,7 @@ it('renders empty state when no characters exist', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(CharacterIndex::class, ['campaign' => $campaign])
+        ->test('pages::characters.index', ['campaign' => $campaign])
         ->assertSee('No characters yet')
         ->assertSuccessful();
 });

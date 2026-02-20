@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Livewire\Characters;
-
 use App\Models\Campaign;
 use Livewire\Component;
 
-class CharacterIndex extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -16,13 +14,13 @@ class CharacterIndex extends Component
         $this->campaign = $campaign;
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
-        return view('livewire.characters.character-index', [
+        return view('pages.characters.⚡index.index', [
             'characters' => $this->campaign->characters()
                 ->withCount('alignmentEvents')
                 ->orderBy('name')
                 ->get(),
         ])->title(__('Characters').' — '.$this->campaign->name);
     }
-}
+};
