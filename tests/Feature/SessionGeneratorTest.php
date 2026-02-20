@@ -171,7 +171,7 @@ test('session generator creates full session with scenes encounters and monsters
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['campaign' => $campaign])
+        ->test('pages::sessions.builder', ['campaign' => $campaign])
         ->set('generateContext', 'An undead dungeon crawl')
         ->call('generateSession')
         ->assertRedirect();
@@ -247,7 +247,7 @@ test('session generator appends scenes to existing session', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['session' => $session])
+        ->test('pages::sessions.builder', ['session' => $session])
         ->call('generateSession')
         ->assertRedirect();
 
@@ -269,7 +269,7 @@ test('session generator handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['campaign' => $campaign])
+        ->test('pages::sessions.builder', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->assertSet('showGenerateModal', true)
         ->call('generateSession')
@@ -312,7 +312,7 @@ test('session generator creates monsters without srd match', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['campaign' => $campaign])
+        ->test('pages::sessions.builder', ['campaign' => $campaign])
         ->call('generateSession')
         ->assertRedirect();
 

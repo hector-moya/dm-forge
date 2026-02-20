@@ -10,7 +10,7 @@ test('users can create a session', function () {
     $campaign = Campaign::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['campaign' => $campaign])
+        ->test('pages::sessions.builder', ['campaign' => $campaign])
         ->set('title', 'Into the Dungeon')
         ->set('session_number', 1)
         ->set('type', 'sequential')
@@ -27,7 +27,7 @@ test('users can add a scene to a session', function () {
     $session = GameSession::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['session' => $session])
+        ->test('pages::sessions.builder', ['session' => $session])
         ->call('openAddSceneForm')
         ->assertSet('showAddSceneForm', true)
         ->set('newSceneTitle', 'The Tavern')
@@ -43,7 +43,7 @@ test('users can add a standalone encounter to a session', function () {
     $session = GameSession::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['session' => $session])
+        ->test('pages::sessions.builder', ['session' => $session])
         ->call('openAddEncounterForm')
         ->assertSet('showAddEncounterForm', true)
         ->set('newEncounterName', 'Goblin Ambush')
@@ -59,7 +59,7 @@ test('users can add a standalone branch to a session', function () {
     $session = GameSession::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['session' => $session])
+        ->test('pages::sessions.builder', ['session' => $session])
         ->call('openAddBranchForm')
         ->assertSet('showAddBranchForm', true)
         ->set('newBranchLabel', 'Fight the dragon')
@@ -75,7 +75,7 @@ test('users can delete a session', function () {
     $session = GameSession::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionBuilder::class, ['session' => $session])
+        ->test('pages::sessions.builder', ['session' => $session])
         ->call('deleteSession')
         ->assertRedirect();
 
