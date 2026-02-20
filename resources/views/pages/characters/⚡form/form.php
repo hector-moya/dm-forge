@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Livewire\Characters;
-
 use App\Models\Campaign;
 use App\Models\Character;
 use Livewire\Component;
 
-class CharacterForm extends Component
+new class extends Component
 {
     public Campaign $campaign;
 
@@ -104,11 +102,11 @@ class CharacterForm extends Component
         $this->redirect(route('campaigns.characters', $this->campaign), navigate: true);
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $title = ($this->character?->exists ? __('Edit').' '.$this->character->name : __('New Character')).' — '.$this->campaign->name;
 
-        return view('livewire.characters.character-form')
+        return view('pages.characters.⚡form.form')
             ->title($title);
     }
-}
+};
