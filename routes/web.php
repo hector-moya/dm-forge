@@ -2,7 +2,6 @@
 
 use App\Livewire\Sessions\CombatTracker;
 use App\Livewire\Sessions\SessionRecap;
-use App\Livewire\Sessions\SessionRunner;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -38,9 +37,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Sessions
     Route::livewire('campaigns/{campaign}/sessions', 'pages::sessions.index')->name('campaigns.sessions');
-    Route::get('campaigns/{campaign}/sessions/create', SessionBuilder::class)->name('sessions.create');
-    Route::get('sessions/{session}/edit', SessionBuilder::class)->name('sessions.edit');
-    Route::get('sessions/{session}/run', SessionRunner::class)->name('sessions.run');
+    Route::livewire('campaigns/{campaign}/sessions/create', 'pages::sessions.builder')->name('sessions.create');
+    Route::livewire('sessions/{session}/edit', 'pages::sessions.builder')->name('sessions.edit');
+    Route::livewire('sessions/{session}/run', 'pages::sessions.runner')->name('sessions.run');
     Route::get('sessions/{session}/combat/{encounter}', CombatTracker::class)->name('sessions.combat');
     Route::get('sessions/{session}/recap', SessionRecap::class)->name('sessions.recap');
 });

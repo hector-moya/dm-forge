@@ -1,7 +1,5 @@
 <?php
 
-namespace App\Livewire\Sessions;
-
 use App\Ai\Agents\AlignmentAdvisor;
 use App\Models\Character;
 use App\Models\EncounterMonster;
@@ -9,7 +7,7 @@ use App\Models\EncounterNpc;
 use App\Models\GameSession;
 use Livewire\Component;
 
-class SessionRunner extends Component
+new class extends Component
 {
     public GameSession $session;
 
@@ -497,7 +495,7 @@ class SessionRunner extends Component
         $this->session->refresh();
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         $allScenes = $this->session->scenes()->orderBy('sort_order')->get();
 
@@ -526,7 +524,7 @@ class SessionRunner extends Component
 
         $characters = $this->session->campaign->characters()->get();
 
-        return view('livewire.sessions.session-runner', [
+        return view('pages.sessions.⚡runner.runner', [
             'allScenes' => $allScenes,
             'currentScene' => $currentScene,
             'sceneEncounters' => $sceneEncounters,
@@ -536,4 +534,4 @@ class SessionRunner extends Component
             'characters' => $characters,
         ])->title(__('Session').' #'.$this->session->session_number.' — '.$this->session->title);
     }
-}
+};

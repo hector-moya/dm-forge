@@ -27,7 +27,7 @@ test('users can add characters to initiative', function () {
     $character = Character::factory()->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('addCharacterToCombat', $character->id)
         ->assertSet('combatants.0.name', $character->name);
 });
@@ -38,7 +38,7 @@ test('users can add log entries', function () {
     $session = GameSession::factory()->for($campaign)->running()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->set('logEntry', 'The party enters the dungeon')
         ->set('logType', 'narrative')
         ->call('addLogEntry');
@@ -53,7 +53,7 @@ test('users can adjust combatant HP', function () {
     $character = Character::factory()->for($campaign)->create(['hp_max' => 50, 'hp_current' => 50]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('addCharacterToCombat', $character->id)
         ->call('adjustHp', 0, -10);
 
@@ -67,7 +67,7 @@ test('HP cannot go below zero', function () {
     $character = Character::factory()->for($campaign)->create(['hp_max' => 10, 'hp_current' => 5]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('addCharacterToCombat', $character->id)
         ->call('adjustHp', 0, -100);
 
@@ -80,7 +80,7 @@ test('users can end a session', function () {
     $session = GameSession::factory()->for($campaign)->running()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('endSession');
 
     expect($session->fresh()->status)->toBe('completed');
@@ -94,7 +94,7 @@ test('users can toggle scene reveal', function () {
     $scene = $session->scenes()->create(['title' => 'Test Scene', 'sort_order' => 1, 'is_revealed' => false]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('toggleSceneReveal', $scene->id);
 
     expect($scene->fresh()->is_revealed)->toBeTrue();
@@ -109,7 +109,7 @@ test('current scene initializes to first scene by sort order', function () {
     $scene1 = $session->scenes()->create(['title' => 'Scene One', 'sort_order' => 1]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session]);
+        ->test('pages::sessions.runner', ['session' => $session]);
 
     expect($component->get('currentSceneId'))->toBe($scene1->id);
 });
@@ -125,7 +125,7 @@ test('current scene resumes from saved current_scene_id', function () {
     $session->update(['current_scene_id' => $scene2->id]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session]);
+        ->test('pages::sessions.runner', ['session' => $session]);
 
     expect($component->get('currentSceneId'))->toBe($scene2->id);
 });
@@ -139,7 +139,7 @@ test('navigate to scene updates current scene and database', function () {
     $scene2 = $session->scenes()->create(['title' => 'Scene Two', 'sort_order' => 2, 'is_revealed' => false]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('navigateToScene', $scene2->id);
 
     expect($component->get('currentSceneId'))->toBe($scene2->id)
@@ -157,7 +157,7 @@ test('next scene navigates to next scene by sort order', function () {
     $scene3 = $session->scenes()->create(['title' => 'Scene Three', 'sort_order' => 3]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session]);
+        ->test('pages::sessions.runner', ['session' => $session]);
 
     expect($component->get('currentSceneId'))->toBe($scene1->id);
 
@@ -181,7 +181,7 @@ test('previous scene navigates to previous scene by sort order', function () {
     $scene2 = $session->scenes()->create(['title' => 'Scene Two', 'sort_order' => 2]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('navigateToScene', $scene2->id);
 
     $component->call('previousScene');
@@ -207,7 +207,7 @@ test('choose branch with destination navigates to destination scene', function (
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('chooseBranch', $branch->id);
 
     expect($branch->fresh()->chosen)->toBeTrue()
@@ -232,7 +232,7 @@ test('choose branch without destination stays on current scene', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('chooseBranch', $branch->id);
 
     expect($branch->fresh()->chosen)->toBeTrue()
@@ -262,7 +262,7 @@ test('add monsters to combat also loads encounter npcs', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('addMonstersToCombat', $encounter->id);
 
     $combatants = $component->get('combatants');

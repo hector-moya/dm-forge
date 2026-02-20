@@ -164,7 +164,7 @@ test('session runner can reveal puzzle hints progressively', function () {
     ]);
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->assertSee($puzzle->name);
 
     $component->call('revealHint', $puzzle->id, 1)
@@ -188,7 +188,7 @@ test('session runner can toggle puzzle solved status', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Sessions\SessionRunner::class, ['session' => $session])
+        ->test('pages::sessions.runner', ['session' => $session])
         ->call('togglePuzzleSolved', $puzzle->id);
 
     expect($puzzle->fresh()->is_solved)->toBeTrue();
