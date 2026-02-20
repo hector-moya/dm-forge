@@ -87,7 +87,7 @@ test('monster generator populates monster library form', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Library\MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('openGenerateModal')
         ->assertSet('showGenerateModal', true)
         ->set('generateContext', 'An undead shadow creature')
@@ -113,7 +113,7 @@ test('monster library handles ai failure gracefully', function () {
     });
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Library\MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('openGenerateModal')
         ->call('generateMonster')
         ->assertSet('generating', false)
@@ -152,7 +152,7 @@ test('generated monster can be saved as custom monster', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Library\MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('openGenerateModal')
         ->call('generateMonster')
         ->call('saveCustomMonster');

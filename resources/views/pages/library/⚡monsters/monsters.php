@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Livewire\Library;
-
 use App\Ai\Agents\MonsterGenerator;
 use App\Models\CustomMonster;
 use App\Models\SrdMonster;
 use App\Services\EntityImageGenerator;
-use Flux;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class MonsterLibrary extends Component
+new class extends Component
 {
     public string $search = '';
 
@@ -117,7 +115,8 @@ class MonsterLibrary extends Component
         $this->modal('view-monster')->show();
     }
 
-    public function getViewingMonsterProperty(): ?object
+    #[Computed]
+    public function viewingMonster(): ?object
     {
         if (! $this->viewingMonsterId) {
             return null;
@@ -130,6 +129,18 @@ class MonsterLibrary extends Component
         return CustomMonster::query()
             ->where('user_id', auth()->id())
             ->find($this->viewingMonsterId);
+    }
+
+    #[Computed]
+    public function monsterTypes(): array
+    {
+        return SrdMonster::query()
+            ->distinct()
+            ->whereNotNull('type')
+            ->pluck('type')
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
     public function openCustomForm(): void
@@ -211,9 +222,9 @@ class MonsterLibrary extends Component
                         $monster, 'monster', null,
                         fn (string $status) => $this->stream(to: 'imageStatus', content: $status, replace: true),
                     );
-                    Flux::toast(__('Image generated!'));
+                    \Flux::toast(__('Image generated!'));
                 } catch (\Throwable) {
-                    Flux::toast(__('Monster saved, but image generation failed.'));
+                    \Flux::toast(__('Monster saved, but image generation failed.'));
                 }
             }
         }
@@ -282,9 +293,9 @@ class MonsterLibrary extends Component
 
             $this->pendingImageGeneration = $this->generateImageOnCreate;
 
-            Flux::toast(__('Monster generated! Review and save below.'));
+            \Flux::toast(__('Monster generated! Review and save below.'));
         } catch (\Throwable $e) {
-            Flux::toast(__('Generation failed: ').$e->getMessage());
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
         }
 
         $this->generating = false;
@@ -305,31 +316,20 @@ class MonsterLibrary extends Component
             );
 
             if ($path) {
-                Flux::toast(__('Image generated!'));
+                \Flux::toast(__('Image generated!'));
             } else {
-                Flux::toast(__('Image generation failed.'));
+                \Flux::toast(__('Image generation failed.'));
             }
         } catch (\Throwable $e) {
-            Flux::toast(__('Image generation failed: ').$e->getMessage());
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
-    }
-
-    public function getMonsterTypesProperty(): array
-    {
-        return SrdMonster::query()
-            ->distinct()
-            ->whereNotNull('type')
-            ->pluck('type')
-            ->sort()
-            ->values()
-            ->toArray();
     }
 
     public function render(): \Illuminate\View\View
     {
-        return view('livewire.library.monster-library', [
+        return view('pages.library.⚡monsters.monsters', [
             'monsters' => $this->getMonsters(),
-            'viewingMonster' => $this->getViewingMonsterProperty(),
+            'viewingMonster' => $this->viewingMonster,
             'monsterTypes' => $this->monsterTypes,
         ])->title('Monster Library');
     }
@@ -372,8 +372,8 @@ class MonsterLibrary extends Component
             'cr' => $monster->challenge_rating,
             'xp' => $monster->xp,
             'ac' => $monster->armor_class,
-            'hp' => $monster->hit_points ?? $monster->hit_points,
+            'hp' => $monster->hit_points,
             'size' => $monster->size,
         ];
     }
-}
+};

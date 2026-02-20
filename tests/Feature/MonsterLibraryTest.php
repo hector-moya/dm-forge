@@ -1,7 +1,6 @@
 <?php
 
 use App\Ai\Agents\ImagePromptCrafter;
-use App\Livewire\Library\MonsterLibrary;
 use App\Models\CustomMonster;
 use App\Models\SrdMonster;
 use App\Models\User;
@@ -19,7 +18,7 @@ test('monster library page loads for authenticated user', function () {
     $this->actingAs($user)
         ->get(route('library.monsters'))
         ->assertOk()
-        ->assertSeeLivewire(MonsterLibrary::class);
+        ->assertSeeLivewire('pages::library.monsters');
 });
 
 test('monster library displays srd monsters', function () {
@@ -35,7 +34,7 @@ test('monster library displays srd monsters', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->assertSee('Goblin')
         ->assertSee('Humanoid');
 });
@@ -48,7 +47,7 @@ test('monster library displays custom monsters', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->assertSee('Shadow Drake');
 });
 
@@ -58,7 +57,7 @@ test('monster library filters by search term', function () {
     SrdMonster::query()->create(['index' => 'dragon-red', 'name' => 'Red Dragon', 'armor_class' => 19, 'hit_points' => 256]);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->set('search', 'Goblin')
         ->assertSee('Goblin')
         ->assertDontSee('Red Dragon');
@@ -70,7 +69,7 @@ test('monster library filters by type', function () {
     SrdMonster::query()->create(['index' => 'imp', 'name' => 'Imp', 'type' => 'Fiend', 'armor_class' => 13, 'hit_points' => 10]);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->set('typeFilter', 'Fiend')
         ->assertSee('Imp')
         ->assertDontSee('Goblin');
@@ -82,7 +81,7 @@ test('monster library filters by source', function () {
     CustomMonster::factory()->for($user)->create(['name' => 'Shadow Drake']);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->set('sourceFilter', 'custom')
         ->assertSee('Shadow Drake')
         ->assertDontSee('Goblin');
@@ -92,7 +91,7 @@ test('user can create custom monster', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('openCustomForm')
         ->assertSet('showCustomForm', true)
         ->set('customName', 'Flame Golem')
@@ -112,7 +111,7 @@ test('user can edit custom monster', function () {
     $monster = CustomMonster::factory()->for($user)->create(['name' => 'Old Name']);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('editCustomMonster', $monster->id)
         ->assertSet('showCustomForm', true)
         ->assertSet('customName', 'Old Name')
@@ -128,7 +127,7 @@ test('user can delete custom monster', function () {
     $monster = CustomMonster::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('deleteCustomMonster', $monster->id);
 
     expect(CustomMonster::query()->find($monster->id))->toBeNull();
@@ -142,7 +141,7 @@ test('user cannot edit another users custom monster', function () {
     $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('editCustomMonster', $monster->id);
 });
 
@@ -155,7 +154,7 @@ test('monster library can generate image for custom monster', function () {
     $monster = CustomMonster::factory()->for($user)->create(['name' => 'Shadow Drake']);
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('generateImage', $monster->id);
 
     expect($monster->fresh()->image_path)->not->toBeNull();
@@ -167,7 +166,7 @@ test('custom monster validation requires name', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(MonsterLibrary::class)
+        ->test('pages::library.monsters')
         ->call('openCustomForm')
         ->set('customName', '')
         ->call('saveCustomMonster')

@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Livewire\Library;
-
 use App\Models\CustomLoot;
 use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
 use App\Services\EntityImageGenerator;
-use Flux;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class LootLibrary extends Component
+new class extends Component
 {
     public string $search = '';
 
@@ -90,7 +88,8 @@ class LootLibrary extends Component
         $this->modal('view-item')->show();
     }
 
-    public function getViewingItemProperty(): ?object
+    #[Computed]
+    public function viewingItem(): ?object
     {
         if (! $this->viewingItemId) {
             return null;
@@ -102,6 +101,18 @@ class LootLibrary extends Component
             'custom' => CustomLoot::query()->where('user_id', auth()->id())->find($this->viewingItemId),
             default => null,
         };
+    }
+
+    #[Computed]
+    public function categories(): array
+    {
+        return SrdEquipment::query()
+            ->distinct()
+            ->whereNotNull('equipment_category')
+            ->pluck('equipment_category')
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
     public function openCustomForm(): void
@@ -182,31 +193,20 @@ class LootLibrary extends Component
             );
 
             if ($path) {
-                Flux::toast(__('Image generated!'));
+                \Flux::toast(__('Image generated!'));
             } else {
-                Flux::toast(__('Image generation failed.'));
+                \Flux::toast(__('Image generation failed.'));
             }
         } catch (\Throwable $e) {
-            Flux::toast(__('Image generation failed: ').$e->getMessage());
+            \Flux::toast(__('Image generation failed: ').$e->getMessage());
         }
-    }
-
-    public function getCategoriesProperty(): array
-    {
-        return SrdEquipment::query()
-            ->distinct()
-            ->whereNotNull('equipment_category')
-            ->pluck('equipment_category')
-            ->sort()
-            ->values()
-            ->toArray();
     }
 
     public function render(): \Illuminate\View\View
     {
-        return view('livewire.library.loot-library', [
+        return view('pages.library.⚡loot.loot', [
             'items' => $this->getItems(),
-            'viewingItem' => $this->getViewingItemProperty(),
+            'viewingItem' => $this->viewingItem,
             'categories' => $this->categories,
         ])->title('Loot Library');
     }
@@ -237,4 +237,4 @@ class LootLibrary extends Component
             'weight' => $item->weight ?? null,
         ];
     }
-}
+};

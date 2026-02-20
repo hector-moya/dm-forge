@@ -1,7 +1,5 @@
 <?php
 
-use App\Livewire\Library\LootLibrary;
-use App\Livewire\Library\MonsterLibrary;
 use App\Livewire\Sessions\CombatTracker;
 use App\Livewire\Sessions\SessionBuilder;
 use App\Livewire\Sessions\SessionIndex;
@@ -37,8 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('characters/{character}/alignment', 'pages::characters.alignment-compass')->name('characters.alignment');
 
     // Library
-    Route::get('library/monsters', MonsterLibrary::class)->name('library.monsters');
-    Route::get('library/loot', LootLibrary::class)->name('library.loot');
+    Route::livewire('library/monsters', 'pages::library.monsters')->name('library.monsters');
+    Route::livewire('library/loot', 'pages::library.loot')->name('library.loot');
 
     // Sessions
     Route::get('campaigns/{campaign}/sessions', SessionIndex::class)->name('campaigns.sessions');

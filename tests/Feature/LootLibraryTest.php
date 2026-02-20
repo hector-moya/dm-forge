@@ -1,7 +1,6 @@
 <?php
 
 use App\Ai\Agents\ImagePromptCrafter;
-use App\Livewire\Library\LootLibrary;
 use App\Models\CustomLoot;
 use App\Models\SrdEquipment;
 use App\Models\SrdMagicItem;
@@ -20,7 +19,7 @@ test('loot library page loads for authenticated user', function () {
     $this->actingAs($user)
         ->get(route('library.loot'))
         ->assertOk()
-        ->assertSeeLivewire(LootLibrary::class);
+        ->assertSeeLivewire('pages::library.loot');
 });
 
 test('loot library displays srd equipment', function () {
@@ -34,7 +33,7 @@ test('loot library displays srd equipment', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->assertSee('Longsword')
         ->assertSee('Weapon');
 });
@@ -50,7 +49,7 @@ test('loot library displays srd magic items', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->assertSee('Bag of Holding')
         ->assertSee('Uncommon');
 });
@@ -63,7 +62,7 @@ test('loot library displays custom loot', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->assertSee('Dragon Scale Shield');
 });
 
@@ -73,7 +72,7 @@ test('loot library filters by search term', function () {
     SrdEquipment::query()->create(['index' => 'shield', 'name' => 'Shield', 'equipment_category' => 'Armor']);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->set('search', 'Longsword')
         ->assertSee('Longsword')
         ->assertDontSee('Shield');
@@ -85,7 +84,7 @@ test('loot library filters by source', function () {
     CustomLoot::factory()->for($user)->create(['name' => 'Dragon Fang']);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->set('sourceFilter', 'custom')
         ->assertSee('Dragon Fang')
         ->assertDontSee('Longsword');
@@ -95,7 +94,7 @@ test('user can create custom loot', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('openCustomForm')
         ->assertSet('showCustomForm', true)
         ->set('customName', 'Enchanted Ring')
@@ -114,7 +113,7 @@ test('user can edit custom loot', function () {
     $loot = CustomLoot::factory()->for($user)->create(['name' => 'Old Ring']);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('editCustomLoot', $loot->id)
         ->assertSet('showCustomForm', true)
         ->assertSet('customName', 'Old Ring')
@@ -130,7 +129,7 @@ test('user can delete custom loot', function () {
     $loot = CustomLoot::factory()->for($user)->create();
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('deleteCustomLoot', $loot->id);
 
     expect(CustomLoot::query()->find($loot->id))->toBeNull();
@@ -144,7 +143,7 @@ test('user cannot edit another users custom loot', function () {
     $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('editCustomLoot', $loot->id);
 });
 
@@ -157,7 +156,7 @@ test('loot library can generate image for custom loot', function () {
     $loot = CustomLoot::factory()->for($user)->create(['name' => 'Frostbrand']);
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('generateImage', $loot->id);
 
     expect($loot->fresh()->image_path)->not->toBeNull();
@@ -169,7 +168,7 @@ test('custom loot validation requires name', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(LootLibrary::class)
+        ->test('pages::library.loot')
         ->call('openCustomForm')
         ->set('customName', '')
         ->call('saveCustomLoot')
