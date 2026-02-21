@@ -45,9 +45,9 @@
 
                 <flux:tab.group>
                     <flux:tabs variant="segmented">
-                        <flux:tab icon="list-bullet" name="premise">{{ __('Premise') }}</flux:tab>
-                        <flux:tab icon="list-bullet" name="lore">{{ __('Lore') }}</flux:tab>
-                        <flux:tab icon="list-bullet" name="world-rules">{{ __('World Rules') }}</flux:tab>
+                        <flux:tab icon="notebook-text" name="premise">{{ __('Premise') }}</flux:tab>
+                        <flux:tab icon="scroll" name="lore">{{ __('Lore') }}</flux:tab>
+                        <flux:tab icon="earth" name="world-rules">{{ __('World Rules') }}</flux:tab>
                     </flux:tabs>
                     <flux:tab.panel name="premise">
                         @if ($campaign->premise)
@@ -81,9 +81,9 @@
             </div>
             <flux:tab.group>
                 <flux:tabs variant="segmented">
-                    <flux:tab icon="list-bullet" name="factions">{{ __('Factions') }}</flux:tab>
-                    <flux:tab icon="list-bullet" name="locations">{{ __('Locations') }}</flux:tab>
-                    <flux:tab icon="list-bullet" name="npcs">{{ __('NPCs') }}</flux:tab>
+                    <flux:tab icon="swords" name="factions">{{ __('Factions') }}</flux:tab>
+                    <flux:tab icon="map-plus" name="locations">{{ __('Locations') }}</flux:tab>
+                    <flux:tab icon="square-user" name="npcs">{{ __('NPCs') }}</flux:tab>
                 </flux:tabs>
 
                 <flux:tab.panel name="factions">
