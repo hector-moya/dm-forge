@@ -18,10 +18,35 @@ new #[Title('Campaign Wizard')] class extends Component
 
     public string $theme_tone = '';
 
-    // Step 2: World Building
-    public string $lore = '';
+    // Step 2: World Building - Lore
+    /** @var array<int, array{name: string, description: string, dm_notes: string}> */
+    public array $loreEntries = [];
 
-    public string $world_rules = '';
+    public string $loreName = '';
+
+    public string $loreDescription = '';
+
+    public string $loreDmNotes = '';
+
+    // Step 2: World Building - World Rules
+    /** @var array<int, array{name: string, description: string, dm_notes: string}> */
+    public array $worldRuleEntries = [];
+
+    public string $worldRuleName = '';
+
+    public string $worldRuleDescription = '';
+
+    public string $worldRuleDmNotes = '';
+
+    // Step 2: World Building - Special Mechanics
+    /** @var array<int, array{name: string, description: string, dm_notes: string}> */
+    public array $specialMechanics = [];
+
+    public string $specialMechanicName = '';
+
+    public string $specialMechanicDescription = '';
+
+    public string $specialMechanicDmNotes = '';
 
     // Step 3: Factions
     /** @var array<int, array{name: string, description: string, alignment: string, goals: string}> */
@@ -118,8 +143,21 @@ new #[Title('Campaign Wizard')] class extends Component
 
             $response = $agent->prompt('Generate world lore and rules for this campaign.');
 
-            $this->lore = $response['lore'] ?? '';
-            $this->world_rules = $response['world_rules'] ?? '';
+            foreach ($response['lore_entries'] ?? [] as $entry) {
+                $this->loreEntries[] = [
+                    'name' => $entry['name'],
+                    'description' => $entry['description'],
+                    'dm_notes' => $entry['dm_notes'] ?? '',
+                ];
+            }
+
+            foreach ($response['world_rule_entries'] ?? [] as $entry) {
+                $this->worldRuleEntries[] = [
+                    'name' => $entry['name'],
+                    'description' => $entry['description'],
+                    'dm_notes' => $entry['dm_notes'] ?? '',
+                ];
+            }
 
             \Flux::toast(__('World details generated!'));
         } catch (\Throwable $e) {
@@ -138,7 +176,7 @@ new #[Title('Campaign Wizard')] class extends Component
                 'name' => $this->name,
                 'premise' => $this->premise,
                 'theme_tone' => $this->theme_tone,
-                'lore' => $this->lore,
+                'lore' => collect($this->loreEntries)->pluck('name')->implode(', '),
             ]);
 
             $response = $agent->prompt('Suggest factions for this campaign.');
@@ -169,7 +207,7 @@ new #[Title('Campaign Wizard')] class extends Component
                 'name' => $this->name,
                 'premise' => $this->premise,
                 'theme_tone' => $this->theme_tone,
-                'lore' => $this->lore,
+                'lore' => collect($this->loreEntries)->pluck('name')->implode(', '),
             ]);
 
             $response = $agent->prompt('Suggest key locations for this campaign.');
@@ -199,7 +237,7 @@ new #[Title('Campaign Wizard')] class extends Component
                 'name' => $this->name,
                 'premise' => $this->premise,
                 'theme_tone' => $this->theme_tone,
-                'lore' => $this->lore,
+                'lore' => collect($this->loreEntries)->pluck('name')->implode(', '),
             ]);
 
             $response = $agent->prompt('Suggest notable NPCs for this campaign.');
@@ -219,6 +257,116 @@ new #[Title('Campaign Wizard')] class extends Component
         }
 
         $this->generating = false;
+    }
+
+    public function suggestSpecialMechanics(): void
+    {
+        $this->generating = true;
+
+        try {
+            $agent = new CampaignWizardAgent('special_mechanics', [
+                'name' => $this->name,
+                'premise' => $this->premise,
+                'theme_tone' => $this->theme_tone,
+            ]);
+
+            $response = $agent->prompt('Suggest special mechanics for this campaign.');
+
+            foreach ($response['special_mechanics'] ?? [] as $mechanic) {
+                $this->specialMechanics[] = [
+                    'name' => $mechanic['name'],
+                    'description' => $mechanic['description'],
+                    'dm_notes' => $mechanic['dm_notes'] ?? '',
+                ];
+            }
+
+            \Flux::toast(__('Special mechanics suggested!'));
+        } catch (\Throwable $e) {
+            \Flux::toast(__('Generation failed: ').$e->getMessage());
+        }
+
+        $this->generating = false;
+    }
+
+    // ── Lore CRUD ──────────────────────────────────────────────────────
+
+    public function addLoreEntry(): void
+    {
+        $this->validate([
+            'loreName' => ['required', 'string', 'max:255'],
+            'loreDescription' => ['nullable', 'string', 'max:5000'],
+            'loreDmNotes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->loreEntries[] = [
+            'name' => $this->loreName,
+            'description' => $this->loreDescription,
+            'dm_notes' => $this->loreDmNotes,
+        ];
+
+        $this->loreName = '';
+        $this->loreDescription = '';
+        $this->loreDmNotes = '';
+    }
+
+    public function removeLoreEntry(int $index): void
+    {
+        unset($this->loreEntries[$index]);
+        $this->loreEntries = array_values($this->loreEntries);
+    }
+
+    // ── World Rule CRUD ────────────────────────────────────────────────
+
+    public function addWorldRuleEntry(): void
+    {
+        $this->validate([
+            'worldRuleName' => ['required', 'string', 'max:255'],
+            'worldRuleDescription' => ['nullable', 'string', 'max:5000'],
+            'worldRuleDmNotes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->worldRuleEntries[] = [
+            'name' => $this->worldRuleName,
+            'description' => $this->worldRuleDescription,
+            'dm_notes' => $this->worldRuleDmNotes,
+        ];
+
+        $this->worldRuleName = '';
+        $this->worldRuleDescription = '';
+        $this->worldRuleDmNotes = '';
+    }
+
+    public function removeWorldRuleEntry(int $index): void
+    {
+        unset($this->worldRuleEntries[$index]);
+        $this->worldRuleEntries = array_values($this->worldRuleEntries);
+    }
+
+    // ── Special Mechanic CRUD ──────────────────────────────────────────
+
+    public function addSpecialMechanic(): void
+    {
+        $this->validate([
+            'specialMechanicName' => ['required', 'string', 'max:255'],
+            'specialMechanicDescription' => ['nullable', 'string', 'max:5000'],
+            'specialMechanicDmNotes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->specialMechanics[] = [
+            'name' => $this->specialMechanicName,
+            'description' => $this->specialMechanicDescription,
+            'dm_notes' => $this->specialMechanicDmNotes,
+        ];
+
+        $this->specialMechanicName = '';
+        $this->specialMechanicDescription = '';
+        $this->specialMechanicDmNotes = '';
+    }
+
+    public function removeSpecialMechanic(int $index): void
+    {
+        unset($this->specialMechanics[$index]);
+        $this->specialMechanics = array_values($this->specialMechanics);
     }
 
     // ── Faction CRUD ──────────────────────────────────────────────────
@@ -349,11 +497,36 @@ new #[Title('Campaign Wizard')] class extends Component
         $campaign = auth()->user()->campaigns()->create([
             'name' => $this->name,
             'premise' => $this->premise ?: null,
-            'lore' => $this->lore ?: null,
             'theme_tone' => $this->theme_tone ?: null,
-            'world_rules' => $this->world_rules ?: null,
             'status' => 'draft',
         ]);
+
+        foreach ($this->loreEntries as $entry) {
+            $lore = auth()->user()->lores()->create([
+                'name' => $entry['name'],
+                'description' => $entry['description'] ?: null,
+                'dm_notes' => $entry['dm_notes'] ?: null,
+            ]);
+            $campaign->lores()->attach($lore->id);
+        }
+
+        foreach ($this->worldRuleEntries as $entry) {
+            $worldRule = auth()->user()->worldRules()->create([
+                'name' => $entry['name'],
+                'description' => $entry['description'] ?: null,
+                'dm_notes' => $entry['dm_notes'] ?: null,
+            ]);
+            $campaign->worldRules()->attach($worldRule->id);
+        }
+
+        foreach ($this->specialMechanics as $mechanic) {
+            $specialMechanic = auth()->user()->specialMechanics()->create([
+                'name' => $mechanic['name'],
+                'description' => $mechanic['description'] ?: null,
+                'dm_notes' => $mechanic['dm_notes'] ?: null,
+            ]);
+            $campaign->specialMechanics()->attach($specialMechanic->id);
+        }
 
         foreach ($this->factions as $faction) {
             $campaign->factions()->create([

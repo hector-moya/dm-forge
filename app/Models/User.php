@@ -77,4 +77,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomLoot::class);
     }
+
+    public function lores(): HasMany
+    {
+        return $this->hasMany(Lore::class);
+    }
+
+    public function worldRules(): HasMany
+    {
+        return $this->hasMany(WorldRule::class);
+    }
+
+    public function specialMechanics(): HasMany
+    {
+        return $this->hasMany(SpecialMechanic::class);
+    }
 }

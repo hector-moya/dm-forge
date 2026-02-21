@@ -9,7 +9,7 @@ class CampaignExporter
 {
     public function toMarkdown(Campaign $campaign): string
     {
-        $campaign->load(['factions', 'locations', 'npcs', 'characters', 'gameSessions']);
+        $campaign->load(['factions', 'locations', 'npcs', 'characters', 'gameSessions', 'lores', 'worldRules', 'specialMechanics']);
 
         return implode('', [
             $this->formatCampaignHeader($campaign),
@@ -29,7 +29,15 @@ class CampaignExporter
             $md .= "## Premise\n\n{$campaign->premise}\n\n";
         }
 
-        if ($campaign->lore) {
+        if ($campaign->lores->isNotEmpty()) {
+            $md .= "## Lore\n\n";
+            foreach ($campaign->lores as $lore) {
+                $md .= "### {$lore->name}\n\n";
+                if ($lore->description) {
+                    $md .= "{$lore->description}\n\n";
+                }
+            }
+        } elseif ($campaign->lore) {
             $md .= "## Lore\n\n{$campaign->lore}\n\n";
         }
 
@@ -37,11 +45,27 @@ class CampaignExporter
             $md .= "**Theme & Tone:** {$campaign->theme_tone}\n\n";
         }
 
-        if ($campaign->world_rules) {
+        if ($campaign->worldRules->isNotEmpty()) {
+            $md .= "## World Rules\n\n";
+            foreach ($campaign->worldRules as $rule) {
+                $md .= "### {$rule->name}\n\n";
+                if ($rule->description) {
+                    $md .= "{$rule->description}\n\n";
+                }
+            }
+        } elseif ($campaign->world_rules) {
             $md .= "## World Rules\n\n{$campaign->world_rules}\n\n";
         }
 
-        if ($campaign->special_mechanics) {
+        if ($campaign->specialMechanics->isNotEmpty()) {
+            $md .= "## Special Mechanics\n\n";
+            foreach ($campaign->specialMechanics as $mechanic) {
+                $md .= "### {$mechanic->name}\n\n";
+                if ($mechanic->description) {
+                    $md .= "{$mechanic->description}\n\n";
+                }
+            }
+        } elseif ($campaign->special_mechanics) {
             $md .= "## Special Mechanics\n\n";
             foreach ($campaign->special_mechanics as $mechanic) {
                 $md .= "- {$mechanic}\n";

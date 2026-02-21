@@ -70,30 +70,115 @@
 
         {{-- Step 2: World Building --}}
         @elseif ($currentStep === 2)
-            <div class="mb-4 flex items-center justify-between">
-                <div>
-                    <flux:heading size="lg">{{ __('World Building') }}</flux:heading>
-                    <flux:text>{{ __('Define the lore and rules of your world.') }}</flux:text>
+            <flux:heading size="lg" class="mb-1">{{ __('World Building') }}</flux:heading>
+            <flux:text class="mb-6">{{ __('Define the lore, rules, and mechanics of your world.') }}</flux:text>
+
+            {{-- Lore Section --}}
+            <div class="mb-8">
+                <div class="mb-3 flex items-center justify-between">
+                    <flux:heading size="base">{{ __('Lore') }}</flux:heading>
+                    <flux:button variant="subtle" size="sm" wire:click="suggestWorld" icon="sparkles" wire:loading.attr="disabled" wire:target="suggestWorld">
+                        <span wire:loading.remove wire:target="suggestWorld">{{ __('AI Suggest Lore & Rules') }}</span>
+                        <span wire:loading wire:target="suggestWorld">{{ __('Generating...') }}</span>
+                    </flux:button>
                 </div>
-                <flux:button variant="subtle" size="sm" wire:click="suggestWorld" icon="sparkles" wire:loading.attr="disabled" wire:target="suggestWorld">
-                    <span wire:loading.remove wire:target="suggestWorld">{{ __('AI Suggest') }}</span>
-                    <span wire:loading wire:target="suggestWorld">{{ __('Generating...') }}</span>
-                </flux:button>
+
+                @if (count($loreEntries) > 0)
+                    <div class="mb-3 space-y-2">
+                        @foreach ($loreEntries as $index => $entry)
+                            <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-4 py-3 dark:bg-zinc-700/50">
+                                <div>
+                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">{{ $entry['name'] }}</span>
+                                    @if ($entry['description'])
+                                        <p class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($entry['description'], 80) }}</p>
+                                    @endif
+                                </div>
+                                <flux:button variant="subtle" size="sm" wire:click="removeLoreEntry({{ $index }})" icon="x-mark" />
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700/50">
+                    <div class="flex flex-col gap-3">
+                        <flux:input wire:model="loreName" label="{{ __('Name') }}" placeholder="{{ __('e.g., The Age of Dragons...') }}" />
+                        <flux:textarea wire:model="loreDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this piece of lore...') }}" rows="2" />
+                        <flux:textarea wire:model="loreDmNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Private notes for you as the DM...') }}" rows="2" />
+                        <div class="flex justify-end">
+                            <flux:button variant="primary" size="sm" wire:click="addLoreEntry" icon="plus">{{ __('Add') }}</flux:button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex flex-col gap-4">
-                <flux:textarea
-                    wire:model="lore"
-                    label="{{ __('Lore') }}"
-                    placeholder="{{ __('Background lore, history, and world-building details...') }}"
-                    rows="6"
-                />
-                <flux:textarea
-                    wire:model="world_rules"
-                    label="{{ __('World Rules') }}"
-                    placeholder="{{ __('Special rules, unique aspects, or house rules for this world...') }}"
-                    rows="4"
-                />
+            {{-- World Rules Section --}}
+            <div class="mb-8">
+                <flux:heading size="base" class="mb-3">{{ __('World Rules') }}</flux:heading>
+
+                @if (count($worldRuleEntries) > 0)
+                    <div class="mb-3 space-y-2">
+                        @foreach ($worldRuleEntries as $index => $entry)
+                            <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-4 py-3 dark:bg-zinc-700/50">
+                                <div>
+                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">{{ $entry['name'] }}</span>
+                                    @if ($entry['description'])
+                                        <p class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($entry['description'], 80) }}</p>
+                                    @endif
+                                </div>
+                                <flux:button variant="subtle" size="sm" wire:click="removeWorldRuleEntry({{ $index }})" icon="x-mark" />
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700/50">
+                    <div class="flex flex-col gap-3">
+                        <flux:input wire:model="worldRuleName" label="{{ __('Name') }}" placeholder="{{ __('e.g., No Resurrection Magic...') }}" />
+                        <flux:textarea wire:model="worldRuleDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this rule...') }}" rows="2" />
+                        <flux:textarea wire:model="worldRuleDmNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Private notes for you as the DM...') }}" rows="2" />
+                        <div class="flex justify-end">
+                            <flux:button variant="primary" size="sm" wire:click="addWorldRuleEntry" icon="plus">{{ __('Add') }}</flux:button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Special Mechanics Section --}}
+            <div>
+                <div class="mb-3 flex items-center justify-between">
+                    <flux:heading size="base">{{ __('Special Mechanics') }}</flux:heading>
+                    <flux:button variant="subtle" size="sm" wire:click="suggestSpecialMechanics" icon="sparkles" wire:loading.attr="disabled" wire:target="suggestSpecialMechanics">
+                        <span wire:loading.remove wire:target="suggestSpecialMechanics">{{ __('AI Suggest') }}</span>
+                        <span wire:loading wire:target="suggestSpecialMechanics">{{ __('Generating...') }}</span>
+                    </flux:button>
+                </div>
+
+                @if (count($specialMechanics) > 0)
+                    <div class="mb-3 space-y-2">
+                        @foreach ($specialMechanics as $index => $mechanic)
+                            <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-4 py-3 dark:bg-zinc-700/50">
+                                <div>
+                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">{{ $mechanic['name'] }}</span>
+                                    @if ($mechanic['description'])
+                                        <p class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{{ Str::limit($mechanic['description'], 80) }}</p>
+                                    @endif
+                                </div>
+                                <flux:button variant="subtle" size="sm" wire:click="removeSpecialMechanic({{ $index }})" icon="x-mark" />
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700/50">
+                    <div class="flex flex-col gap-3">
+                        <flux:input wire:model="specialMechanicName" label="{{ __('Name') }}" placeholder="{{ __('e.g., Corruption System...') }}" />
+                        <flux:textarea wire:model="specialMechanicDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this mechanic...') }}" rows="2" />
+                        <flux:textarea wire:model="specialMechanicDmNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Private notes for you as the DM...') }}" rows="2" />
+                        <div class="flex justify-end">
+                            <flux:button variant="primary" size="sm" wire:click="addSpecialMechanic" icon="plus">{{ __('Add') }}</flux:button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         {{-- Step 3: Factions --}}
@@ -294,15 +379,18 @@
                     </dl>
                 </div>
 
-                @if ($lore || $world_rules)
+                @if (count($loreEntries) > 0 || count($worldRuleEntries) > 0 || count($specialMechanics) > 0)
                     <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-700/50">
                         <flux:heading size="base" class="mb-2">{{ __('World') }}</flux:heading>
                         <div class="space-y-1 text-sm text-zinc-800 dark:text-zinc-200">
-                            @if ($lore)
-                                <p>{{ Str::limit($lore, 200) }}</p>
+                            @if (count($loreEntries) > 0)
+                                <p>{{ count($loreEntries) }} {{ __('lore entries') }}</p>
                             @endif
-                            @if ($world_rules)
-                                <p class="text-zinc-500 dark:text-zinc-400">{{ Str::limit($world_rules, 150) }}</p>
+                            @if (count($worldRuleEntries) > 0)
+                                <p>{{ count($worldRuleEntries) }} {{ __('world rules') }}</p>
+                            @endif
+                            @if (count($specialMechanics) > 0)
+                                <p>{{ count($specialMechanics) }} {{ __('special mechanics') }}</p>
                             @endif
                         </div>
                     </div>

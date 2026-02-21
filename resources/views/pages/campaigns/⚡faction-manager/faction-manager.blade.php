@@ -93,68 +93,7 @@
     {{-- View Faction Detail --}}
     <flux:modal name="view-faction" class="md:w-xl" variant="flyout">
         @if ($viewingFaction)
-            <div class="space-y-6">
-                {{-- Faction Image --}}
-                <div class="flex flex-col items-center gap-3">
-                    @if ($viewingFaction->image_path)
-                        <x-image-lightbox :src="$viewingFaction->image_url" :alt="$viewingFaction->name" />
-                    @else
-                        <div class="flex h-32 w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
-                            <flux:icon name="flag" class="size-12 text-zinc-400 dark:text-zinc-500" />
-                        </div>
-                    @endif
-                    <flux:button variant="subtle" size="sm" wire:click="generateImage({{ $viewingFaction->id }})" icon="sparkles" wire:loading.attr="disabled" wire:target="generateImage({{ $viewingFaction->id }})">
-                        <span wire:loading.remove wire:target="generateImage({{ $viewingFaction->id }})">{{ $viewingFaction->image_path ? __('Regenerate Image') : __('Generate Image') }}</span>
-                        <span wire:loading wire:target="generateImage({{ $viewingFaction->id }})">{{ __('Generating...') }}</span>
-                    </flux:button>
-                    <span wire:stream.replace="imageStatus" class="text-xs text-zinc-500 italic"></span>
-                </div>
-
-                <div>
-                    <flux:heading size="lg">{{ $viewingFaction->name }}</flux:heading>
-                    @if ($viewingFaction->alignment)
-                        <flux:badge size="sm" variant="outline" class="mt-2">{{ $viewingFaction->alignment }}</flux:badge>
-                    @endif
-                </div>
-
-                <flux:separator />
-
-                @if ($viewingFaction->description)
-                    <div>
-                        <flux:heading size="sm" class="mb-1">{{ __('Description') }}</flux:heading>
-                        <flux:text class="text-sm">{{ $viewingFaction->description }}</flux:text>
-                    </div>
-                @endif
-
-                @if ($viewingFaction->goals)
-                    <div>
-                        <flux:heading size="sm" class="mb-1">{{ __('Goals') }}</flux:heading>
-                        <flux:text class="text-sm">{{ $viewingFaction->goals }}</flux:text>
-                    </div>
-                @endif
-
-                @if ($viewingFaction->resources)
-                    <div>
-                        <flux:heading size="sm" class="mb-1">{{ __('Resources') }}</flux:heading>
-                        <flux:text class="text-sm">{{ $viewingFaction->resources }}</flux:text>
-                    </div>
-                @endif
-
-                @if ($viewingFaction->npcs->isNotEmpty())
-                    <div>
-                        <flux:heading size="sm" class="mb-1">{{ __('Members') }}</flux:heading>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($viewingFaction->npcs as $npc)
-                                <flux:badge size="sm">{{ $npc->name }}{{ $npc->role ? " ({$npc->role})" : '' }}</flux:badge>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <flux:separator />
-
-                @include('livewire.campaigns.partials.entity-history', ['history' => $history])
-            </div>
+            <livewire:factions.faction-card :faction="$viewingFaction" :key="'faction-card-' . $viewingFaction->id" />
         @endif
     </flux:modal>
 
@@ -164,12 +103,7 @@
         <flux:text class="mt-1">{{ __('Provide optional context to guide the AI, then review and edit the result before saving.') }}</flux:text>
 
         <div class="mt-4 flex flex-col gap-4">
-            <flux:textarea
-                wire:model="generateContext"
-                label="{{ __('Context (optional)') }}"
-                placeholder="{{ __('e.g., A secret guild of assassins, an order of paladins protecting the realm...') }}"
-                rows="3"
-            />
+            <flux:textarea wire:model="generateContext" label="{{ __('Context (optional)') }}" placeholder="{{ __('e.g., A secret guild of assassins, an order of paladins protecting the realm...') }}" rows="3" />
             <flux:checkbox wire:model="generateImageOnCreate" label="{{ __('Also generate image') }}" />
         </div>
 

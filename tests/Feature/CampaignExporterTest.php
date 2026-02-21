@@ -5,8 +5,11 @@ use App\Models\Character;
 use App\Models\Faction;
 use App\Models\GameSession;
 use App\Models\Location;
+use App\Models\Lore;
 use App\Models\Npc;
+use App\Models\SpecialMechanic;
 use App\Models\User;
+use App\Models\WorldRule;
 use App\Services\CampaignExporter;
 
 test('toMarkdown includes campaign name as h1', function () {
@@ -120,4 +123,48 @@ test('toMarkdown sorts sessions by session number', function () {
     $result = (new CampaignExporter)->toMarkdown($campaign);
 
     expect(strpos($result, 'Session #1'))->toBeLessThan(strpos($result, 'Session #3'));
+});
+
+test('toMarkdown renders lore entries from relationship', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $lore = Lore::factory()->for($user)->create([
+        'name' => 'The Sundering',
+        'description' => 'A cataclysmic event that split the world.',
+    ]);
+    $campaign->lores()->attach($lore->id);
+
+    $result = (new CampaignExporter)->toMarkdown($campaign);
+
+    expect($result)
+        ->toContain('## Lore')
+        ->toContain('### The Sundering')
+        ->toContain('A cataclysmic event that split the world.');
+});
+
+test('toMarkdown renders world rules and special mechanics from relationships', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+
+    $rule = WorldRule::factory()->for($user)->create([
+        'name' => 'No Resurrection',
+        'description' => 'Death is permanent in this world.',
+    ]);
+    $campaign->worldRules()->attach($rule->id);
+
+    $mechanic = SpecialMechanic::factory()->for($user)->create([
+        'name' => 'Corruption System',
+        'description' => 'Players accumulate corruption points over time.',
+    ]);
+    $campaign->specialMechanics()->attach($mechanic->id);
+
+    $result = (new CampaignExporter)->toMarkdown($campaign);
+
+    expect($result)
+        ->toContain('## World Rules')
+        ->toContain('### No Resurrection')
+        ->toContain('Death is permanent in this world.')
+        ->toContain('## Special Mechanics')
+        ->toContain('### Corruption System')
+        ->toContain('Players accumulate corruption points over time.');
 });

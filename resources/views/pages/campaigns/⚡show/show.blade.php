@@ -44,10 +44,11 @@
                 </div>
 
                 <flux:tab.group>
-                    <flux:tabs variant="segmented">
+                    <flux:tabs scrollable variant="segmented">
                         <flux:tab icon="notebook-text" name="premise">{{ __('Premise') }}</flux:tab>
                         <flux:tab icon="scroll" name="lore">{{ __('Lore') }}</flux:tab>
                         <flux:tab icon="earth" name="world-rules">{{ __('World Rules') }}</flux:tab>
+                        <flux:tab icon="cog" name="special-mechanics">{{ __('Special Mechanics') }}</flux:tab>
                     </flux:tabs>
                     <flux:tab.panel name="premise">
                         @if ($campaign->premise)
@@ -70,6 +71,13 @@
                             <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No world rules provided.') }}</flux:text>
                         @endif
                     </flux:tab.panel>
+                    <flux:tab.panel name="special-mechanics">
+                        @if ($campaign->special_mechanics)
+                            <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->special_mechanics }}</flux:text>
+                        @else
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No special mechanics provided.') }}</flux:text>
+                        @endif
+                    </flux:tab.panel>
                 </flux:tab.group>
             </flux:card>
         @endif
@@ -80,7 +88,7 @@
                 <flux:heading size="lg">{{ __('Campaign Entities') }}</flux:heading>
             </div>
             <flux:tab.group>
-                <flux:tabs variant="segmented">
+                <flux:tabs scrollable variant="segmented">
                     <flux:tab icon="swords" name="factions">{{ __('Factions') }}</flux:tab>
                     <flux:tab icon="map-plus" name="locations">{{ __('Locations') }}</flux:tab>
                     <flux:tab icon="square-user" name="npcs">{{ __('NPCs') }}</flux:tab>
@@ -95,8 +103,7 @@
                                 <flux:badge size="sm">{{ $campaign->factions->count() }}</flux:badge>
                             </div>
                             <div class="flex items-center gap-1">
-                                <flux:button variant="subtle" size="sm" href="{{ route('campaigns.factions', $campaign) }}" wire:navigate icon="sparkles" title="{{ __('Generate Faction') }}" />
-                                <flux:button variant="subtle" size="sm" href="{{ route('campaigns.factions', $campaign) }}" wire:navigate icon="plus" title="{{ __('Add Faction') }}" />
+                                <flux:button variant="subtle" size="sm" href="{{ route('campaigns.factions', $campaign) }}" wire:navigate icon="pencil">{{ __('Edit') }}</flux:button>
                             </div>
                         </div>
                         @if ($campaign->factions->isEmpty())
@@ -105,11 +112,20 @@
                             <ul class="space-y-2">
                                 @foreach ($campaign->factions as $faction)
                                     <li class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-700/50">
-                                        <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $faction->name }}</span>
-                                        @if ($faction->alignment)
-                                            <flux:badge size="sm" variant="outline">{{ $faction->alignment }}</flux:badge>
-                                        @endif
+                                        <div class="space-x-4">
+                                            <flux:text>{{ $faction->name }}</flux:text>
+                                            @if ($faction->alignment)
+                                                <flux:badge size="sm" variant="outline">{{ $faction->alignment }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        <flux:modal.trigger name="view-faction-{{ $faction->id }}">
+                                            <flux:button variant="ghost" size="xs" icon="eye" />
+                                        </flux:modal.trigger>
+
                                     </li>
+                                    <flux:modal name="view-faction-{{ $faction->id }}" class="md:w-xl" variant="flyout">
+                                        <livewire:factions.faction-card :faction="$faction" :key="'faction-card-' . $faction->id" />
+                                    </flux:modal>
                                 @endforeach
                             </ul>
                         @endif

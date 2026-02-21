@@ -42,10 +42,29 @@ PROMPT;
     {
         return match ($this->step) {
             'world' => [
-                'lore' => $schema->string()->required()
-                    ->description('2-3 paragraphs of world lore and history'),
-                'world_rules' => $schema->string()->required()
-                    ->description('Special rules or unique aspects of this world'),
+                'lore_entries' => $schema->array()->items(
+                    $schema->object([
+                        'name' => $schema->string()->required(),
+                        'description' => $schema->string()->required(),
+                        'dm_notes' => $schema->string()->required(),
+                    ])
+                )->required()->description('2-3 distinct named pieces of world lore or history'),
+                'world_rule_entries' => $schema->array()->items(
+                    $schema->object([
+                        'name' => $schema->string()->required(),
+                        'description' => $schema->string()->required(),
+                        'dm_notes' => $schema->string()->required(),
+                    ])
+                )->required()->description('2-3 named world rules or unique aspects of this world'),
+            ],
+            'special_mechanics' => [
+                'special_mechanics' => $schema->array()->items(
+                    $schema->object([
+                        'name' => $schema->string()->required(),
+                        'description' => $schema->string()->required(),
+                        'dm_notes' => $schema->string()->required(),
+                    ])
+                )->required()->description('2-3 named special game mechanics unique to this campaign'),
             ],
             'factions' => [
                 'factions' => $schema->array()->items(

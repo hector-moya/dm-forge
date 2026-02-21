@@ -92,9 +92,17 @@ test('wizard creates campaign with all entities', function () {
         ->test('pages::campaigns.wizard')
         ->set('name', 'Epic Quest')
         ->set('premise', 'Save the world')
-        ->set('theme_tone', 'Dark fantasy')
-        ->set('lore', 'An ancient evil stirs')
-        ->set('world_rules', 'No resurrection magic');
+        ->set('theme_tone', 'Dark fantasy');
+
+    // Add a lore entry
+    $component->set('loreName', 'Ancient History')
+        ->set('loreDescription', 'Long ago the world was different')
+        ->call('addLoreEntry');
+
+    // Add a world rule
+    $component->set('worldRuleName', 'No Resurrection')
+        ->set('worldRuleDescription', 'The dead stay dead')
+        ->call('addWorldRuleEntry');
 
     // Add a faction
     $component->set('factionName', 'Dark Brotherhood')
@@ -119,6 +127,8 @@ test('wizard creates campaign with all entities', function () {
     $campaign = Campaign::where('name', 'Epic Quest')->first();
     expect($campaign)->not->toBeNull();
     expect($campaign->premise)->toBe('Save the world');
+    expect($campaign->lores()->count())->toBe(1);
+    expect($campaign->worldRules()->count())->toBe(1);
     expect($campaign->factions()->count())->toBe(1);
     expect($campaign->locations()->count())->toBe(1);
     expect($campaign->characters()->count())->toBe(1);
@@ -129,8 +139,12 @@ test('wizard ai suggests world details', function () {
 
     CampaignWizardAgent::fake([
         [
-            'lore' => 'In the age of dragons, the world was young.',
-            'world_rules' => 'Magic is tied to the phases of the moon.',
+            'lore_entries' => [
+                ['name' => 'The Age of Dragons', 'description' => 'In the age of dragons, the world was young.', 'dm_notes' => ''],
+            ],
+            'world_rule_entries' => [
+                ['name' => 'Moon Magic', 'description' => 'Magic is tied to the phases of the moon.', 'dm_notes' => ''],
+            ],
         ],
     ]);
 
@@ -139,8 +153,8 @@ test('wizard ai suggests world details', function () {
         ->set('name', 'Dragon Age')
         ->set('premise', 'Dragons return')
         ->call('suggestWorld')
-        ->assertSet('lore', 'In the age of dragons, the world was young.')
-        ->assertSet('world_rules', 'Magic is tied to the phases of the moon.');
+        ->assertCount('loreEntries', 1)
+        ->assertCount('worldRuleEntries', 1);
 
     CampaignWizardAgent::assertPrompted(fn ($prompt) => $prompt->contains('world'));
 });
@@ -180,4 +194,63 @@ test('wizard ai suggests locations', function () {
         ->set('name', 'Dragon Age')
         ->call('suggestLocations')
         ->assertCount('locations', 1);
+});
+
+test('wizard can add and remove lore entries', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.wizard')
+        ->set('loreName', 'The Ancient War')
+        ->set('loreDescription', 'A war that shaped the realm')
+        ->call('addLoreEntry')
+        ->assertCount('loreEntries', 1)
+        ->call('removeLoreEntry', 0)
+        ->assertCount('loreEntries', 0);
+});
+
+test('wizard can add and remove world rule entries', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.wizard')
+        ->set('worldRuleName', 'No Resurrection Magic')
+        ->set('worldRuleDescription', 'The dead stay dead in this world')
+        ->call('addWorldRuleEntry')
+        ->assertCount('worldRuleEntries', 1)
+        ->call('removeWorldRuleEntry', 0)
+        ->assertCount('worldRuleEntries', 0);
+});
+
+test('wizard can add and remove special mechanics', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.wizard')
+        ->set('specialMechanicName', 'Corruption System')
+        ->set('specialMechanicDescription', 'Players accumulate corruption points')
+        ->call('addSpecialMechanic')
+        ->assertCount('specialMechanics', 1)
+        ->call('removeSpecialMechanic', 0)
+        ->assertCount('specialMechanics', 0);
+});
+
+test('wizard ai suggests special mechanics', function () {
+    $user = User::factory()->create();
+
+    CampaignWizardAgent::fake([
+        [
+            'special_mechanics' => [
+                ['name' => 'Corruption', 'description' => 'Corruption system', 'dm_notes' => ''],
+            ],
+        ],
+    ]);
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.wizard')
+        ->set('name', 'Dragon Age')
+        ->call('suggestSpecialMechanics')
+        ->assertCount('specialMechanics', 1);
+
+    CampaignWizardAgent::assertPrompted(fn ($prompt) => $prompt->contains('special mechanics'));
 });
