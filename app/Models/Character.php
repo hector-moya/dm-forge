@@ -15,10 +15,15 @@ class Character extends Model
         'name',
         'player_name',
         'class',
+        'race',
+        'background',
         'level',
         'hp_max',
         'hp_current',
         'armor_class',
+        'speed',
+        'proficiency_bonus',
+        'experience_points',
         'stats',
         'good_evil_score',
         'law_chaos_score',
@@ -34,9 +39,19 @@ class Character extends Model
             'hp_max' => 'integer',
             'hp_current' => 'integer',
             'armor_class' => 'integer',
+            'speed' => 'integer',
+            'proficiency_bonus' => 'integer',
+            'experience_points' => 'integer',
             'good_evil_score' => 'integer',
             'law_chaos_score' => 'integer',
         ];
+    }
+
+    public function abilityModifier(string $ability): int
+    {
+        $score = $this->stats['ability_scores'][$ability] ?? 10;
+
+        return (int) floor(($score - 10) / 2);
     }
 
     public function campaign(): BelongsTo

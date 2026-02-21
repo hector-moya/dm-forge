@@ -19,6 +19,16 @@ class Npc extends Model
         'description',
         'personality',
         'motivation',
+        'backstory',
+        'race',
+        'size',
+        'alignment',
+        'armor_class',
+        'armor_type',
+        'hp_max',
+        'hit_dice',
+        'speed',
+        'challenge_rating',
         'voice_description',
         'speech_patterns',
         'catchphrases',
@@ -35,7 +45,16 @@ class Npc extends Model
             'catchphrases' => 'array',
             'stats' => 'array',
             'is_alive' => 'boolean',
+            'armor_class' => 'integer',
+            'hp_max' => 'integer',
         ];
+    }
+
+    public function abilityModifier(string $ability): int
+    {
+        $score = $this->stats['ability_scores'][$ability] ?? 10;
+
+        return (int) floor(($score - 10) / 2);
     }
 
     protected function imageUrl(): Attribute

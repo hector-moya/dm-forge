@@ -26,4 +26,40 @@ class CharacterFactory extends Factory
             'alignment_label' => 'True Neutral',
         ];
     }
+
+    public function withFullSheet(): static
+    {
+        return $this->state([
+            'race' => fake()->randomElement(['Human', 'Elf', 'Dwarf', 'Half-Elf', 'Gnome']),
+            'background' => fake()->randomElement(['Soldier', 'Noble', 'Outlander', 'Criminal', 'Acolyte']),
+            'speed' => 30,
+            'proficiency_bonus' => 2,
+            'experience_points' => 0,
+            'stats' => [
+                'ability_scores' => [
+                    'str' => fake()->numberBetween(8, 18),
+                    'dex' => fake()->numberBetween(8, 18),
+                    'con' => fake()->numberBetween(8, 18),
+                    'int' => fake()->numberBetween(8, 18),
+                    'wis' => fake()->numberBetween(8, 18),
+                    'cha' => fake()->numberBetween(8, 18),
+                ],
+                'saving_throw_proficiencies' => ['dex', 'wis'],
+                'skill_proficiencies' => ['athletics', 'perception'],
+                'other_proficiencies' => 'All armor, shields, simple and martial weapons',
+                'languages' => 'Common',
+                'equipment' => ['Longsword', 'Shield'],
+                'features_traits' => [
+                    ['name' => 'Second Wind', 'description' => 'Bonus action to regain HP.'],
+                ],
+                'spells' => [
+                    'spellcasting_ability' => null,
+                    'spell_save_dc' => null,
+                    'spell_attack_bonus' => null,
+                    'cantrips' => [],
+                    'spells_by_level' => [],
+                ],
+            ],
+        ]);
+    }
 }

@@ -236,6 +236,118 @@ test('npc manager can generate image for npc', function () {
     Image::assertGenerated(fn () => true);
 });
 
+test('npc manager can save npc with stat block fields', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
+        ->call('openForm')
+        ->set('npcName', 'Gareth the Guard')
+        ->set('npcRace', 'Human')
+        ->set('npcSize', 'Medium')
+        ->set('npcAlignment', 'Lawful Neutral')
+        ->set('npcArmorClass', 16)
+        ->set('npcArmorType', 'Chain mail')
+        ->set('npcHpMax', 52)
+        ->set('npcHitDice', '8d8+16')
+        ->set('npcSpeed', '30 ft.')
+        ->set('npcChallengeRating', '2')
+        ->set('npcAbilityScores', ['str' => 16, 'dex' => 13, 'con' => 14, 'int' => 10, 'wis' => 11, 'cha' => 10])
+        ->set('npcSavingThrowProficiencies', ['str', 'con'])
+        ->set('npcSkillProficiencies', 'athletics, perception')
+        ->set('npcLanguages', 'Common')
+        ->set('npcActions', 'Longsword: Melee Weapon Attack: +5 to hit, reach 5 ft., one target.')
+        ->call('save');
+
+    $npc = $campaign->npcs()->where('name', 'Gareth the Guard')->first();
+    expect($npc)->not->toBeNull();
+    expect($npc->race)->toBe('Human');
+    expect($npc->size)->toBe('Medium');
+    expect($npc->alignment)->toBe('Lawful Neutral');
+    expect($npc->armor_class)->toBe(16);
+    expect($npc->armor_type)->toBe('Chain mail');
+    expect($npc->hp_max)->toBe(52);
+    expect($npc->hit_dice)->toBe('8d8+16');
+    expect($npc->speed)->toBe('30 ft.');
+    expect($npc->challenge_rating)->toBe('2');
+    expect($npc->stats['ability_scores']['str'])->toBe(16);
+    expect($npc->stats['saving_throw_proficiencies'])->toContain('str');
+    expect($npc->stats['skill_proficiencies'])->toContain('athletics');
+    expect($npc->stats['actions'])->toHaveCount(1);
+    expect($npc->stats['actions'][0]['name'])->toBe('Longsword');
+});
+
+test('npc manager loads stat block fields when editing', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+    $npc = Npc::factory()->withStatBlock()->for($campaign)->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
+        ->call('openForm', $npc->id)
+        ->assertSet('npcRace', $npc->race ?? '')
+        ->assertSet('npcArmorClass', $npc->armor_class)
+        ->assertSet('npcHpMax', $npc->hp_max)
+        ->assertSet('npcAbilityScores', $npc->stats['ability_scores']);
+});
+
+test('npc manager generate populates stat block form fields from ai', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+
+    NpcGenerator::fake([
+        [
+            'name' => 'Sylara Moonwhisper',
+            'role' => 'Elven Mage',
+            'description' => 'A slender elf with silver hair',
+            'personality' => 'Aloof and scholarly',
+            'motivation' => 'Seeks forbidden arcane knowledge',
+            'voice_description' => 'Melodic and precise',
+            'speech_patterns' => 'Formal, archaic vocabulary',
+            'catchphrases' => ['Knowledge is power.'],
+            'backstory' => 'Exiled from the Elven Council',
+            'race' => 'Elf',
+            'size' => 'Medium',
+            'alignment' => 'Chaotic Neutral',
+            'armor_class' => 13,
+            'armor_type' => 'Mage Armor',
+            'hp_max' => 45,
+            'hit_dice' => '10d8',
+            'speed' => '30 ft.',
+            'challenge_rating' => '5',
+            'ability_scores' => ['str' => 8, 'dex' => 14, 'con' => 10, 'int' => 18, 'wis' => 12, 'cha' => 14],
+            'saving_throw_proficiencies' => ['int', 'wis'],
+            'skill_proficiencies' => ['arcana', 'history'],
+            'damage_resistances' => [],
+            'damage_immunities' => [],
+            'condition_immunities' => [],
+            'senses' => 'Darkvision 60 ft., passive Perception 11',
+            'languages' => 'Common, Elvish, Draconic',
+            'special_traits' => [['name' => 'Spellcasting', 'description' => 'Sylara is a 10th-level spellcaster.']],
+            'actions' => [['name' => 'Dagger', 'description' => 'Melee or Ranged Weapon Attack: +4 to hit.']],
+            'bonus_actions' => [],
+            'reactions' => [],
+            'legendary_actions' => [],
+            'suggested_faction' => null,
+            'suggested_location' => null,
+        ],
+    ]);
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
+        ->call('openGenerateModal')
+        ->call('generate')
+        ->assertSet('npcRace', 'Elf')
+        ->assertSet('npcArmorClass', 13)
+        ->assertSet('npcHpMax', 45)
+        ->assertSet('npcChallengeRating', '5')
+        ->assertSet('npcAbilityScores', ['str' => 8, 'dex' => 14, 'con' => 10, 'int' => 18, 'wis' => 12, 'cha' => 14])
+        ->assertSet('npcSavingThrowProficiencies', ['int', 'wis'])
+        ->assertSet('npcSkillProficiencies', 'arcana, history')
+        ->assertSet('npcLanguages', 'Common, Elvish, Draconic');
+});
+
 test('npc manager handles ai failure gracefully', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->for($user)->create();
