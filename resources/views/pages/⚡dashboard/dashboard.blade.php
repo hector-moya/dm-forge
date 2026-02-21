@@ -22,41 +22,48 @@
     @else
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($this->campaigns as $campaign)
-                <a href="{{ route('campaigns.show', $campaign) }}" wire:navigate
-                   class="group rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600">
-                    <div class="mb-3 flex items-start justify-between">
-                        <flux:heading size="lg" class="group-hover:text-accent truncate">
-                            {{ $campaign->name }}
-                        </flux:heading>
-                        @php
-                            $variant = match($campaign->status) {
-                                'active' => 'primary',
-                                'archived' => 'warning',
-                                default => 'outline',
-                            };
-                        @endphp
-                        <flux:badge :variant="$variant" size="sm">
-                            {{ ucfirst($campaign->status) }}
-                        </flux:badge>
-                    </div>
-
-                    @if ($campaign->premise)
-                        <flux:text class="mb-4 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $campaign->premise }}
-                        </flux:text>
-                    @endif
-
-                    <div class="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                        <div class="flex items-center gap-1">
-                            <flux:icon name="users" class="size-4" />
-                            <span>{{ $campaign->characters_count }} {{ Str::plural('character', $campaign->characters_count) }}</span>
+                <flux:card class="dark:border-accent/50! hover:border-accent group cursor-pointer border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
+                    <a href="{{ route('campaigns.show', $campaign) }}" wire:navigate class="flex h-full flex-col">
+                        {{-- Heading --}}
+                        <div class="mb-3 flex items-start justify-between">
+                            <flux:heading size="lg" class="group-hover:text-accent truncate">
+                                {{ $campaign->name }}
+                            </flux:heading>
+                            @php
+                                $variant = match ($campaign->status) {
+                                    'active' => 'primary',
+                                    'archived' => 'warning',
+                                    default => 'outline',
+                                };
+                            @endphp
+                            <flux:badge :variant="$variant" size="sm">
+                                {{ ucfirst($campaign->status) }}
+                            </flux:badge>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <flux:icon name="book-open" class="size-4" />
-                            <span>{{ $campaign->game_sessions_count }} {{ Str::plural('session', $campaign->game_sessions_count) }}</span>
+
+                        {{-- Premise --}}
+
+                        @if ($campaign->premise)
+                            <flux:text class="mb-4 line-clamp-2 dark:group-hover:text-white">
+                                {{ $campaign->premise }}
+                            </flux:text>
+                        @endif
+
+                        {{-- Details --}}
+                        <div class="mt-auto flex items-center gap-4 dark:group-hover:text-white"">
+                            <div class="flex items-center gap-1">
+                                <flux:badge icon="users" size="sm">
+                                    {{ $campaign->characters_count }} {{ Str::plural('character', $campaign->characters_count) }}
+                                </flux:badge>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <flux:badge icon="book-open" size="sm">
+                                    {{ $campaign->game_sessions_count }} {{ Str::plural('session', $campaign->game_sessions_count) }}
+                                </flux:badge>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </flux:card>
             @endforeach
         </div>
     @endif
