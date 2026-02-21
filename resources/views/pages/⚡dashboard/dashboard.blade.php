@@ -22,8 +22,7 @@
     @else
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($this->campaigns as $campaign)
-                <flux:card class="dark:border-accent/50! hover:border-accent group cursor-pointer border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
-                    <a href="{{ route('campaigns.show', $campaign) }}" wire:navigate class="flex h-full flex-col">
+                <flux:card  href="{{ route('campaigns.show', $campaign) }}" wire:navigate class="flex h-full flex-col dark:border-accent/50! dark:hover:border-accent group cursor-pointer border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
                         {{-- Heading --}}
                         <div class="mb-3 flex items-start justify-between">
                             <flux:heading size="lg" class="group-hover:text-accent truncate">
@@ -62,7 +61,6 @@
                                 </flux:badge>
                             </div>
                         </div>
-                    </a>
                 </flux:card>
             @endforeach
         </div>
