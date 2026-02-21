@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\HasCampaignContext;
 use App\Ai\Tools\LookupLocation;
 use App\Ai\Tools\LookupNpc;
 use App\Models\Campaign;
@@ -18,7 +19,7 @@ use Stringable;
 #[Temperature(0.8)]
 class PuzzleDesigner implements Agent, HasStructuredOutput, HasTools
 {
-    use Promptable;
+    use Promptable, HasCampaignContext;
 
     public function __construct(
         protected Campaign $campaign,
@@ -26,16 +27,7 @@ class PuzzleDesigner implements Agent, HasStructuredOutput, HasTools
 
     public function instructions(): Stringable|string
     {
-        $context = "Campaign: {$this->campaign->name}";
-        if ($this->campaign->premise) {
-            $context .= "\nPremise: {$this->campaign->premise}";
-        }
-        if ($this->campaign->theme_tone) {
-            $context .= "\nTone: {$this->campaign->theme_tone}";
-        }
-        if ($this->campaign->lore) {
-            $context .= "\nLore: {$this->campaign->lore}";
-        }
+        $context = $this->buildCampaignContext();
 
         return <<<PROMPT
 You are a creative D&D puzzle designer. Generate engaging, solvable puzzles that fit naturally into the campaign world.

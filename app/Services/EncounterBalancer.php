@@ -80,11 +80,11 @@ class EncounterBalancer
 
         // Adjust for party size (fewer than 3 = harder, more than 5 = easier)
         if ($partySize < 3) {
-            return $this->adjustMultiplierUp($baseMultiplier);
+            return $this->adjustMultiplier($baseMultiplier, increase: true);
         }
 
         if ($partySize > 5) {
-            return $this->adjustMultiplierDown($baseMultiplier);
+            return $this->adjustMultiplier($baseMultiplier, increase: false);
         }
 
         return $baseMultiplier;
@@ -139,27 +139,18 @@ class EncounterBalancer
         return DifficultyRating::Trivial;
     }
 
-    private function adjustMultiplierUp(float $multiplier): float
+    private function adjustMultiplier(float $multiplier, bool $increase): float
     {
-        $tiers = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0];
+        $tiers = $increase
+            ? [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
+            : [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
+
         $index = array_search($multiplier, $tiers);
 
-        if ($index !== false && $index < count($tiers) - 1) {
-            return $tiers[$index + 1];
+        if ($increase) {
+            return ($index !== false && $index < \count($tiers) - 1) ? $tiers[$index + 1] : $multiplier;
         }
 
-        return $multiplier;
-    }
-
-    private function adjustMultiplierDown(float $multiplier): float
-    {
-        $tiers = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
-        $index = array_search($multiplier, $tiers);
-
-        if ($index !== false && $index > 0) {
-            return $tiers[$index - 1];
-        }
-
-        return $multiplier;
+        return ($index !== false && $index > 0) ? $tiers[$index - 1] : $multiplier;
     }
 }

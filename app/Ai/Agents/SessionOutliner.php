@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\HasCampaignContext;
 use App\Ai\Tools\GetCharacterSheet;
 use App\Ai\Tools\LookupLocation;
 use App\Ai\Tools\LookupNpc;
@@ -15,7 +16,7 @@ use Stringable;
 
 class SessionOutliner implements Agent, HasStructuredOutput, HasTools
 {
-    use Promptable;
+    use Promptable, HasCampaignContext;
 
     public function __construct(
         protected Campaign $campaign,
@@ -23,16 +24,7 @@ class SessionOutliner implements Agent, HasStructuredOutput, HasTools
 
     public function instructions(): Stringable|string
     {
-        $context = "Campaign: {$this->campaign->name}";
-        if ($this->campaign->premise) {
-            $context .= "\nPremise: {$this->campaign->premise}";
-        }
-        if ($this->campaign->theme_tone) {
-            $context .= "\nTone: {$this->campaign->theme_tone}";
-        }
-        if ($this->campaign->world_rules) {
-            $context .= "\nWorld Rules: {$this->campaign->world_rules}";
-        }
+        $context = $this->buildCampaignContext();
 
         return <<<PROMPT
 You are an expert D&D session planner. Given a session premise or hook, generate a complete session outline with scenes, encounters, and branch options.

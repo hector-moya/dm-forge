@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\HasCampaignContext;
 use App\Ai\Tools\LookupFaction;
 use App\Ai\Tools\LookupLocation;
 use App\Ai\Tools\LookupNpc;
@@ -19,7 +20,7 @@ use Stringable;
 #[Temperature(0.8)]
 class NpcGenerator implements Agent, HasStructuredOutput, HasTools
 {
-    use Promptable;
+    use Promptable, HasCampaignContext;
 
     public function __construct(
         protected Campaign $campaign,
@@ -27,16 +28,7 @@ class NpcGenerator implements Agent, HasStructuredOutput, HasTools
 
     public function instructions(): Stringable|string
     {
-        $context = "Campaign: {$this->campaign->name}";
-        if ($this->campaign->premise) {
-            $context .= "\nPremise: {$this->campaign->premise}";
-        }
-        if ($this->campaign->theme_tone) {
-            $context .= "\nTone: {$this->campaign->theme_tone}";
-        }
-        if ($this->campaign->lore) {
-            $context .= "\nLore: {$this->campaign->lore}";
-        }
+        $context = $this->buildCampaignContext();
 
         return <<<PROMPT
 You are a creative D&D NPC designer. Generate a detailed, memorable NPC that fits naturally into the campaign world.

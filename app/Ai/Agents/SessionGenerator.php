@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\HasCampaignContext;
 use App\Ai\Tools\LookupFaction;
 use App\Ai\Tools\LookupLocation;
 use App\Ai\Tools\LookupNpc;
@@ -20,7 +21,7 @@ use Stringable;
 #[Temperature(0.8)]
 class SessionGenerator implements Agent, HasStructuredOutput, HasTools
 {
-    use Promptable;
+    use Promptable, HasCampaignContext;
 
     public function __construct(
         protected Campaign $campaign,
@@ -28,19 +29,7 @@ class SessionGenerator implements Agent, HasStructuredOutput, HasTools
 
     public function instructions(): Stringable|string
     {
-        $context = "Campaign: {$this->campaign->name}";
-        if ($this->campaign->premise) {
-            $context .= "\nPremise: {$this->campaign->premise}";
-        }
-        if ($this->campaign->theme_tone) {
-            $context .= "\nTone: {$this->campaign->theme_tone}";
-        }
-        if ($this->campaign->lore) {
-            $context .= "\nLore: {$this->campaign->lore}";
-        }
-        if ($this->campaign->world_rules) {
-            $context .= "\nWorld Rules: {$this->campaign->world_rules}";
-        }
+        $context = $this->buildCampaignContext();
 
         return <<<PROMPT
 You are an expert D&D session designer. Generate a complete, ready-to-run game session with scenes, encounters, NPCs, monsters, branching paths, and puzzles.

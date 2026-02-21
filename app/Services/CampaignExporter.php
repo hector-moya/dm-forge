@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Campaign;
+use Illuminate\Database\Eloquent\Collection;
 
 class CampaignExporter
 {
@@ -10,6 +11,18 @@ class CampaignExporter
     {
         $campaign->load(['factions', 'locations', 'npcs', 'characters', 'gameSessions']);
 
+        return implode('', [
+            $this->formatCampaignHeader($campaign),
+            $this->formatFactions($campaign->factions),
+            $this->formatLocations($campaign->locations),
+            $this->formatNpcs($campaign->npcs),
+            $this->formatCharacters($campaign->characters),
+            $this->formatSessions($campaign->gameSessions),
+        ]);
+    }
+
+    private function formatCampaignHeader(Campaign $campaign): string
+    {
         $md = "# {$campaign->name}\n\n";
 
         if ($campaign->premise) {
@@ -36,81 +49,121 @@ class CampaignExporter
             $md .= "\n";
         }
 
-        if ($campaign->factions->isNotEmpty()) {
-            $md .= "## Factions\n\n";
-            foreach ($campaign->factions as $faction) {
-                $md .= "### {$faction->name}\n\n";
-                if ($faction->alignment) {
-                    $md .= "**Alignment:** {$faction->alignment}\n\n";
-                }
-                if ($faction->description) {
-                    $md .= "{$faction->description}\n\n";
-                }
-                if ($faction->goals) {
-                    $md .= "**Goals:** {$faction->goals}\n\n";
-                }
+        return $md;
+    }
+
+    private function formatFactions(Collection $factions): string
+    {
+        if ($factions->isEmpty()) {
+            return '';
+        }
+
+        $md = "## Factions\n\n";
+
+        foreach ($factions as $faction) {
+            $md .= "### {$faction->name}\n\n";
+            if ($faction->alignment) {
+                $md .= "**Alignment:** {$faction->alignment}\n\n";
+            }
+            if ($faction->description) {
+                $md .= "{$faction->description}\n\n";
+            }
+            if ($faction->goals) {
+                $md .= "**Goals:** {$faction->goals}\n\n";
             }
         }
 
-        if ($campaign->locations->isNotEmpty()) {
-            $md .= "## Locations\n\n";
-            foreach ($campaign->locations as $location) {
-                $md .= "### {$location->name}";
-                if ($location->region) {
-                    $md .= " ({$location->region})";
-                }
-                $md .= "\n\n";
-                if ($location->description) {
-                    $md .= "{$location->description}\n\n";
-                }
+        return $md;
+    }
+
+    private function formatLocations(Collection $locations): string
+    {
+        if ($locations->isEmpty()) {
+            return '';
+        }
+
+        $md = "## Locations\n\n";
+
+        foreach ($locations as $location) {
+            $md .= "### {$location->name}";
+            if ($location->region) {
+                $md .= " ({$location->region})";
+            }
+            $md .= "\n\n";
+            if ($location->description) {
+                $md .= "{$location->description}\n\n";
             }
         }
 
-        if ($campaign->npcs->isNotEmpty()) {
-            $md .= "## NPCs\n\n";
-            foreach ($campaign->npcs as $npc) {
-                $md .= "### {$npc->name}";
-                if ($npc->role) {
-                    $md .= " — {$npc->role}";
-                }
-                $md .= $npc->is_alive ? '' : ' [Dead]';
-                $md .= "\n\n";
-                if ($npc->description) {
-                    $md .= "{$npc->description}\n\n";
-                }
-                if ($npc->personality) {
-                    $md .= "**Personality:** {$npc->personality}\n\n";
-                }
-                if ($npc->motivation) {
-                    $md .= "**Motivation:** {$npc->motivation}\n\n";
-                }
+        return $md;
+    }
+
+    private function formatNpcs(Collection $npcs): string
+    {
+        if ($npcs->isEmpty()) {
+            return '';
+        }
+
+        $md = "## NPCs\n\n";
+
+        foreach ($npcs as $npc) {
+            $md .= "### {$npc->name}";
+            if ($npc->role) {
+                $md .= " — {$npc->role}";
+            }
+            $md .= $npc->is_alive ? '' : ' [Dead]';
+            $md .= "\n\n";
+            if ($npc->description) {
+                $md .= "{$npc->description}\n\n";
+            }
+            if ($npc->personality) {
+                $md .= "**Personality:** {$npc->personality}\n\n";
+            }
+            if ($npc->motivation) {
+                $md .= "**Motivation:** {$npc->motivation}\n\n";
             }
         }
 
-        if ($campaign->characters->isNotEmpty()) {
-            $md .= "## Characters\n\n";
-            foreach ($campaign->characters as $character) {
-                $md .= "### {$character->name}";
-                if ($character->player_name) {
-                    $md .= " (Player: {$character->player_name})";
-                }
-                $md .= "\n\n";
-                $md .= '- **Class:** '.($character->class ?? 'Unknown')."\n";
-                $md .= '- **Level:** '.($character->level ?? '?')."\n";
-                $md .= "- **HP:** {$character->hp_current}/{$character->hp_max}\n";
-                $md .= "- **AC:** {$character->armor_class}\n";
-                $md .= "- **Alignment:** {$character->alignment_label}\n\n";
-            }
+        return $md;
+    }
+
+    private function formatCharacters(Collection $characters): string
+    {
+        if ($characters->isEmpty()) {
+            return '';
         }
 
-        if ($campaign->gameSessions->isNotEmpty()) {
-            $md .= "## Sessions\n\n";
-            foreach ($campaign->gameSessions->sortBy('session_number') as $session) {
-                $md .= "### Session #{$session->session_number}: {$session->title}\n\n";
-                $md .= '**Status:** '.ucfirst($session->status)."\n\n";
-                if ($session->setup_text) {
-                    $md .= "{$session->setup_text}\n\n";
-                }
+        $md = "## Characters\n\n";
+
+        foreach ($characters as $character) {
+            $md .= "### {$character->name}";
+            if ($character->player_name) {
+                $md .= " (Player: {$character->player_name})";
+            }
+            $md .= "\n\n";
+            $md .= '- **Class:** '.($character->class ?? 'Unknown')."\n";
+            $md .= '- **Level:** '.($character->level ?? '?')."\n";
+            $md .= "- **HP:** {$character->hp_current}/{$character->hp_max}\n";
+            $md .= "- **AC:** {$character->armor_class}\n";
+            $md .= "- **Alignment:** {$character->alignment_label}\n\n";
+        }
+
+        return $md;
+    }
+
+    private function formatSessions(Collection $sessions): string
+    {
+        if ($sessions->isEmpty()) {
+            return '';
+        }
+
+        $md = "## Sessions\n\n";
+
+        foreach ($sessions->sortBy('session_number') as $session) {
+            $md .= "### Session #{$session->session_number}: {$session->title}\n\n";
+            $md .= '**Status:** '.ucfirst($session->status)."\n\n";
+            if ($session->setup_text) {
+                $md .= "{$session->setup_text}\n\n";
             }
         }
 
