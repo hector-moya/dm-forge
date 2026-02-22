@@ -47,9 +47,9 @@ test('location manager can create a location', function () {
         ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
-        ->set('locationName', 'Dragon Peak')
-        ->set('locationRegion', 'Northern Mountains')
-        ->set('locationDescription', 'A towering peak where dragons nest')
+        ->set('form.name', 'Dragon Peak')
+        ->set('form.region', 'Northern Mountains')
+        ->set('form.description', 'A towering peak where dragons nest')
         ->call('save');
 
     $location = $campaign->locations()->where('name', 'Dragon Peak')->first();
@@ -65,8 +65,8 @@ test('location manager can edit a location', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm', $location->id)
-        ->assertSet('locationName', 'Old Forest')
-        ->set('locationName', 'New Forest')
+        ->assertSet('form.name', 'Old Forest')
+        ->set('form.name', 'New Forest')
         ->call('save');
 
     expect($location->fresh()->name)->toBe('New Forest');
@@ -118,8 +118,8 @@ test('location manager can set parent location', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.location-manager', ['campaign' => $campaign])
         ->call('openForm')
-        ->set('locationName', 'Castle')
-        ->set('locationParentId', $parent->id)
+        ->set('form.name', 'Castle')
+        ->set('form.parentLocationId', $parent->id)
         ->call('save');
 
     $child = $campaign->locations()->where('name', 'Castle')->first();
@@ -163,8 +163,8 @@ test('location manager generates location with ai', function () {
         ->call('generate')
         ->assertSet('showGenerateModal', false)
         ->assertSet('showForm', true)
-        ->assertSet('locationName', 'The Whispering Woods')
-        ->assertSet('locationRegion', 'Northern Marches');
+        ->assertSet('form.name', 'The Whispering Woods')
+        ->assertSet('form.region', 'Northern Marches');
 
     LocationGenerator::assertPrompted(fn ($prompt) => $prompt->contains('haunted forest'));
 });

@@ -48,9 +48,9 @@ test('npc manager can create an npc', function () {
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
-        ->set('npcName', 'Elena Darkwood')
-        ->set('npcRole', 'Ranger')
-        ->set('npcDescription', 'A skilled ranger from the north')
+        ->set('form.npcName', 'Elena Darkwood')
+        ->set('form.npcRole', 'Ranger')
+        ->set('form.npcDescription', 'A skilled ranger from the north')
         ->call('save');
 
     $npc = $campaign->npcs()->where('name', 'Elena Darkwood')->first();
@@ -67,9 +67,9 @@ test('npc manager can create npc with faction and location', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
-        ->set('npcName', 'Guard Captain')
-        ->set('npcFactionId', $faction->id)
-        ->set('npcLocationId', $location->id)
+        ->set('form.npcName', 'Guard Captain')
+        ->set('form.npcFactionId', $faction->id)
+        ->set('form.npcLocationId', $location->id)
         ->call('save');
 
     $npc = $campaign->npcs()->where('name', 'Guard Captain')->first();
@@ -85,9 +85,9 @@ test('npc manager can edit an npc', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm', $npc->id)
-        ->assertSet('npcName', 'Old Name')
-        ->assertSet('npcRole', 'Guard')
-        ->set('npcName', 'New Name')
+        ->assertSet('form.npcName', 'Old Name')
+        ->assertSet('form.npcRole', 'Guard')
+        ->set('form.npcName', 'New Name')
         ->call('save');
 
     expect($npc->fresh()->name)->toBe('New Name');
@@ -152,10 +152,10 @@ test('npc manager saves voice fields and catchphrases', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
-        ->set('npcName', 'Voiced NPC')
-        ->set('npcVoiceDescription', 'Deep, rumbling')
-        ->set('npcSpeechPatterns', 'Short sentences')
-        ->set('npcCatchphrases', "Halt!\nWho goes there?")
+        ->set('form.npcName', 'Voiced NPC')
+        ->set('form.npcVoiceDescription', 'Deep, rumbling')
+        ->set('form.npcSpeechPatterns', 'Short sentences')
+        ->set('form.npcCatchphrases', "Halt!\nWho goes there?")
         ->call('save');
 
     $npc = $campaign->npcs()->where('name', 'Voiced NPC')->first();
@@ -211,9 +211,9 @@ test('npc manager generates npc with ai', function () {
         ->call('generate')
         ->assertSet('showGenerateModal', false)
         ->assertSet('showForm', true)
-        ->assertSet('npcName', 'Gornik the Bold')
-        ->assertSet('npcRole', 'Tavern Owner')
-        ->assertSet('npcVoiceDescription', 'Deep bass');
+        ->assertSet('form.npcName', 'Gornik the Bold')
+        ->assertSet('form.npcRole', 'Tavern Owner')
+        ->assertSet('form.npcVoiceDescription', 'Deep bass');
 
     NpcGenerator::assertPrompted(fn ($prompt) => $prompt->contains('tavern owner'));
 });
@@ -243,21 +243,21 @@ test('npc manager can save npc with stat block fields', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm')
-        ->set('npcName', 'Gareth the Guard')
-        ->set('npcRace', 'Human')
-        ->set('npcSize', 'Medium')
-        ->set('npcAlignment', 'Lawful Neutral')
-        ->set('npcArmorClass', 16)
-        ->set('npcArmorType', 'Chain mail')
-        ->set('npcHpMax', 52)
-        ->set('npcHitDice', '8d8+16')
-        ->set('npcSpeed', '30 ft.')
-        ->set('npcChallengeRating', '2')
-        ->set('npcAbilityScores', ['str' => 16, 'dex' => 13, 'con' => 14, 'int' => 10, 'wis' => 11, 'cha' => 10])
-        ->set('npcSavingThrowProficiencies', ['str', 'con'])
-        ->set('npcSkillProficiencies', 'athletics, perception')
-        ->set('npcLanguages', 'Common')
-        ->set('npcActions', 'Longsword: Melee Weapon Attack: +5 to hit, reach 5 ft., one target.')
+        ->set('form.npcName', 'Gareth the Guard')
+        ->set('form.npcRace', 'Human')
+        ->set('form.npcSize', 'Medium')
+        ->set('form.npcAlignment', 'Lawful Neutral')
+        ->set('form.npcArmorClass', 16)
+        ->set('form.npcArmorType', 'Chain mail')
+        ->set('form.npcHpMax', 52)
+        ->set('form.npcHitDice', '8d8+16')
+        ->set('form.npcSpeed', '30 ft.')
+        ->set('form.npcChallengeRating', '2')
+        ->set('form.npcAbilityScores', ['str' => 16, 'dex' => 13, 'con' => 14, 'int' => 10, 'wis' => 11, 'cha' => 10])
+        ->set('form.npcSavingThrowProficiencies', ['str', 'con'])
+        ->set('form.npcSkillProficiencies', 'athletics, perception')
+        ->set('form.npcLanguages', 'Common')
+        ->set('form.npcActions', 'Longsword: Melee Weapon Attack: +5 to hit, reach 5 ft., one target.')
         ->call('save');
 
     $npc = $campaign->npcs()->where('name', 'Gareth the Guard')->first();
@@ -286,10 +286,10 @@ test('npc manager loads stat block fields when editing', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openForm', $npc->id)
-        ->assertSet('npcRace', $npc->race ?? '')
-        ->assertSet('npcArmorClass', $npc->armor_class)
-        ->assertSet('npcHpMax', $npc->hp_max)
-        ->assertSet('npcAbilityScores', $npc->stats['ability_scores']);
+        ->assertSet('form.npcRace', $npc->race ?? '')
+        ->assertSet('form.npcArmorClass', $npc->armor_class)
+        ->assertSet('form.npcHpMax', $npc->hp_max)
+        ->assertSet('form.npcAbilityScores', $npc->stats['ability_scores']);
 });
 
 test('npc manager generate populates stat block form fields from ai', function () {
@@ -338,14 +338,14 @@ test('npc manager generate populates stat block form fields from ai', function (
         ->test('pages::campaigns.npc-manager', ['campaign' => $campaign])
         ->call('openGenerateModal')
         ->call('generate')
-        ->assertSet('npcRace', 'Elf')
-        ->assertSet('npcArmorClass', 13)
-        ->assertSet('npcHpMax', 45)
-        ->assertSet('npcChallengeRating', '5')
-        ->assertSet('npcAbilityScores', ['str' => 8, 'dex' => 14, 'con' => 10, 'int' => 18, 'wis' => 12, 'cha' => 14])
-        ->assertSet('npcSavingThrowProficiencies', ['int', 'wis'])
-        ->assertSet('npcSkillProficiencies', 'arcana, history')
-        ->assertSet('npcLanguages', 'Common, Elvish, Draconic');
+        ->assertSet('form.npcRace', 'Elf')
+        ->assertSet('form.npcArmorClass', 13)
+        ->assertSet('form.npcHpMax', 45)
+        ->assertSet('form.npcChallengeRating', '5')
+        ->assertSet('form.npcAbilityScores', ['str' => 8, 'dex' => 14, 'con' => 10, 'int' => 18, 'wis' => 12, 'cha' => 14])
+        ->assertSet('form.npcSavingThrowProficiencies', ['int', 'wis'])
+        ->assertSet('form.npcSkillProficiencies', 'arcana, history')
+        ->assertSet('form.npcLanguages', 'Common, Elvish, Draconic');
 });
 
 test('npc manager handles ai failure gracefully', function () {

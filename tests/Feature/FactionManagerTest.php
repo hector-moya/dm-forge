@@ -46,9 +46,9 @@ test('faction manager can create a faction', function () {
         ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openForm')
         ->assertSet('showForm', true)
-        ->set('factionName', 'Shadow Guild')
-        ->set('factionAlignment', 'Chaotic Neutral')
-        ->set('factionGoals', 'Control the underworld')
+        ->set('form.name', 'Shadow Guild')
+        ->set('form.alignment', 'Chaotic Neutral')
+        ->set('form.goals', 'Control the underworld')
         ->call('save');
 
     expect($campaign->factions()->where('name', 'Shadow Guild')->exists())->toBeTrue();
@@ -62,8 +62,8 @@ test('faction manager can edit a faction', function () {
     Livewire::actingAs($user)
         ->test('pages::campaigns.faction-manager', ['campaign' => $campaign])
         ->call('openForm', $faction->id)
-        ->assertSet('factionName', 'Old Name')
-        ->set('factionName', 'New Name')
+        ->assertSet('form.name', 'Old Name')
+        ->set('form.name', 'New Name')
         ->call('save');
 
     expect($faction->fresh()->name)->toBe('New Name');
@@ -138,8 +138,8 @@ test('faction manager generates faction with ai', function () {
         ->call('generate')
         ->assertSet('showGenerateModal', false)
         ->assertSet('showForm', true)
-        ->assertSet('factionName', 'The Iron Brotherhood')
-        ->assertSet('factionAlignment', 'Lawful Neutral');
+        ->assertSet('form.name', 'The Iron Brotherhood')
+        ->assertSet('form.alignment', 'Lawful Neutral');
 
     FactionGenerator::assertPrompted(fn ($prompt) => $prompt->contains('warrior guild'));
 });

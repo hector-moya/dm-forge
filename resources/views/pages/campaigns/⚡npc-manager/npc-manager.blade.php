@@ -43,34 +43,34 @@
 
                 {{-- Narrative Fields --}}
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:input wire:model="npcName" label="{{ __('Name') }}" placeholder="{{ __('NPC name...') }}" required />
-                    <flux:input wire:model="npcRole" label="{{ __('Role') }}" placeholder="{{ __('e.g., Blacksmith, Quest Giver') }}" />
+                    <flux:input wire:model="form.npcName" label="{{ __('Name') }}" placeholder="{{ __('NPC name...') }}" required />
+                    <flux:input wire:model="form.npcRole" label="{{ __('Role') }}" placeholder="{{ __('e.g., Blacksmith, Quest Giver') }}" />
                 </div>
-                <flux:textarea wire:model="npcDescription" label="{{ __('Description') }}" placeholder="{{ __('Physical appearance, background...') }}" rows="3" />
+                <flux:textarea wire:model="form.npcDescription" label="{{ __('Description') }}" placeholder="{{ __('Physical appearance, background...') }}" rows="3" />
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:textarea wire:model="npcPersonality" label="{{ __('Personality') }}" placeholder="{{ __('Traits, temperament...') }}" rows="2" />
-                    <flux:textarea wire:model="npcMotivation" label="{{ __('Motivation') }}" placeholder="{{ __('Goals, fears, desires...') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcPersonality" label="{{ __('Personality') }}" placeholder="{{ __('Traits, temperament...') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcMotivation" label="{{ __('Motivation') }}" placeholder="{{ __('Goals, fears, desires...') }}" rows="2" />
                 </div>
-                <flux:textarea wire:model="npcBackstory" label="{{ __('Backstory') }}" placeholder="{{ __('Key events that shaped this NPC...') }}" rows="2" />
+                <flux:textarea wire:model="form.npcBackstory" label="{{ __('Backstory') }}" placeholder="{{ __('Key events that shaped this NPC...') }}" rows="2" />
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:textarea wire:model="npcVoiceDescription" label="{{ __('Voice Description') }}" placeholder="{{ __('Accent, pitch, cadence...') }}" rows="2" />
-                    <flux:textarea wire:model="npcSpeechPatterns" label="{{ __('Speech Patterns') }}" placeholder="{{ __('Formal, slang, poetic...') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcVoiceDescription" label="{{ __('Voice Description') }}" placeholder="{{ __('Accent, pitch, cadence...') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcSpeechPatterns" label="{{ __('Speech Patterns') }}" placeholder="{{ __('Formal, slang, poetic...') }}" rows="2" />
                 </div>
-                <flux:textarea wire:model="npcCatchphrases" label="{{ __('Catchphrases') }}" placeholder="{{ __('One per line...') }}" rows="2" />
+                <flux:textarea wire:model="form.npcCatchphrases" label="{{ __('Catchphrases') }}" placeholder="{{ __('One per line...') }}" rows="2" />
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <flux:select wire:model="npcFactionId" label="{{ __('Faction') }}" placeholder="{{ __('None') }}">
+                    <flux:select wire:model="form.npcFactionId" label="{{ __('Faction') }}" placeholder="{{ __('None') }}">
                         <flux:select.option value="">{{ __('None') }}</flux:select.option>
                         @foreach ($factions as $faction)
                             <flux:select.option value="{{ $faction->id }}">{{ $faction->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="npcLocationId" label="{{ __('Location') }}" placeholder="{{ __('None') }}">
+                    <flux:select wire:model="form.npcLocationId" label="{{ __('Location') }}" placeholder="{{ __('None') }}">
                         <flux:select.option value="">{{ __('None') }}</flux:select.option>
                         @foreach ($locations as $location)
                             <flux:select.option value="{{ $location->id }}">{{ $location->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="npcIsAlive" label="{{ __('Status') }}">
+                    <flux:select wire:model="form.npcIsAlive" label="{{ __('Status') }}">
                         <flux:select.option :value="true">{{ __('Alive') }}</flux:select.option>
                         <flux:select.option :value="false">{{ __('Dead') }}</flux:select.option>
                     </flux:select>
@@ -83,24 +83,24 @@
 
                 {{-- Identity --}}
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <flux:input wire:model="npcRace" label="{{ __('Race') }}" placeholder="{{ __('e.g., Human, Elf') }}" />
-                    <flux:select wire:model="npcSize" label="{{ __('Size') }}" placeholder="{{ __('Medium') }}">
+                    <flux:input wire:model="form.npcRace" label="{{ __('Race') }}" placeholder="{{ __('e.g., Human, Elf') }}" />
+                    <flux:select wire:model="form.npcSize" label="{{ __('Size') }}" placeholder="{{ __('Medium') }}">
                         <flux:select.option value="">{{ __('—') }}</flux:select.option>
                         @foreach (['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'] as $size)
                             <flux:select.option value="{{ $size }}">{{ __($size) }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:input wire:model="npcAlignment" label="{{ __('Alignment') }}" placeholder="{{ __('e.g., Neutral Evil') }}" />
+                    <flux:input wire:model="form.npcAlignment" label="{{ __('Alignment') }}" placeholder="{{ __('e.g., Neutral Evil') }}" />
                 </div>
 
                 {{-- Combat Stats --}}
                 <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                    <flux:input wire:model="npcArmorClass" type="number" min="0" max="30" label="{{ __('AC') }}" placeholder="10" />
-                    <flux:input wire:model="npcArmorType" label="{{ __('Armor Type') }}" placeholder="{{ __('Natural armor') }}" />
-                    <flux:input wire:model="npcHpMax" type="number" min="1" label="{{ __('Max HP') }}" placeholder="10" />
-                    <flux:input wire:model="npcHitDice" label="{{ __('Hit Dice') }}" placeholder="{{ __('e.g., 3d8+9') }}" />
-                    <flux:input wire:model="npcSpeed" label="{{ __('Speed') }}" placeholder="{{ __('30 ft.') }}" />
-                    <flux:input wire:model="npcChallengeRating" label="{{ __('CR') }}" placeholder="{{ __('e.g., 1/4') }}" />
+                    <flux:input wire:model="form.npcArmorClass" type="number" min="0" max="30" label="{{ __('AC') }}" placeholder="10" />
+                    <flux:input wire:model="form.npcArmorType" label="{{ __('Armor Type') }}" placeholder="{{ __('Natural armor') }}" />
+                    <flux:input wire:model="form.npcHpMax" type="number" min="1" label="{{ __('Max HP') }}" placeholder="10" />
+                    <flux:input wire:model="form.npcHitDice" label="{{ __('Hit Dice') }}" placeholder="{{ __('e.g., 3d8+9') }}" />
+                    <flux:input wire:model="form.npcSpeed" label="{{ __('Speed') }}" placeholder="{{ __('30 ft.') }}" />
+                    <flux:input wire:model="form.npcChallengeRating" label="{{ __('CR') }}" placeholder="{{ __('e.g., 1/4') }}" />
                 </div>
 
                 {{-- Ability Scores --}}
@@ -110,7 +110,7 @@
                         @foreach (['str' => 'STR', 'dex' => 'DEX', 'con' => 'CON', 'int' => 'INT', 'wis' => 'WIS', 'cha' => 'CHA'] as $key => $label)
                             <div class="text-center">
                                 <div class="mb-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ $label }}</div>
-                                <flux:input wire:model="npcAbilityScores.{{ $key }}" type="number" min="1" max="30" class="text-center" />
+                                <flux:input wire:model="form.npcAbilityScores.{{ $key }}" type="number" min="1" max="30" class="text-center" />
                             </div>
                         @endforeach
                     </div>
@@ -122,48 +122,48 @@
                         <flux:label class="mb-2">{{ __('Saving Throw Proficiencies') }}</flux:label>
                         <div class="flex flex-wrap gap-3">
                             @foreach (['str' => 'STR', 'dex' => 'DEX', 'con' => 'CON', 'int' => 'INT', 'wis' => 'WIS', 'cha' => 'CHA'] as $key => $label)
-                                <flux:checkbox wire:model="npcSavingThrowProficiencies" value="{{ $key }}" label="{{ $label }}" />
+                                <flux:checkbox wire:model="form.npcSavingThrowProficiencies" value="{{ $key }}" label="{{ $label }}" />
                             @endforeach
                         </div>
                     </div>
-                    <flux:input wire:model="npcSkillProficiencies" label="{{ __('Skill Proficiencies') }}" placeholder="{{ __('athletics, perception, stealth') }}" />
+                    <flux:input wire:model="form.npcSkillProficiencies" label="{{ __('Skill Proficiencies') }}" placeholder="{{ __('athletics, perception, stealth') }}" />
                 </div>
 
                 {{-- Defenses --}}
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <flux:input wire:model="npcDamageResistances" label="{{ __('Damage Resistances') }}" placeholder="{{ __('fire, cold') }}" />
-                    <flux:input wire:model="npcDamageImmunities" label="{{ __('Damage Immunities') }}" placeholder="{{ __('poison') }}" />
-                    <flux:input wire:model="npcConditionImmunities" label="{{ __('Condition Immunities') }}" placeholder="{{ __('charmed, frightened') }}" />
+                    <flux:input wire:model="form.npcDamageResistances" label="{{ __('Damage Resistances') }}" placeholder="{{ __('fire, cold') }}" />
+                    <flux:input wire:model="form.npcDamageImmunities" label="{{ __('Damage Immunities') }}" placeholder="{{ __('poison') }}" />
+                    <flux:input wire:model="form.npcConditionImmunities" label="{{ __('Condition Immunities') }}" placeholder="{{ __('charmed, frightened') }}" />
                 </div>
 
                 {{-- Senses and Languages --}}
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:input wire:model="npcSenses" label="{{ __('Senses') }}" placeholder="{{ __('Darkvision 60 ft., passive Perception 12') }}" />
-                    <flux:input wire:model="npcLanguages" label="{{ __('Languages') }}" placeholder="{{ __('Common, Elvish') }}" />
+                    <flux:input wire:model="form.npcSenses" label="{{ __('Senses') }}" placeholder="{{ __('Darkvision 60 ft., passive Perception 12') }}" />
+                    <flux:input wire:model="form.npcLanguages" label="{{ __('Languages') }}" placeholder="{{ __('Common, Elvish') }}" />
                 </div>
 
                 {{-- Traits and Actions --}}
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:textarea wire:model="npcSpecialTraits" label="{{ __('Special Traits') }}" placeholder="{{ __('Name: Description (one per line)') }}" rows="3" />
-                    <flux:textarea wire:model="npcActions" label="{{ __('Actions') }}" placeholder="{{ __('Longsword: Melee Weapon Attack: +5 to hit...') }}" rows="3" />
+                    <flux:textarea wire:model="form.npcSpecialTraits" label="{{ __('Special Traits') }}" placeholder="{{ __('Name: Description (one per line)') }}" rows="3" />
+                    <flux:textarea wire:model="form.npcActions" label="{{ __('Actions') }}" placeholder="{{ __('Longsword: Melee Weapon Attack: +5 to hit...') }}" rows="3" />
                 </div>
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <flux:textarea wire:model="npcBonusActions" label="{{ __('Bonus Actions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
-                    <flux:textarea wire:model="npcReactions" label="{{ __('Reactions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
-                    <flux:textarea wire:model="npcLegendaryActions" label="{{ __('Legendary Actions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcBonusActions" label="{{ __('Bonus Actions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcReactions" label="{{ __('Reactions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
+                    <flux:textarea wire:model="form.npcLegendaryActions" label="{{ __('Legendary Actions') }}" placeholder="{{ __('Name: Description') }}" rows="2" />
                 </div>
 
                 {{-- Spellcasting --}}
                 <div class="grid gap-3 sm:grid-cols-4">
-                    <flux:select wire:model="npcSpellcastingAbility" label="{{ __('Spellcasting Ability') }}" placeholder="{{ __('None') }}">
+                    <flux:select wire:model="form.npcSpellcastingAbility" label="{{ __('Spellcasting Ability') }}" placeholder="{{ __('None') }}">
                         <flux:select.option value="">{{ __('None') }}</flux:select.option>
                         @foreach (['str' => 'STR', 'dex' => 'DEX', 'con' => 'CON', 'int' => 'INT', 'wis' => 'WIS', 'cha' => 'CHA'] as $key => $label)
                             <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:input wire:model="npcSpellSaveDc" type="number" min="1" label="{{ __('Spell Save DC') }}" placeholder="—" />
-                    <flux:input wire:model="npcSpellAttackBonus" type="number" label="{{ __('Spell Attack Bonus') }}" placeholder="—" />
-                    <flux:textarea wire:model="npcCantrips" label="{{ __('Cantrips') }}" placeholder="{{ __('One per line') }}" rows="2" />
+                    <flux:input wire:model="form.npcSpellSaveDc" type="number" min="1" label="{{ __('Spell Save DC') }}" placeholder="—" />
+                    <flux:input wire:model="form.npcSpellAttackBonus" type="number" label="{{ __('Spell Attack Bonus') }}" placeholder="—" />
+                    <flux:textarea wire:model="form.npcCantrips" label="{{ __('Cantrips') }}" placeholder="{{ __('One per line') }}" rows="2" />
                 </div>
 
                 <div class="flex items-center justify-end gap-2">
