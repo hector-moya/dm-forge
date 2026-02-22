@@ -37,32 +37,21 @@
         @if ($campaign->premise || $campaign->lore || $campaign->world_rules || $campaign->special_mechanics)
             <flux:card class="dark:border-accent/50! dark:hover:border-accent group border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
                 <div class="mb-4 flex items-center justify-between">
-                    <flux:heading size="lg">{{ __('Campaign Details') }}</flux:heading>
-                    <flux:button variant="subtle" size="sm" href="{{ route('campaigns.edit', $campaign) }}" wire:navigate icon="pencil">
-                        {{ __('Edit') }}
-                    </flux:button>
+                    <flux:heading size="lg">{{ __('Campaign Stage') }}</flux:heading>
                 </div>
 
                 <flux:tab.group>
                     <flux:tabs scrollable variant="segmented">
-                        <flux:tab icon="notebook-text" name="premise">{{ __('Premise') }}</flux:tab>
+                        <flux:tab icon="notebook-text" name="premise">{{ __('Details') }}</flux:tab>
                         <flux:tab icon="scroll" name="lore">{{ __('Lore') }}</flux:tab>
                         <flux:tab icon="earth" name="world-rules">{{ __('World Rules') }}</flux:tab>
                         <flux:tab icon="cog" name="special-mechanics">{{ __('Special Mechanics') }}</flux:tab>
                     </flux:tabs>
                     <flux:tab.panel name="premise">
-                        @if ($campaign->premise)
-                            <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->premise }}</flux:text>
-                        @else
-                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No premise provided.') }}</flux:text>
-                        @endif
+                        <livewire:campaigns.details-card :$campaign />
                     </flux:tab.panel>
                     <flux:tab.panel name="lore">
-                        @if ($campaign->lore)
-                            <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->lore }}</flux:text>
-                        @else
-                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No lore provided.') }}</flux:text>
-                        @endif
+                        <livewire:campaigns.lore-card :$campaign />
                     </flux:tab.panel>
                     <flux:tab.panel name="world-rules">
                         @if ($campaign->world_rules)
@@ -85,7 +74,7 @@
         {{-- Entity Cards --}}
         <flux:card class="dark:border-accent/50! dark:hover:border-accent group border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
             <div class="mb-4 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Campaign Entities') }}</flux:heading>
+                <flux:heading size="lg">{{ __('Entities') }}</flux:heading>
             </div>
             <flux:tab.group>
                 <flux:tabs scrollable variant="segmented">
