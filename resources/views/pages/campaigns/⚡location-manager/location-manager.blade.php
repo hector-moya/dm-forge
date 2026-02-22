@@ -35,11 +35,11 @@
                 {{ $editingLocationId ? __('Edit Location') : __('New Location') }}
             </flux:heading>
             <div class="flex flex-col gap-3">
-                <flux:input wire:model="locationName" label="{{ __('Name') }}" placeholder="{{ __('Location name...') }}" required />
-                <flux:textarea wire:model="locationDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this location...') }}" rows="3" />
+                <flux:input wire:model="form.name" label="{{ __('Name') }}" placeholder="{{ __('Location name...') }}" required />
+                <flux:textarea wire:model="form.description" label="{{ __('Description') }}" placeholder="{{ __('Describe this location...') }}" rows="3" />
                 <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:input wire:model="locationRegion" label="{{ __('Region') }}" placeholder="{{ __('e.g., Northern Wastes') }}" />
-                    <flux:select wire:model="locationParentId" label="{{ __('Parent Location') }}" placeholder="{{ __('None') }}">
+                    <flux:input wire:model="form.region" label="{{ __('Region') }}" placeholder="{{ __('e.g., Northern Wastes') }}" />
+                    <flux:select wire:model="form.parentLocationId" label="{{ __('Parent Location') }}" placeholder="{{ __('None') }}">
                         <flux:select.option value="">{{ __('None') }}</flux:select.option>
                         @foreach ($allLocations->where('id', '!=', $editingLocationId) as $loc)
                             <flux:select.option value="{{ $loc->id }}">{{ $loc->name }}</flux:select.option>

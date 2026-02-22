@@ -1,6 +1,7 @@
 <?php
 
 use App\Ai\Agents\LocationGenerator;
+use App\Livewire\Forms\LocationForm;
 use App\Models\Campaign;
 use App\Models\Location;
 use App\Services\EntityImageGenerator;
@@ -10,6 +11,8 @@ use Livewire\Component;
 
 new class extends Component
 {
+    public LocationForm $form;
+
     public Campaign $campaign;
 
     public string $search = '';
@@ -23,14 +26,6 @@ new class extends Component
     public bool $showForm = false;
 
     public ?int $editingLocationId = null;
-
-    public string $locationName = '';
-
-    public string $locationDescription = '';
-
-    public string $locationRegion = '';
-
-    public ?int $locationParentId = null;
 
     // Generator
     public bool $showGenerateModal = false;
@@ -91,34 +86,18 @@ new class extends Component
         if ($locationId) {
             $location = $this->campaign->locations()->findOrFail($locationId);
             $this->editingLocationId = $location->id;
-            $this->locationName = $location->name;
-            $this->locationDescription = $location->description ?? '';
-            $this->locationRegion = $location->region ?? '';
-            $this->locationParentId = $location->parent_location_id;
+            $this->form->setLocation($location);
         }
     }
 
     public function save(): void
     {
-        $this->validate([
-            'locationName' => ['required', 'string', 'max:255'],
-            'locationDescription' => ['nullable', 'string', 'max:5000'],
-            'locationRegion' => ['nullable', 'string', 'max:255'],
-            'locationParentId' => ['nullable', 'exists:locations,id'],
-        ]);
-
-        $data = [
-            'name' => $this->locationName,
-            'description' => $this->locationDescription ?: null,
-            'region' => $this->locationRegion ?: null,
-            'parent_location_id' => $this->locationParentId,
-        ];
-
         if ($this->editingLocationId) {
-            $this->campaign->locations()->findOrFail($this->editingLocationId)->update($data);
+            $location = $this->campaign->locations()->findOrFail($this->editingLocationId);
+            $this->form->update($location);
             \Flux::toast(__('Location updated.'));
         } else {
-            $location = $this->campaign->locations()->create($data);
+            $location = $this->form->store($this->campaign);
             \Flux::toast(__('Location created.'));
 
             if ($this->pendingImageGeneration) {
@@ -152,11 +131,8 @@ new class extends Component
     {
         $this->showForm = false;
         $this->editingLocationId = null;
-        $this->locationName = '';
-        $this->locationDescription = '';
-        $this->locationRegion = '';
-        $this->locationParentId = null;
         $this->pendingImageGeneration = false;
+        $this->form->resetForm();
         $this->resetValidation();
     }
 
@@ -186,12 +162,12 @@ new class extends Component
 
             $this->resetForm();
             $this->showForm = true;
-            $this->locationName = $response['name'] ?? '';
-            $this->locationDescription = $response['description'] ?? '';
-            $this->locationRegion = $response['region'] ?? '';
+            $this->form->name = $response['name'] ?? '';
+            $this->form->description = $response['description'] ?? '';
+            $this->form->region = $response['region'] ?? '';
 
             if (! empty($response['history'])) {
-                $this->locationDescription .= "\n\nHistory: ".$response['history'];
+                $this->form->description .= "\n\nHistory: ".$response['history'];
             }
 
             $this->pendingImageGeneration = $this->generateImageOnCreate;

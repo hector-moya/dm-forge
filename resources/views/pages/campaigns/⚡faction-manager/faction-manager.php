@@ -1,6 +1,7 @@
 <?php
 
 use App\Ai\Agents\FactionGenerator;
+use App\Livewire\Forms\FactionForm;
 use App\Models\Campaign;
 use App\Models\Faction;
 use App\Services\EntityImageGenerator;
@@ -10,6 +11,8 @@ use Livewire\Component;
 
 new class extends Component
 {
+    public FactionForm $form;
+
     public Campaign $campaign;
 
     public string $search = '';
@@ -21,16 +24,6 @@ new class extends Component
     public bool $showForm = false;
 
     public ?int $editingFactionId = null;
-
-    public string $factionName = '';
-
-    public string $factionDescription = '';
-
-    public string $factionAlignment = '';
-
-    public string $factionGoals = '';
-
-    public string $factionResources = '';
 
     // Generator
     public bool $showGenerateModal = false;
@@ -78,37 +71,18 @@ new class extends Component
         if ($factionId) {
             $faction = $this->campaign->factions()->findOrFail($factionId);
             $this->editingFactionId = $faction->id;
-            $this->factionName = $faction->name;
-            $this->factionDescription = $faction->description ?? '';
-            $this->factionAlignment = $faction->alignment ?? '';
-            $this->factionGoals = $faction->goals ?? '';
-            $this->factionResources = $faction->resources ?? '';
+            $this->form->setFaction($faction);
         }
     }
 
     public function save(): void
     {
-        $this->validate([
-            'factionName' => ['required', 'string', 'max:255'],
-            'factionDescription' => ['nullable', 'string', 'max:5000'],
-            'factionAlignment' => ['nullable', 'string', 'max:100'],
-            'factionGoals' => ['nullable', 'string', 'max:5000'],
-            'factionResources' => ['nullable', 'string', 'max:5000'],
-        ]);
-
-        $data = [
-            'name' => $this->factionName,
-            'description' => $this->factionDescription ?: null,
-            'alignment' => $this->factionAlignment ?: null,
-            'goals' => $this->factionGoals ?: null,
-            'resources' => $this->factionResources ?: null,
-        ];
-
         if ($this->editingFactionId) {
-            $this->campaign->factions()->findOrFail($this->editingFactionId)->update($data);
+            $faction = $this->campaign->factions()->findOrFail($this->editingFactionId);
+            $this->form->update($faction);
             \Flux::toast(__('Faction updated.'));
         } else {
-            $faction = $this->campaign->factions()->create($data);
+            $faction = $this->form->store($this->campaign);
             \Flux::toast(__('Faction created.'));
 
             if ($this->pendingImageGeneration) {
@@ -142,12 +116,8 @@ new class extends Component
     {
         $this->showForm = false;
         $this->editingFactionId = null;
-        $this->factionName = '';
-        $this->factionDescription = '';
-        $this->factionAlignment = '';
-        $this->factionGoals = '';
-        $this->factionResources = '';
         $this->pendingImageGeneration = false;
+        $this->form->resetForm();
         $this->resetValidation();
     }
 
@@ -177,11 +147,11 @@ new class extends Component
 
             $this->resetForm();
             $this->showForm = true;
-            $this->factionName = $response['name'] ?? '';
-            $this->factionDescription = $response['description'] ?? '';
-            $this->factionAlignment = $response['alignment'] ?? '';
-            $this->factionGoals = $response['goals'] ?? '';
-            $this->factionResources = $response['resources'] ?? '';
+            $this->form->name = $response['name'] ?? '';
+            $this->form->description = $response['description'] ?? '';
+            $this->form->alignment = $response['alignment'] ?? '';
+            $this->form->goals = $response['goals'] ?? '';
+            $this->form->resources = $response['resources'] ?? '';
 
             $this->pendingImageGeneration = $this->generateImageOnCreate;
 

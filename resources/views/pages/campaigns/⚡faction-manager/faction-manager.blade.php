@@ -29,12 +29,12 @@
                 {{ $editingFactionId ? __('Edit Faction') : __('New Faction') }}
             </flux:heading>
             <div class="flex flex-col gap-3">
-                <flux:input wire:model="factionName" label="{{ __('Name') }}" placeholder="{{ __('Faction name...') }}" required />
-                <flux:textarea wire:model="factionDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this faction...') }}" rows="3" />
+                <flux:input wire:model="form.name" label="{{ __('Name') }}" placeholder="{{ __('Faction name...') }}" required />
+                <flux:textarea wire:model="form.description" label="{{ __('Description') }}" placeholder="{{ __('Describe this faction...') }}" rows="3" />
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <flux:input wire:model="factionAlignment" label="{{ __('Alignment') }}" placeholder="{{ __('e.g., Lawful Good') }}" />
-                    <flux:input wire:model="factionGoals" label="{{ __('Goals') }}" placeholder="{{ __('What do they want?') }}" />
-                    <flux:input wire:model="factionResources" label="{{ __('Resources') }}" placeholder="{{ __('What do they have?') }}" />
+                    <flux:input wire:model="form.alignment" label="{{ __('Alignment') }}" placeholder="{{ __('e.g., Lawful Good') }}" />
+                    <flux:input wire:model="form.goals" label="{{ __('Goals') }}" placeholder="{{ __('What do they want?') }}" />
+                    <flux:input wire:model="form.resources" label="{{ __('Resources') }}" placeholder="{{ __('What do they have?') }}" />
                 </div>
                 <div class="flex items-center justify-end gap-2">
                     <flux:button variant="subtle" size="sm" wire:click="$set('showForm', false)">{{ __('Cancel') }}</flux:button>
