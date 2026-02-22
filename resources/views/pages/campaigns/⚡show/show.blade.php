@@ -34,7 +34,7 @@
 
     <div class="grid gap-4 md:grid-cols-2">
         {{-- Campaign Details Card --}}
-        @if ($campaign->premise || $campaign->lore || $campaign->world_rules || $campaign->special_mechanics)
+        @if ($campaign->premise || $campaign->lore || $campaign->worldRules()->exists() || $campaign->specialMechanics()->exists())
             <flux:card class="dark:border-accent/50! dark:hover:border-accent group border transition-colors hover:bg-zinc-100/50 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50">
                 <div class="mb-4 flex items-center justify-between">
                     <flux:heading size="lg">{{ __('Campaign Stage') }}</flux:heading>
@@ -54,18 +54,10 @@
                         <livewire:campaigns.lore-card :$campaign />
                     </flux:tab.panel>
                     <flux:tab.panel name="world-rules">
-                        @if ($campaign->world_rules)
-                            <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->world_rules }}</flux:text>
-                        @else
-                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No world rules provided.') }}</flux:text>
-                        @endif
+                        <livewire:campaigns.world-rules-card :$campaign />
                     </flux:tab.panel>
                     <flux:tab.panel name="special-mechanics">
-                        @if ($campaign->special_mechanics)
-                            <flux:text class="whitespace-pre-line text-zinc-600 dark:text-zinc-300">{{ $campaign->special_mechanics }}</flux:text>
-                        @else
-                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No special mechanics provided.') }}</flux:text>
-                        @endif
+                        <livewire:campaigns.special-mechanics-card :$campaign />
                     </flux:tab.panel>
                 </flux:tab.group>
             </flux:card>

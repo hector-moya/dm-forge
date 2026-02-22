@@ -19,6 +19,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('campaigns/{campaign}', 'pages::campaigns.show')->name('campaigns.show');
     Route::livewire('campaigns/{campaign}/edit', 'pages::campaigns.edit')->name('campaigns.edit');
     Route::livewire('campaigns/{campaign}/lore', 'pages::campaigns.lore-manager')->name('campaigns.lore');
+    Route::livewire('campaigns/{campaign}/world-rules', 'pages::campaigns.world-rules-manager')->name('campaigns.world-rules');
+    Route::livewire('campaigns/{campaign}/special-mechanics', 'pages::campaigns.special-mechanics-manager')->name('campaigns.special-mechanics');
     Route::livewire('campaigns/{campaign}/timeline', 'pages::campaigns.world-timeline')->name('campaigns.timeline');
     Route::livewire('campaigns/{campaign}/factions', 'pages::campaigns.faction-manager')->name('campaigns.factions');
     Route::livewire('campaigns/{campaign}/locations', 'pages::campaigns.location-manager')->name('campaigns.locations');
