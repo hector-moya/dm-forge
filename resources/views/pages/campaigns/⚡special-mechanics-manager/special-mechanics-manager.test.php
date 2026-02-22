@@ -103,6 +103,41 @@ test('special mechanics manager search filters results', function () {
         ->assertDontSee('Sanity Points');
 });
 
+test('special mechanics manager can add pending rules during creation', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.special-mechanics-manager', ['campaign' => $campaign])
+        ->set('form.pendingRuleName', 'Gain Sanity')
+        ->set('form.pendingRuleDescription', 'Gained when performing good deeds')
+        ->call('form.addRule')
+        ->assertSet('form.pendingRuleName', '')
+        ->set('form.name', 'Sanity System')
+        ->set('form.description', 'Track player sanity over time')
+        ->call('save');
+
+    $mechanic = $campaign->specialMechanics()->where('name', 'Sanity System')->first();
+    expect($mechanic)->not->toBeNull()
+        ->and($mechanic->rules()->where('name', 'Gain Sanity')->exists())->toBeTrue();
+});
+
+test('special mechanics manager can remove a pending rule before saving', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::campaigns.special-mechanics-manager', ['campaign' => $campaign])
+        ->set('form.pendingRuleName', 'Rule A')
+        ->set('form.pendingRuleDescription', 'First rule')
+        ->call('form.addRule')
+        ->set('form.pendingRuleName', 'Rule B')
+        ->set('form.pendingRuleDescription', 'Second rule')
+        ->call('form.addRule')
+        ->call('form.removeRule', 0)
+        ->assertSet('form.specialMechanicRules', [['name' => 'Rule B', 'description' => 'Second rule', 'notes' => null]]);
+});
+
 test('special mechanics manager can manage rules for a mechanic', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->for($user)->create();

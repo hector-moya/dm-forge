@@ -18,7 +18,7 @@ new class extends Component
 
     public string $search = '';
 
-    // Rules management
+    // Rules management (for existing mechanics)
     public ?int $editingMechanicForRulesId = null;
 
     public bool $showRuleForm = false;

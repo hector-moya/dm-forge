@@ -137,6 +137,41 @@
             <flux:input wire:model="form.name" label="{{ __('Name') }}" placeholder="{{ __('Mechanic name...') }}" required />
             <flux:textarea wire:model="form.description" label="{{ __('Description') }}" placeholder="{{ __('Describe this mechanic...') }}" rows="3" />
             <flux:textarea wire:model="form.dmNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Notes for the DM...') }}" rows="3" />
+
+            @if (! $selectedMechanicId)
+                {{-- Pending Rules (create only) --}}
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('Rules') }}</flux:heading>
+
+                    @if (count($form->specialMechanicRules) > 0)
+                        <ul class="mb-3 space-y-2">
+                            @foreach ($form->specialMechanicRules as $index => $rule)
+                                <li class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-700/50" wire:key="pending-rule-{{ $index }}">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-100">{{ $rule['name'] }}</p>
+                                        @if ($rule['description'])
+                                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ $rule['description'] }}</p>
+                                        @endif
+                                    </div>
+                                    <flux:button variant="ghost" size="xs" icon="trash" wire:click="form.removeRule({{ $index }})" />
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-600 dark:bg-zinc-700/50">
+                        <div class="flex flex-col gap-2">
+                            <flux:input wire:model="form.pendingRuleName" label="{{ __('Rule Name') }}" placeholder="{{ __('Rule name...') }}" />
+                            <flux:textarea wire:model="form.pendingRuleDescription" label="{{ __('Description') }}" placeholder="{{ __('Describe this rule...') }}" rows="2" />
+                            <flux:textarea wire:model="form.pendingRuleNotes" label="{{ __('Notes') }}" placeholder="{{ __('Additional notes...') }}" rows="2" />
+                            <div class="flex justify-end">
+                                <flux:button variant="subtle" size="sm" icon="plus" wire:click="form.addRule">{{ __('Add Rule') }}</flux:button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="flex items-center justify-end gap-2">
                 <flux:button variant="subtle" size="sm" wire:click="resetSelectedMechanicId">{{ __('Cancel') }}</flux:button>
                 <flux:button variant="primary" size="sm" wire:click="save">

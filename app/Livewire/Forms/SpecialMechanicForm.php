@@ -18,6 +18,39 @@ class SpecialMechanicForm extends Form
     #[Validate(['nullable', 'string'])]
     public string $dmNotes = '';
 
+    // Pending rules to attach on creation
+    public array $specialMechanicRules = [];
+
+    public string $pendingRuleName = '';
+
+    public string $pendingRuleDescription = '';
+
+    public string $pendingRuleNotes = '';
+
+    public function addRule(): void
+    {
+        $this->validate([
+            'pendingRuleName' => ['required', 'string', 'max:255'],
+            'pendingRuleDescription' => ['nullable', 'string', 'max:5000'],
+            'pendingRuleNotes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->specialMechanicRules[] = [
+            'name' => $this->pendingRuleName,
+            'description' => $this->pendingRuleDescription ?: null,
+            'notes' => $this->pendingRuleNotes ?: null,
+        ];
+
+        $this->pendingRuleName = '';
+        $this->pendingRuleDescription = '';
+        $this->pendingRuleNotes = '';
+    }
+
+    public function removeRule(int $index): void
+    {
+        array_splice($this->specialMechanicRules, $index, 1);
+    }
+
     public function setSpecialMechanic(SpecialMechanic $specialMechanic): void
     {
         $this->name = $specialMechanic->name ?? '';
@@ -25,7 +58,7 @@ class SpecialMechanicForm extends Form
         $this->dmNotes = $specialMechanic->dm_notes ?? '';
     }
 
-    public function store(Campaign $campaign): void
+    public function store(Campaign $campaign): SpecialMechanic
     {
         $this->validate();
 
@@ -38,7 +71,13 @@ class SpecialMechanicForm extends Form
 
         $campaign->specialMechanics()->attach($specialMechanic->id);
 
+        foreach ($this->specialMechanicRules as $ruleData) {
+            $specialMechanic->rules()->create($ruleData);
+        }
+
         $this->resetForm();
+
+        return $specialMechanic;
     }
 
     public function update(SpecialMechanic $specialMechanic): void
@@ -61,6 +100,6 @@ class SpecialMechanicForm extends Form
 
     public function resetForm(): void
     {
-        $this->reset(['name', 'description', 'dmNotes']);
+        $this->reset(['name', 'description', 'dmNotes', 'specialMechanicRules', 'pendingRuleName', 'pendingRuleDescription', 'pendingRuleNotes']);
     }
 }
