@@ -65,9 +65,9 @@ new class extends Component
 
         if ($this->selectedWorldRuleId) {
             $this->form->resetForm();
+            $this->selectedWorldRuleId = null;
         }
 
-        $this->selectedWorldRuleId = null;
     }
 
     public function openViewWorldRuleModal(int $id): void

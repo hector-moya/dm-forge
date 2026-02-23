@@ -71,7 +71,7 @@
     @endif
 
     {{-- Create / Edit Modal --}}
-    <flux:modal name="create-world-rule" class="md:w-xl space-y-6">
+    <flux:modal name="create-world-rule" class="md:w-xl space-y-6" @close="resetSelectedWorldRuleId">
         <flux:heading size="xl" class="mb-3">
             {{ $selectedWorldRuleId ? __('Edit World Rule') : __('New World Rule') }}
         </flux:heading>
