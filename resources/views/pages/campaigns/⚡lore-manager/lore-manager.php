@@ -68,4 +68,9 @@ new class extends Component
         $this->modal("view-lore-{$id}")->show();
     }
 
+    public function render(): mixed
+    {
+        return $this->view()->title(__('Lore Manager'));
+    }
+
 };

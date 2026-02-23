@@ -21,9 +21,8 @@ new class extends Component
         ]);
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): mixed
     {
-        return view('pages.campaigns.⚡show.show')
-            ->title($this->campaign->name);
+        return $this->view()->title($this->campaign->name);
     }
 };

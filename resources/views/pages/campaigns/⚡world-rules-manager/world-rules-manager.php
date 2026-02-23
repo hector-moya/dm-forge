@@ -46,19 +46,22 @@ new class extends Component
         if ($this->selectedWorldRuleId) {
             $this->form->update(WorldRule::findOrFail($this->selectedWorldRuleId));
         } else {
+            dump('storing new world rule');
             $this->form->store($this->campaign);
         }
 
-        $this->resetSelectedWorldRuleId();
+        // $this->resetSelectedWorldRuleId();
     }
 
     public function resetSelectedWorldRuleId(): void
     {
         $this->modal('create-world-rule')->close();
 
-        $this->selectedWorldRuleId = null;
+        if ($this->selectedWorldRuleId) {
+            $this->form->resetForm();
+        }
 
-        $this->form->resetForm();
+        $this->selectedWorldRuleId = null;
     }
 
     public function openViewWorldRuleModal(int $id): void
@@ -67,9 +70,8 @@ new class extends Component
         $this->modal("view-world-rule-{$id}")->show();
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): mixed
     {
-        return view('pages.campaigns.⚡world-rules-manager.world-rules-manager')
-            ->title(__('World Rules').' — '.$this->campaign->name);
+        return $this->view()->title(__('World Rules'));
     }
 };
