@@ -46,11 +46,17 @@ new class extends Component
         if ($this->selectedWorldRuleId) {
             $this->form->update(WorldRule::findOrFail($this->selectedWorldRuleId));
         } else {
-            dump('storing new world rule');
             $this->form->store($this->campaign);
         }
 
-        // $this->resetSelectedWorldRuleId();
+        $this->resetSelectedWorldRuleId();
+    }
+
+    public function openCreateWorldRuleModal(): void
+    {
+        $this->selectedWorldRuleId = null;
+        $this->form->resetForm();
+        $this->modal('create-world-rule')->show();
     }
 
     public function resetSelectedWorldRuleId(): void

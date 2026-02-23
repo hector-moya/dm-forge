@@ -13,11 +13,9 @@
             <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search special mechanics...') }}" icon="magnifying-glass" />
         </div>
         <div class="flex items-center gap-2">
-            <flux:modal.trigger name="create-mechanic">
-                <flux:button variant="primary" icon="plus">
-                    {{ __('Add Mechanic') }}
-                </flux:button>
-            </flux:modal.trigger>
+            <flux:button variant="primary" icon="plus" wire:click="openCreateMechanicModal">
+                {{ __('Add Mechanic') }}
+            </flux:button>
         </div>
     </div>
 
@@ -129,7 +127,7 @@
     @endif
 
     {{-- Create / Edit Modal --}}
-    <flux:modal name="create-mechanic" class="md:w-xl space-y-6" @close="resetSelectedMechanicId">
+    <flux:modal name="create-mechanic" class="md:w-xl space-y-6">
         <flux:heading size="xl" class="mb-3">
             {{ $selectedMechanicId ? __('Edit Special Mechanic') : __('New Special Mechanic') }}
         </flux:heading>

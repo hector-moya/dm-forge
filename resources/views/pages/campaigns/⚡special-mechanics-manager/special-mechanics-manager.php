@@ -80,6 +80,13 @@ new class extends Component
         $this->resetSelectedMechanicId();
     }
 
+    public function openCreateMechanicModal(): void
+    {
+        $this->selectedMechanicId = null;
+        $this->form->resetForm();
+        $this->modal('create-mechanic')->show();
+    }
+
     public function resetSelectedMechanicId(): void
     {
         $this->modal('create-mechanic')->close();

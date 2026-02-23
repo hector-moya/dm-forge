@@ -33,7 +33,6 @@ new class extends Component
 
     public function setLoreId(?int $id): void
     {
-        dump($id);
         $this->selectedLoreId = $id;
 
         if ($this->selectedLoreId) {
@@ -51,6 +50,13 @@ new class extends Component
         }
 
         $this->resetSelectedLoreId();
+    }
+
+    public function openCreateLoreModal(): void
+    {
+        $this->selectedLoreId = null;
+        $this->form->resetForm();
+        $this->modal('create-lore')->show();
     }
 
     public function resetSelectedLoreId(): void

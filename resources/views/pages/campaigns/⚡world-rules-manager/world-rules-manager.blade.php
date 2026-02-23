@@ -13,11 +13,9 @@
             <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search world rules...') }}" icon="magnifying-glass" />
         </div>
         <div class="flex items-center gap-2">
-            <flux:modal.trigger name="create-world-rule">
-                <flux:button variant="primary" icon="plus">
-                    {{ __('Add World Rule') }}
-                </flux:button>
-            </flux:modal.trigger>
+            <flux:button variant="primary" icon="plus" wire:click="openCreateWorldRuleModal">
+                {{ __('Add World Rule') }}
+            </flux:button>
         </div>
     </div>
 
@@ -53,26 +51,9 @@
                                 <flux:modal.trigger name="view-world-rule-{{ $worldRule->id }}">
                                     <flux:button variant="subtle" size="sm" wire:click="openViewWorldRuleModal({{ $worldRule->id }})" icon="eye" title="{{ __('View') }}" />
                                 </flux:modal.trigger>
-                                <flux:modal.trigger name="update-world-rule-{{ $worldRule->id }}">
+                                <flux:modal.trigger name="create-world-rule">
                                     <flux:button variant="subtle" size="sm" wire:click="setWorldRuleId({{ $worldRule->id }})" icon="pencil" title="{{ __('Edit') }}" />
                                 </flux:modal.trigger>
-
-                                <flux:modal name="update-world-rule-{{ $worldRule->id }}" class="md:w-xl space-y-6" @close="resetSelectedWorldRuleId">
-                                    <flux:heading size="xl" class="mb-3">
-                                        {{ $selectedWorldRuleId ? __('Edit World Rule') : __('New World Rule') }}
-                                    </flux:heading>
-                                    <div class="flex flex-col gap-3">
-                                        <flux:input wire:model="form.name" label="{{ __('Name') }}" placeholder="{{ __('World rule name...') }}" required />
-                                        <flux:textarea wire:model="form.description" label="{{ __('Description') }}" placeholder="{{ __('Describe this world rule...') }}" rows="3" />
-                                        <flux:textarea wire:model="form.dmNotes" label="{{ __('DM Notes') }}" placeholder="{{ __('Notes for the DM...') }}" rows="3" />
-                                        <div class="flex items-center justify-end gap-2">
-                                            <flux:button variant="subtle" size="sm" wire:click="resetSelectedWorldRuleId">{{ __('Cancel') }}</flux:button>
-                                            <flux:button variant="primary" size="sm" wire:click="save">
-                                                {{ $selectedWorldRuleId ? __('Update World Rule') : __('Add World Rule') }}
-                                            </flux:button>
-                                        </div>
-                                    </div>
-                                </flux:modal>
                                 <flux:button variant="subtle" size="sm" wire:click="form.destroy({{ $worldRule }})" wire:confirm="{{ __('Delete this world rule?') }}" icon="trash" title="{{ __('Delete') }}" />
                             </div>
                         </flux:table.cell>

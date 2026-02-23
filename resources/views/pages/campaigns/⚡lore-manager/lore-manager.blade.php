@@ -16,11 +16,9 @@
             <flux:button variant="subtle" wire:click="openGenerateModal" icon="sparkles">
                 {{ __('Generate Lore') }}
             </flux:button>
-            <flux:modal.trigger name="create-lore">
-                <flux:button variant="primary" icon="plus">
-                    {{ __('Add Lore') }}
-                </flux:button>
-            </flux:modal.trigger>
+            <flux:button variant="primary" icon="plus" wire:click="openCreateLoreModal">
+                {{ __('Add Lore') }}
+            </flux:button>
         </div>
     </div>
 
@@ -76,7 +74,7 @@
     @endif
 
     {{-- Inline Form --}}
-    <flux:modal name="create-lore" class="md:w-xl space-y-6" @close="resetSelectedLoreId">
+    <flux:modal name="create-lore" class="md:w-xl space-y-6">
         <flux:heading size="xl" class="mb-3">
             {{ $selectedLoreId ? __('Edit Lore') : __('New Lore') }}
         </flux:heading>
