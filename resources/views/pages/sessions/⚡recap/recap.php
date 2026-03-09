@@ -27,6 +27,8 @@ new class extends Component
 
     public function generateRecap(): void
     {
+        set_time_limit(120);
+
         $this->generating = true;
         $fullText = '';
 
