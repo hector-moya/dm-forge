@@ -31,10 +31,13 @@
         </div>
     </div>
 
-    {{-- Loading indicator --}}
-    <div wire:loading wire:target="generateRecap" class="rounded-xl border border-indigo-200 bg-indigo-50 p-6 text-center dark:border-indigo-700 dark:bg-indigo-900/20">
-        <div class="mx-auto mb-3 size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
-        <flux:text class="text-indigo-600 dark:text-indigo-400">{{ __('AI is writing your session recap...') }}</flux:text>
+    {{-- Streaming preview --}}
+    <div wire:loading wire:target="generateRecap" class="rounded-xl border border-indigo-200 bg-indigo-50 p-6 dark:border-indigo-700 dark:bg-indigo-900/20">
+        <div class="mb-3 flex items-center gap-3">
+            <div class="size-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600"></div>
+            <flux:heading size="lg" class="text-indigo-600 dark:text-indigo-400">{{ __('Writing recap...') }}</flux:heading>
+        </div>
+        <div class="prose prose-zinc dark:prose-invert max-w-none whitespace-pre-wrap text-sm" wire:stream="streamedRecap"></div>
     </div>
 
     @if ($session->generated_narrative)

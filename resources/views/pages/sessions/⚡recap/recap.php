@@ -2,6 +2,7 @@
 
 use App\Ai\Agents\NarrativeWriter;
 use App\Models\GameSession;
+use Laravel\Ai\Streaming\Events\TextDelta;
 use Livewire\Component;
 
 new class extends Component
@@ -9,8 +10,6 @@ new class extends Component
     public GameSession $session;
 
     public bool $generating = false;
-
-    public string $streamedText = '';
 
     // Log editing
     public ?int $editingLogId = null;
@@ -29,28 +28,24 @@ new class extends Component
     public function generateRecap(): void
     {
         $this->generating = true;
+        $fullText = '';
 
-        $maxAttempts = 2;
+        try {
+            $writer = new NarrativeWriter($this->session->campaign, $this->session);
+            $stream = $writer->stream(
+                "Generate a complete session recap for session #{$this->session->session_number}: {$this->session->title}"
+            );
 
-        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-            try {
-                $writer = new NarrativeWriter($this->session->campaign, $this->session);
-                $response = $writer->prompt(
-                    "Generate a complete session recap for session #{$this->session->session_number}: {$this->session->title}"
-                );
-
-                $this->parseAndSaveRecap($response->text);
-
-                break;
-            } catch (\Throwable $e) {
-                if ($attempt === $maxAttempts) {
-                    $this->session->update([
-                        'generated_narrative' => null,
-                    ]);
-
-                    $this->dispatch('recap-error', message: $e->getMessage());
+            foreach ($stream as $event) {
+                if ($event instanceof TextDelta) {
+                    $fullText .= $event->delta;
+                    $this->stream(to: 'streamedRecap', content: e($event->delta));
                 }
             }
+
+            $this->parseAndSaveRecap($fullText);
+        } catch (\Throwable $e) {
+            $this->dispatch('recap-error', message: $e->getMessage());
         }
 
         $this->session->refresh();

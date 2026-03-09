@@ -12,7 +12,7 @@ use Laravel\Ai\Promptable;
 use Stringable;
 
 #[Timeout(120)]
-#[MaxTokens(16384)]
+#[MaxTokens(4096)]
 class NarrativeWriter implements Agent
 {
     use HasCampaignContext, Promptable;
@@ -39,25 +39,23 @@ class NarrativeWriter implements Agent
         Using ALL of the context above — every scene, encounter, monster, NPC, character, and log entry — write a recap in the following structured format:
 
         ## Narrative Recap
-        Write an extensive, richly detailed narrative of at least 5,000-10,000 characters (roughly 1,000-2,000 words). Retell the session's events in past tense, third person, weaving together the scenes, encounters, decisions, and character moments into a cohesive epic tale. Describe the settings, the tension of combat, the weight of decisions, and the bonds between characters. Every scene and major event from the logs should be represented.
+        Write a vivid narrative of approximately 3,000-5,000 characters (500-800 words). Retell the session's events in past tense, third person, weaving together the scenes, encounters, decisions, and character moments into a cohesive tale. Describe the settings, the tension of combat, the weight of decisions, and the bonds between characters.
 
         ## Key Events
-        - Detailed bullet point list of the most important events that occurred
-        - Cover every scene, encounter, decision, and discovery
+        - Bullet point list of the most important events that occurred
+        - Focus on decisions made, battles fought, and discoveries
         - Include who was involved and why it mattered
-        - 6-12 bullet points
+        - 4-8 bullet points
 
         ## Plot Hooks
         - Unresolved threads and future plot hooks revealed during this session
         - Questions left unanswered, mysteries deepened
-        - Foreshadowing and potential consequences
-        - 3-6 bullet points
+        - 2-4 bullet points
 
         ## World State Changes
         - How the world has changed as a result of this session
         - NPC relationship changes, territory control, faction shifts
-        - New alliances, broken bonds, or power shifts
-        - 2-5 bullet points
+        - 1-3 bullet points
 
         Write with Tolkien's grandeur and depth. Every detail from the session context matters.
         PROMPT;
