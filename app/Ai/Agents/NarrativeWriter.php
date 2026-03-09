@@ -7,11 +7,15 @@ use App\Ai\Tools\GetSessionLogs;
 use App\Ai\Tools\LookupNpc;
 use App\Models\Campaign;
 use App\Models\GameSession;
+use Laravel\Ai\Attributes\MaxSteps;
+use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
 
+#[Timeout(120)]
+#[MaxSteps(10)]
 class NarrativeWriter implements Agent, HasTools
 {
     use Promptable;

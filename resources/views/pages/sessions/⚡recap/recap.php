@@ -23,18 +23,27 @@ new class extends Component
     {
         $this->generating = true;
 
-        try {
-            $writer = new NarrativeWriter($this->session->campaign, $this->session);
-            $response = $writer->prompt(
-                "Generate a complete session recap for session #{$this->session->session_number}: {$this->session->title}"
-            );
+        $maxAttempts = 2;
 
-            $fullText = $response->text;
-            $this->parseAndSaveRecap($fullText);
-        } catch (\Throwable $e) {
-            $this->session->update([
-                'generated_narrative' => 'Recap generation failed: '.$e->getMessage(),
-            ]);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $writer = new NarrativeWriter($this->session->campaign, $this->session);
+                $response = $writer->prompt(
+                    "Generate a complete session recap for session #{$this->session->session_number}: {$this->session->title}"
+                );
+
+                $this->parseAndSaveRecap($response->text);
+
+                break;
+            } catch (\Throwable $e) {
+                if ($attempt === $maxAttempts) {
+                    $this->session->update([
+                        'generated_narrative' => null,
+                    ]);
+
+                    $this->dispatch('recap-error', message: $e->getMessage());
+                }
+            }
         }
 
         $this->session->refresh();

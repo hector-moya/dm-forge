@@ -1,4 +1,5 @@
-<div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6"
+     x-on:recap-error.window="Flux.toast({ text: 'Recap generation failed: ' + $event.detail.message, variant: 'danger' })">
     {{-- Header --}}
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-4">
