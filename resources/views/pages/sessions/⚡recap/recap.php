@@ -12,6 +12,13 @@ new class extends Component
 
     public string $streamedText = '';
 
+    // Log editing
+    public ?int $editingLogId = null;
+
+    public string $editLogEntry = '';
+
+    public string $editLogType = 'narrative';
+
     public function mount(GameSession $session): void
     {
         abort_unless($session->campaign->user_id === auth()->id(), 403);
@@ -87,6 +94,46 @@ new class extends Component
         }
 
         $this->session->update(array_map('trim', $sections));
+    }
+
+    public function startEditLog(int $logId): void
+    {
+        $log = $this->session->sessionLogs()->findOrFail($logId);
+        $this->editingLogId = $log->id;
+        $this->editLogEntry = $log->entry;
+        $this->editLogType = $log->type;
+    }
+
+    public function cancelEditLog(): void
+    {
+        $this->editingLogId = null;
+        $this->editLogEntry = '';
+        $this->editLogType = 'narrative';
+    }
+
+    public function saveLog(): void
+    {
+        $this->validate([
+            'editLogEntry' => ['required', 'string', 'max:2000'],
+            'editLogType' => ['required', 'in:narrative,decision,combat,note'],
+        ]);
+
+        $log = $this->session->sessionLogs()->findOrFail($this->editingLogId);
+        $log->update([
+            'entry' => $this->editLogEntry,
+            'type' => $this->editLogType,
+        ]);
+
+        $this->cancelEditLog();
+    }
+
+    public function deleteLog(int $logId): void
+    {
+        $this->session->sessionLogs()->findOrFail($logId)->delete();
+
+        if ($this->editingLogId === $logId) {
+            $this->cancelEditLog();
+        }
     }
 
     public function clearRecap(): void

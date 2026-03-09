@@ -83,19 +83,42 @@
             <flux:heading size="lg" class="mb-4">{{ __('Session Log') }}</flux:heading>
             <div class="max-h-96 space-y-1 overflow-y-auto">
                 @foreach ($logs as $log)
-                    <div class="flex items-start gap-3 rounded px-2 py-1 text-sm">
-                        <span class="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{{ $log->logged_at?->format('H:i:s') }}</span>
-                        @php
-                            $logColor = match($log->type) {
-                                'combat' => 'text-red-500',
-                                'decision' => 'text-amber-500',
-                                'narrative' => 'text-blue-500',
-                                default => 'text-zinc-400',
-                            };
-                        @endphp
-                        <span class="w-16 shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
-                        <span class="text-zinc-700 dark:text-zinc-300">{{ $log->entry }}</span>
-                    </div>
+                    @if ($editingLogId === $log->id)
+                        <div class="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-600 dark:bg-zinc-700/50">
+                            <div class="flex items-center gap-2">
+                                <flux:select wire:model="editLogType" class="w-32" size="sm">
+                                    <flux:select.option value="narrative">{{ __('Narrative') }}</flux:select.option>
+                                    <flux:select.option value="combat">{{ __('Combat') }}</flux:select.option>
+                                    <flux:select.option value="decision">{{ __('Decision') }}</flux:select.option>
+                                    <flux:select.option value="note">{{ __('Note') }}</flux:select.option>
+                                </flux:select>
+                                <span class="text-xs text-zinc-400">{{ $log->logged_at?->format('H:i:s') }}</span>
+                            </div>
+                            <flux:textarea wire:model="editLogEntry" rows="2" size="sm" />
+                            <div class="flex items-center gap-2">
+                                <flux:button variant="primary" size="sm" wire:click="saveLog">{{ __('Save') }}</flux:button>
+                                <flux:button variant="subtle" size="sm" wire:click="cancelEditLog">{{ __('Cancel') }}</flux:button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="group flex items-start gap-3 rounded px-2 py-1 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
+                            <span class="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{{ $log->logged_at?->format('H:i:s') }}</span>
+                            @php
+                                $logColor = match($log->type) {
+                                    'combat' => 'text-red-500',
+                                    'decision' => 'text-amber-500',
+                                    'narrative' => 'text-blue-500',
+                                    default => 'text-zinc-400',
+                                };
+                            @endphp
+                            <span class="w-16 shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
+                            <span class="flex-1 text-zinc-700 dark:text-zinc-300">{{ $log->entry }}</span>
+                            <div class="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                                <flux:button variant="subtle" size="sm" icon="pencil" wire:click="startEditLog({{ $log->id }})" />
+                                <flux:button variant="subtle" size="sm" icon="trash" wire:click="deleteLog({{ $log->id }})" wire:confirm="{{ __('Delete this log entry?') }}" />
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>
