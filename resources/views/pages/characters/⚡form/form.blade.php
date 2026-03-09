@@ -9,12 +9,14 @@
     </div>
 
     <form wire:submit="save" class="flex flex-col gap-6">
-        <flux:tabs variant="segmented" class="w-full">
-            <flux:tab name="info">{{ __('Character Info') }}</flux:tab>
-            <flux:tab name="combat">{{ __('Combat') }}</flux:tab>
-            <flux:tab name="abilities">{{ __('Abilities & Skills') }}</flux:tab>
-            <flux:tab name="proficiencies">{{ __('Equipment & Features') }}</flux:tab>
-            <flux:tab name="spells">{{ __('Spells') }}</flux:tab>
+        <flux:tab.group>
+            <flux:tabs variant="segmented" class="w-full">
+                <flux:tab name="info">{{ __('Character Info') }}</flux:tab>
+                <flux:tab name="combat">{{ __('Combat') }}</flux:tab>
+                <flux:tab name="abilities">{{ __('Abilities & Skills') }}</flux:tab>
+                <flux:tab name="proficiencies">{{ __('Equipment & Features') }}</flux:tab>
+                <flux:tab name="spells">{{ __('Spells') }}</flux:tab>
+            </flux:tabs>
 
             {{-- Tab 1: Character Info --}}
             <flux:tab.panel name="info">
@@ -125,7 +127,7 @@
                     <flux:text class="text-xs text-zinc-500">{{ __('Format: "Level: Spell 1, Spell 2" one level per line') }}</flux:text>
                 </div>
             </flux:tab.panel>
-        </flux:tabs>
+        </flux:tab.group>
 
         <div class="flex items-center justify-between">
             @if ($character?->exists)
