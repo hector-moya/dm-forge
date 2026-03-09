@@ -5,12 +5,14 @@ namespace App\Ai\Agents;
 use App\Ai\Concerns\HasCampaignContext;
 use App\Models\Campaign;
 use App\Models\GameSession;
+use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Promptable;
 use Stringable;
 
 #[Timeout(120)]
+#[MaxTokens(16384)]
 class NarrativeWriter implements Agent
 {
     use HasCampaignContext, Promptable;
@@ -26,7 +28,7 @@ class NarrativeWriter implements Agent
         $sessionContext = $this->buildSessionContext();
 
         return <<<PROMPT
-        You are a skilled fantasy narrative writer creating a session recap for a D&D campaign.
+        You are a masterful fantasy narrative writer in the style of J.R.R. Tolkien, creating an epic session recap for a D&D campaign. Write with rich, evocative prose, vivid descriptions of landscapes and atmospheres, a sense of mythic grandeur, and attention to the inner thoughts and motivations of characters.
 
         {$campaignContext}
 
@@ -34,27 +36,30 @@ class NarrativeWriter implements Agent
 
         {$sessionContext}
 
-        Using ALL of the context above, write a recap in the following structured format:
+        Using ALL of the context above — every scene, encounter, monster, NPC, character, and log entry — write a recap in the following structured format:
 
         ## Narrative Recap
-        A 2-4 paragraph narrative retelling of the session's events in an engaging, literary style matching the campaign's tone. Write in past tense, third person. Incorporate character names, scene details, and key decisions from the logs.
+        Write an extensive, richly detailed narrative of at least 5,000-10,000 characters (roughly 1,000-2,000 words). Retell the session's events in past tense, third person, weaving together the scenes, encounters, decisions, and character moments into a cohesive epic tale. Describe the settings, the tension of combat, the weight of decisions, and the bonds between characters. Every scene and major event from the logs should be represented.
 
         ## Key Events
-        - Bullet point list of the most important events that occurred
-        - Focus on decisions made, battles fought, and discoveries
-        - 4-8 bullet points
+        - Detailed bullet point list of the most important events that occurred
+        - Cover every scene, encounter, decision, and discovery
+        - Include who was involved and why it mattered
+        - 6-12 bullet points
 
         ## Plot Hooks
         - Unresolved threads and future plot hooks revealed during this session
-        - Questions left unanswered
-        - 2-4 bullet points
+        - Questions left unanswered, mysteries deepened
+        - Foreshadowing and potential consequences
+        - 3-6 bullet points
 
         ## World State Changes
         - How the world has changed as a result of this session
         - NPC relationship changes, territory control, faction shifts
-        - 1-3 bullet points
+        - New alliances, broken bonds, or power shifts
+        - 2-5 bullet points
 
-        Write vividly but concisely. Match the campaign's tone and theme.
+        Write with Tolkien's grandeur and depth. Every detail from the session context matters.
         PROMPT;
     }
 
@@ -62,7 +67,11 @@ class NarrativeWriter implements Agent
     {
         $context = '';
 
-        $scenes = $this->session->scenes()->orderBy('sort_order')->get();
+        $scenes = $this->session->scenes()
+            ->with(['encounters.monsters', 'encounters.npcs'])
+            ->orderBy('sort_order')
+            ->get();
+
         if ($scenes->isNotEmpty()) {
             $context .= "## Session Scenes\n";
             foreach ($scenes as $i => $scene) {
@@ -71,10 +80,42 @@ class NarrativeWriter implements Agent
                 if ($scene->description) {
                     $context .= " — {$scene->description}";
                 }
-                if ($scene->notes) {
-                    $context .= "\n   DM Notes: {$scene->notes}";
-                }
                 $context .= "\n";
+                if ($scene->notes) {
+                    $context .= "   DM Notes: {$scene->notes}\n";
+                }
+
+                foreach ($scene->encounters as $encounter) {
+                    $context .= "   Encounter: {$encounter->name}";
+                    if ($encounter->difficulty) {
+                        $context .= " [{$encounter->difficulty}]";
+                    }
+                    if ($encounter->environment) {
+                        $context .= " — Environment: {$encounter->environment}";
+                    }
+                    $context .= "\n";
+                    if ($encounter->description) {
+                        $context .= "     {$encounter->description}\n";
+                    }
+
+                    foreach ($encounter->monsters as $monster) {
+                        $context .= "     Monster: {$monster->name}";
+                        if ($monster->challenge_rating) {
+                            $context .= " (CR {$monster->challenge_rating})";
+                        }
+                        $context .= " — HP {$monster->hp_current}/{$monster->hp_max}, AC {$monster->armor_class}";
+                        $context .= "\n";
+                    }
+
+                    foreach ($encounter->npcs as $encounterNpc) {
+                        $context .= "     NPC: {$encounterNpc->name}";
+                        $context .= " — HP {$encounterNpc->hp_current}/{$encounterNpc->hp_max}, AC {$encounterNpc->armor_class}";
+                        if ($encounterNpc->notes) {
+                            $context .= " — {$encounterNpc->notes}";
+                        }
+                        $context .= "\n";
+                    }
+                }
             }
             $context .= "\n";
         }
@@ -103,6 +144,12 @@ class NarrativeWriter implements Agent
                 if ($character->alignment_label) {
                     $line .= ", {$character->alignment_label}";
                 }
+                if ($character->race) {
+                    $line .= ", {$character->race}";
+                }
+                if ($character->background) {
+                    $line .= " ({$character->background})";
+                }
                 $context .= "{$line}\n";
             }
             $context .= "\n";
@@ -119,8 +166,14 @@ class NarrativeWriter implements Agent
                 if ($npc->faction) {
                     $line .= " — Faction: {$npc->faction->name}";
                 }
+                if ($npc->location) {
+                    $line .= " — Location: {$npc->location->name}";
+                }
                 if ($npc->personality) {
                     $line .= " — {$npc->personality}";
+                }
+                if ($npc->motivation) {
+                    $line .= " — Motivation: {$npc->motivation}";
                 }
                 $context .= "{$line}\n";
             }
