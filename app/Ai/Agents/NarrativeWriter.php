@@ -2,23 +2,18 @@
 
 namespace App\Ai\Agents;
 
-use App\Ai\Tools\GetCharacterSheet;
-use App\Ai\Tools\GetSessionLogs;
-use App\Ai\Tools\LookupNpc;
+use App\Ai\Concerns\HasCampaignContext;
 use App\Models\Campaign;
 use App\Models\GameSession;
-use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
-use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 use Stringable;
 
 #[Timeout(120)]
-#[MaxSteps(10)]
-class NarrativeWriter implements Agent, HasTools
+class NarrativeWriter implements Agent
 {
-    use Promptable;
+    use HasCampaignContext, Promptable;
 
     public function __construct(
         protected Campaign $campaign,
@@ -27,49 +22,111 @@ class NarrativeWriter implements Agent, HasTools
 
     public function instructions(): Stringable|string
     {
-        $context = "Campaign: {$this->campaign->name}";
-        if ($this->campaign->theme_tone) {
-            $context .= "\nTone: {$this->campaign->theme_tone}";
-        }
-        $context .= "\nSession: #{$this->session->session_number} — {$this->session->title}";
+        $campaignContext = $this->buildCampaignContext();
+        $sessionContext = $this->buildSessionContext();
 
         return <<<PROMPT
-You are a skilled fantasy narrative writer creating a session recap for a D&D campaign.
+        You are a skilled fantasy narrative writer creating a session recap for a D&D campaign.
 
-{$context}
+        {$campaignContext}
 
-Use the GetSessionLogs tool to retrieve what happened during the session. Use LookupNpc and GetCharacterSheet tools to enrich the narrative with character details.
+        Session: #{$this->session->session_number} — {$this->session->title}
 
-Write your recap in the following structured format:
+        {$sessionContext}
 
-## Narrative Recap
-A 2-4 paragraph narrative retelling of the session's events in an engaging, literary style matching the campaign's tone. Write in past tense, third person.
+        Using ALL of the context above, write a recap in the following structured format:
 
-## Key Events
-- Bullet point list of the most important events that occurred
-- Focus on decisions made, battles fought, and discoveries
-- 4-8 bullet points
+        ## Narrative Recap
+        A 2-4 paragraph narrative retelling of the session's events in an engaging, literary style matching the campaign's tone. Write in past tense, third person. Incorporate character names, scene details, and key decisions from the logs.
 
-## Plot Hooks
-- Unresolved threads and future plot hooks revealed during this session
-- Questions left unanswered
-- 2-4 bullet points
+        ## Key Events
+        - Bullet point list of the most important events that occurred
+        - Focus on decisions made, battles fought, and discoveries
+        - 4-8 bullet points
 
-## World State Changes
-- How the world has changed as a result of this session
-- NPC relationship changes, territory control, faction shifts
-- 1-3 bullet points
+        ## Plot Hooks
+        - Unresolved threads and future plot hooks revealed during this session
+        - Questions left unanswered
+        - 2-4 bullet points
 
-Write vividly but concisely. Match the campaign's tone and theme.
-PROMPT;
+        ## World State Changes
+        - How the world has changed as a result of this session
+        - NPC relationship changes, territory control, faction shifts
+        - 1-3 bullet points
+
+        Write vividly but concisely. Match the campaign's tone and theme.
+        PROMPT;
     }
 
-    public function tools(): iterable
+    protected function buildSessionContext(): string
     {
-        return [
-            new GetSessionLogs($this->session),
-            new LookupNpc($this->campaign),
-            new GetCharacterSheet($this->campaign),
-        ];
+        $context = '';
+
+        $scenes = $this->session->scenes()->orderBy('sort_order')->get();
+        if ($scenes->isNotEmpty()) {
+            $context .= "## Session Scenes\n";
+            foreach ($scenes as $i => $scene) {
+                $num = $i + 1;
+                $context .= "{$num}. {$scene->title}";
+                if ($scene->description) {
+                    $context .= " — {$scene->description}";
+                }
+                if ($scene->notes) {
+                    $context .= "\n   DM Notes: {$scene->notes}";
+                }
+                $context .= "\n";
+            }
+            $context .= "\n";
+        }
+
+        $logs = $this->session->sessionLogs()->orderBy('logged_at')->get();
+        if ($logs->isNotEmpty()) {
+            $context .= "## Session Logs (chronological)\n";
+            foreach ($logs as $log) {
+                $time = $log->logged_at?->format('H:i:s') ?? 'N/A';
+                $type = strtoupper($log->type);
+                $context .= "[{$time}] [{$type}] {$log->entry}\n";
+            }
+            $context .= "\n";
+        }
+
+        $characters = $this->campaign->characters()->get();
+        if ($characters->isNotEmpty()) {
+            $context .= "## Party Characters\n";
+            foreach ($characters as $character) {
+                $line = "- {$character->name}";
+                if ($character->player_name) {
+                    $line .= " (Player: {$character->player_name})";
+                }
+                $line .= ' — '.($character->class ?? 'Unknown').' Lv'.$character->level;
+                $line .= ", HP {$character->hp_current}/{$character->hp_max}, AC {$character->armor_class}";
+                if ($character->alignment_label) {
+                    $line .= ", {$character->alignment_label}";
+                }
+                $context .= "{$line}\n";
+            }
+            $context .= "\n";
+        }
+
+        $npcs = $this->campaign->npcs()->with(['faction', 'location'])->get();
+        if ($npcs->isNotEmpty()) {
+            $context .= "## Campaign NPCs\n";
+            foreach ($npcs as $npc) {
+                $line = "- {$npc->name}";
+                if ($npc->role) {
+                    $line .= " ({$npc->role})";
+                }
+                if ($npc->faction) {
+                    $line .= " — Faction: {$npc->faction->name}";
+                }
+                if ($npc->personality) {
+                    $line .= " — {$npc->personality}";
+                }
+                $context .= "{$line}\n";
+            }
+            $context .= "\n";
+        }
+
+        return $context;
     }
 }
