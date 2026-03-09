@@ -450,7 +450,7 @@
                     <flux:button variant="primary" size="sm" wire:click="openDecisionModal" icon="scale">
                         {{ __('Major Decision') }}
                     </flux:button>
-                    @if ($session->status === 'completed')
+                    @if (in_array($session->status, ['running', 'completed']))
                         <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open">
                             {{ __('View Recap') }}
                         </flux:button>

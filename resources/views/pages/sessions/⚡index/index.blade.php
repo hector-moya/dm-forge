@@ -52,6 +52,15 @@
                                          onclick="event.stopPropagation(); event.preventDefault(); window.Livewire.navigate('{{ route('sessions.run', $session) }}')">
                                 {{ __('Run') }}
                             </flux:button>
+                        @elseif ($session->status === 'running')
+                            <flux:button variant="primary" size="sm" href="{{ route('sessions.run', $session) }}" wire:navigate icon="play"
+                                         onclick="event.stopPropagation(); event.preventDefault(); window.Livewire.navigate('{{ route('sessions.run', $session) }}')">
+                                {{ __('Continue') }}
+                            </flux:button>
+                            <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open"
+                                         onclick="event.stopPropagation(); event.preventDefault(); window.Livewire.navigate('{{ route('sessions.recap', $session) }}')">
+                                {{ __('Recap') }}
+                            </flux:button>
                         @elseif ($session->status === 'completed')
                             <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open">
                                 {{ __('Recap') }}
