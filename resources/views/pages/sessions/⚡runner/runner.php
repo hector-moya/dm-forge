@@ -1,10 +1,12 @@
 <?php
 
 use App\Ai\Agents\AlignmentAdvisor;
+use App\Livewire\Forms\SceneAbilityCheckForm;
 use App\Models\Character;
 use App\Models\EncounterMonster;
 use App\Models\EncounterNpc;
 use App\Models\GameSession;
+use App\Models\SceneAbilityCheck;
 use Livewire\Component;
 
 new class extends Component
@@ -52,6 +54,13 @@ new class extends Component
     public ?array $aiSuggestion = null;
 
     public bool $loadingAiSuggestion = false;
+
+    // Ability checks
+    public SceneAbilityCheckForm $abilityCheckForm;
+
+    public bool $showAbilityCheckForm = false;
+
+    public ?int $editingCheckId = null;
 
     // Puzzle hint tracking (puzzleId => highest revealed tier)
     public array $revealedHints = [];
@@ -486,6 +495,48 @@ new class extends Component
         $puzzle->update(['is_solved' => ! $puzzle->is_solved]);
     }
 
+    // ── Ability Checks ────────────────────────────────────────────────
+
+    public function openAbilityCheckForm(?int $checkId = null): void
+    {
+        $this->abilityCheckForm->resetForm();
+        $this->editingCheckId = $checkId;
+
+        if ($checkId) {
+            $check = SceneAbilityCheck::findOrFail($checkId);
+            abort_unless($check->scene->game_session_id === $this->session->id, 403);
+            $this->abilityCheckForm->setCheck($check);
+        }
+
+        $this->showAbilityCheckForm = true;
+    }
+
+    public function saveAbilityCheck(): void
+    {
+        if ($this->editingCheckId) {
+            $check = SceneAbilityCheck::findOrFail($this->editingCheckId);
+            abort_unless($check->scene->game_session_id === $this->session->id, 403);
+            $this->abilityCheckForm->update($check);
+            \Flux::toast(__('Ability check updated.'));
+        } else {
+            $scene = $this->session->scenes()->findOrFail($this->currentSceneId);
+            $this->abilityCheckForm->store($scene);
+            \Flux::toast(__('Ability check added.'));
+        }
+
+        $this->showAbilityCheckForm = false;
+        $this->editingCheckId = null;
+        $this->abilityCheckForm->resetForm();
+    }
+
+    public function deleteAbilityCheck(int $checkId): void
+    {
+        $check = SceneAbilityCheck::findOrFail($checkId);
+        abort_unless($check->scene->game_session_id === $this->session->id, 403);
+        $this->abilityCheckForm->destroy($check);
+        \Flux::toast(__('Ability check removed.'));
+    }
+
     // ── Session End ───────────────────────────────────────────────────
 
     public function endSession(): void
@@ -501,7 +552,7 @@ new class extends Component
 
         $currentScene = $this->currentSceneId
             ? $this->session->scenes()
-                ->with(['encounters.monsters', 'encounters.npcs', 'branchOptions.consequences', 'branchOptions.destinationScene', 'puzzles', 'loot'])
+                ->with(['encounters.monsters', 'encounters.npcs', 'branchOptions.consequences', 'branchOptions.destinationScene', 'puzzles', 'loot', 'abilityChecks'])
                 ->find($this->currentSceneId)
             : null;
 
@@ -524,12 +575,15 @@ new class extends Component
 
         $characters = $this->session->campaign->characters()->get();
 
+        $sceneAbilityChecks = $currentScene?->abilityChecks ?? collect();
+
         return view('pages.sessions.⚡runner.runner', [
             'allScenes' => $allScenes,
             'currentScene' => $currentScene,
             'sceneEncounters' => $sceneEncounters,
             'sceneBranches' => $sceneBranches,
             'scenePuzzles' => $scenePuzzles,
+            'sceneAbilityChecks' => $sceneAbilityChecks,
             'logs' => $logs,
             'characters' => $characters,
         ])->title(__('Session').' #'.$this->session->session_number.' — '.$this->session->title);

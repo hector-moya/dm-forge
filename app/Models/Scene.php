@@ -66,4 +66,9 @@ class Scene extends Model
     {
         return $this->hasMany(Puzzle::class);
     }
+
+    public function abilityChecks(): HasMany
+    {
+        return $this->hasMany(SceneAbilityCheck::class)->orderBy('sort_order');
+    }
 }

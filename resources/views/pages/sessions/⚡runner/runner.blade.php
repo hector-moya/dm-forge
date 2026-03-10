@@ -19,6 +19,12 @@
             <flux:button variant="subtle" size="sm" x-on:click="dmNotesOpen = !dmNotesOpen" icon="eye">
                 {{ __('DM Notes') }}
             </flux:button>
+            <flux:modal.trigger name="ability-check-cheatsheet">
+                <flux:button variant="subtle" size="sm" icon="academic-cap">{{ __('Skills') }}</flux:button>
+            </flux:modal.trigger>
+            <flux:modal.trigger name="npc-interaction-cheatsheet">
+                <flux:button variant="subtle" size="sm" icon="users">{{ __('NPC Rules') }}</flux:button>
+            </flux:modal.trigger>
             @if ($session->status === 'running')
                 <flux:button variant="danger" size="sm" wire:click="endSession" wire:confirm="{{ __('End this session? Status will change to completed.') }}" icon="stop-circle">
                     {{ __('End Session') }}
@@ -93,6 +99,90 @@
                             <summary class="cursor-pointer text-xs font-semibold uppercase text-zinc-400">{{ __('Scene Notes (DM)') }}</summary>
                             <p class="mt-1 whitespace-pre-line text-sm text-zinc-500 dark:text-zinc-400">{{ $currentScene->notes }}</p>
                         </details>
+                    @endif
+                </div>
+
+                {{-- Scene Ability Checks --}}
+                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="mb-3 flex items-center justify-between">
+                        <flux:heading size="lg">{{ __('Ability Checks') }}</flux:heading>
+                        <flux:button variant="subtle" size="sm" wire:click="openAbilityCheckForm()" icon="plus">{{ __('Add') }}</flux:button>
+                    </div>
+
+                    {{-- Inline form --}}
+                    @if ($showAbilityCheckForm)
+                        <div class="mb-4 rounded-lg border border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-600 dark:bg-zinc-700/50">
+                            <flux:heading size="base" class="mb-3">
+                                {{ $editingCheckId ? __('Edit Check') : __('New Ability Check') }}
+                            </flux:heading>
+                            <div class="flex flex-col gap-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <flux:select wire:model="abilityCheckForm.skill" label="{{ __('Skill') }}" required>
+                                        <flux:select.option value="">{{ __('— Select skill —') }}</flux:select.option>
+                                        @foreach (\App\Enums\DndSkill::cases() as $skill)
+                                            <flux:select.option value="{{ $skill->value }}">
+                                                {{ $skill->label() }} ({{ $skill->ability() }})
+                                            </flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:input wire:model="abilityCheckForm.subject" label="{{ __('Subject (optional)') }}" placeholder="{{ __('e.g. the painting') }}" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <flux:input wire:model="abilityCheckForm.dc" type="number" min="1" max="30" label="{{ __('DC (normal success)') }}" required />
+                                    <flux:input wire:model="abilityCheckForm.dcSuper" type="number" min="1" max="30" label="{{ __('DC (super success, optional)') }}" />
+                                </div>
+                                <flux:textarea wire:model="abilityCheckForm.failureText" label="{{ __('Failure (below DC)') }}" placeholder="{{ __('What the players see/learn on failure...') }}" rows="2" required />
+                                <flux:textarea wire:model="abilityCheckForm.successText" label="{{ __('Normal success') }}" placeholder="{{ __('What the players see/learn on normal success...') }}" rows="2" required />
+                                <flux:textarea wire:model="abilityCheckForm.superSuccessText" label="{{ __('Super success (optional)') }}" placeholder="{{ __('What the players see/learn on exceptional success...') }}" rows="2" />
+                                <div class="flex items-center justify-end gap-2">
+                                    <flux:button variant="subtle" size="sm" wire:click="$set('showAbilityCheckForm', false)">{{ __('Cancel') }}</flux:button>
+                                    <flux:button variant="primary" size="sm" wire:click="saveAbilityCheck">{{ __('Save') }}</flux:button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Check cards --}}
+                    @if ($sceneAbilityChecks->isEmpty() && !$showAbilityCheckForm)
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No ability checks defined for this scene.') }}</flux:text>
+                    @else
+                        <div class="space-y-2">
+                            @foreach ($sceneAbilityChecks as $check)
+                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-600 dark:bg-zinc-700/30" wire:key="check-{{ $check->id }}">
+                                    <div class="mb-2 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <flux:badge size="sm" :color="$check->skill->abilityColor()">
+                                                {{ $check->skill->label() }}
+                                            </flux:badge>
+                                            <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $check->skill->ability() }}</span>
+                                            @if ($check->subject)
+                                                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">— {{ $check->subject }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <flux:button variant="subtle" size="sm" wire:click="openAbilityCheckForm({{ $check->id }})" icon="pencil" />
+                                            <flux:button variant="subtle" size="sm" wire:click="deleteAbilityCheck({{ $check->id }})" wire:confirm="{{ __('Remove this ability check?') }}" icon="trash" />
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex gap-2">
+                                            <span class="shrink-0 font-medium text-red-500">✗ Below DC {{ $check->dc }}:</span>
+                                            <span class="text-zinc-600 dark:text-zinc-300">{{ $check->failure_text }}</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <span class="shrink-0 font-medium text-green-600 dark:text-green-400">✓ DC {{ $check->dc }}+:</span>
+                                            <span class="text-zinc-600 dark:text-zinc-300">{{ $check->success_text }}</span>
+                                        </div>
+                                        @if ($check->dc_super && $check->super_success_text)
+                                            <div class="flex gap-2">
+                                                <span class="shrink-0 font-medium text-amber-500">✦ DC {{ $check->dc_super }}+:</span>
+                                                <span class="text-zinc-600 dark:text-zinc-300">{{ $check->super_success_text }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
 
@@ -497,6 +587,179 @@
             </div>
         </div>
     </div>
+
+    {{-- Skill & Ability Check Cheatsheet --}}
+    <flux:modal name="ability-check-cheatsheet" variant="flyout" class="w-full max-w-md">
+        <flux:heading size="lg" class="mb-1">{{ __('Skill & Ability Check Reference') }}</flux:heading>
+        <flux:text class="mb-4 text-sm text-zinc-500 dark:text-zinc-400">{{ __('All D&D 5e skills grouped by governing ability score.') }}</flux:text>
+
+        @php
+            $skillGroups = [
+                'STR' => ['color' => 'red',    'label' => 'Strength'],
+                'DEX' => ['color' => 'green',   'label' => 'Dexterity'],
+                'CON' => ['color' => 'orange',  'label' => 'Constitution'],
+                'INT' => ['color' => 'blue',    'label' => 'Intelligence'],
+                'WIS' => ['color' => 'cyan',    'label' => 'Wisdom'],
+                'CHA' => ['color' => 'purple',  'label' => 'Charisma'],
+            ];
+        @endphp
+
+        <div class="flex flex-col gap-4">
+            @foreach ($skillGroups as $abilityKey => $abilityMeta)
+                <div>
+                    <div class="mb-2 flex items-center gap-2">
+                        <flux:badge :color="$abilityMeta['color']" size="sm">{{ $abilityKey }}</flux:badge>
+                        <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{{ $abilityMeta['label'] }}</span>
+                    </div>
+                    <div class="space-y-1.5 pl-2">
+                        @foreach (\App\Enums\DndSkill::byAbility($abilityKey) as $skill)
+                            <div>
+                                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $skill->label() }}</span>
+                                <span class="ml-1 text-sm text-zinc-500 dark:text-zinc-400">— {{ $skill->description() }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </flux:modal>
+
+    {{-- NPC Interaction Rules Cheatsheet --}}
+    <flux:modal name="npc-interaction-cheatsheet" variant="flyout" class="w-full max-w-md">
+        <flux:heading size="lg" class="mb-1">{{ __('NPC Interaction Rules') }}</flux:heading>
+        <flux:text class="mb-4 text-sm text-zinc-500 dark:text-zinc-400">{{ __('What your NPC rolls in response to player actions.') }}</flux:text>
+
+        <div class="flex flex-col gap-5">
+            {{-- Social Interactions --}}
+            <div>
+                <flux:heading size="base" class="mb-2">{{ __('Social Interactions') }}</flux:heading>
+                <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-600">
+                    <table class="w-full text-sm">
+                        <thead class="bg-zinc-50 dark:bg-zinc-700/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-zinc-500">{{ __('Player rolls') }}</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-zinc-500">{{ __('NPC rolls') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="purple" size="sm">Persuasion</flux:badge>
+                                    <span class="ml-1 text-zinc-500">(CHA)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Insight (WIS) — contested, to detect ulterior motive</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="purple" size="sm">Deception</flux:badge>
+                                    <span class="ml-1 text-zinc-500">(CHA)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Insight (WIS) — contested roll to see through the lie</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="purple" size="sm">Intimidation</flux:badge>
+                                    <span class="ml-1 text-zinc-500">(CHA)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">WIS saving throw <em>or</em> Insight (WIS) contested — DM's choice</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="purple" size="sm">Performance</flux:badge>
+                                    <span class="ml-1 text-zinc-500">(CHA)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Passive Perception or Insight — NPC reacts based on result</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="cyan" size="sm">Insight</flux:badge>
+                                    <span class="ml-1 text-zinc-500">(WIS)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">No counter roll — DM decides what the NPC reveals</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Combat Interactions --}}
+            <div>
+                <flux:heading size="base" class="mb-2">{{ __('Combat Interactions') }}</flux:heading>
+                <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-600">
+                    <table class="w-full text-sm">
+                        <thead class="bg-zinc-50 dark:bg-zinc-700/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-zinc-500">{{ __('Player action') }}</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-zinc-500">{{ __('NPC counter') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="red" size="sm">Grapple</flux:badge>
+                                    <span class="ml-1 text-zinc-500">Athletics (STR)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Athletics (STR) <em>or</em> Acrobatics (DEX) — NPC's choice</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="red" size="sm">Shove</flux:badge>
+                                    <span class="ml-1 text-zinc-500">Athletics (STR)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Athletics (STR) <em>or</em> Acrobatics (DEX) — NPC's choice</td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <flux:badge color="purple" size="sm">Feint/Distract</flux:badge>
+                                    <span class="ml-1 text-zinc-500">Deception (CHA)</span>
+                                </td>
+                                <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">Insight (WIS) — contested roll</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- General Rules --}}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-900/20">
+                <flux:heading size="base" class="mb-1 text-amber-800 dark:text-amber-300">{{ __('General Rule') }}</flux:heading>
+                <flux:text class="text-sm text-amber-700 dark:text-amber-400">
+                    {{ __('Contested rolls: both sides roll d20 + modifier. Higher total wins. On a tie, the action being resisted fails (tie goes to the defender).') }}
+                </flux:text>
+            </div>
+
+            {{-- Common DCs --}}
+            <div>
+                <flux:heading size="base" class="mb-2">{{ __('Common DCs') }}</flux:heading>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Very Easy') }}</span>
+                        <flux:badge color="zinc" size="sm">5</flux:badge>
+                    </div>
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Easy') }}</span>
+                        <flux:badge color="green" size="sm">10</flux:badge>
+                    </div>
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Medium') }}</span>
+                        <flux:badge color="amber" size="sm">15</flux:badge>
+                    </div>
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Hard') }}</span>
+                        <flux:badge color="orange" size="sm">20</flux:badge>
+                    </div>
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Very Hard') }}</span>
+                        <flux:badge color="red" size="sm">25</flux:badge>
+                    </div>
+                    <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-600">
+                        <span class="text-zinc-600 dark:text-zinc-300">{{ __('Nearly Impossible') }}</span>
+                        <flux:badge color="red" size="sm">30</flux:badge>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </flux:modal>
 
     {{-- Decision Recorder Modal --}}
     <flux:modal wire:model="showDecisionModal" variant="dialog" class="max-w-lg">
