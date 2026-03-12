@@ -32,16 +32,16 @@ test('users can add characters to initiative', function () {
         ->assertSet('combatants.0.name', $character->name);
 });
 
-test('users can add log entries', function () {
+test('users can write session notes', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->for($user)->create();
     $session = GameSession::factory()->for($campaign)->running()->create();
 
     Livewire::actingAs($user)
         ->test('pages::sessions.runner', ['session' => $session])
-        ->set('logEntry', 'The party enters the dungeon')
-        ->set('logType', 'narrative')
-        ->call('addLogEntry');
+        ->set('noteEntry', 'The party enters the dungeon')
+        ->set('noteType', 'narrative')
+        ->call('saveNote');
 
     expect($session->sessionLogs()->where('entry', 'The party enters the dungeon')->exists())->toBeTrue();
 });

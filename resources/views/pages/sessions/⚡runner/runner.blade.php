@@ -533,12 +533,13 @@
                 </div>
             @endif
 
-            {{-- Quick Actions --}}
+            {{-- Session Notes --}}
             <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('Quick Actions') }}</flux:heading>
-                <div class="flex flex-wrap gap-2">
-                    <flux:button variant="primary" size="sm" wire:click="openDecisionModal" icon="scale">
-                        {{ __('Major Decision') }}
+                <flux:heading size="lg" class="mb-3">{{ __('Session Notes') }}</flux:heading>
+
+                <div class="mb-3 flex flex-wrap gap-2">
+                    <flux:button variant="primary" size="sm" wire:click="openNoteModal" icon="pencil-square">
+                        {{ __('Write Note') }}
                     </flux:button>
                     @if (in_array($session->status, ['running', 'completed']))
                         <flux:button variant="subtle" size="sm" href="{{ route('sessions.recap', $session) }}" wire:navigate icon="book-open">
@@ -546,25 +547,9 @@
                         </flux:button>
                     @endif
                 </div>
-            </div>
-
-            {{-- Session Log --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg" class="mb-3">{{ __('Session Log') }}</flux:heading>
-
-                <form wire:submit="addLogEntry" class="mb-3 flex gap-2">
-                    <flux:select wire:model="logType" class="w-32" size="sm">
-                        <flux:select.option value="narrative">{{ __('Narrative') }}</flux:select.option>
-                        <flux:select.option value="combat">{{ __('Combat') }}</flux:select.option>
-                        <flux:select.option value="decision">{{ __('Decision') }}</flux:select.option>
-                        <flux:select.option value="note">{{ __('Note') }}</flux:select.option>
-                    </flux:select>
-                    <flux:input wire:model="logEntry" placeholder="{{ __('Log entry...') }}" size="sm" class="flex-1" />
-                    <flux:button type="submit" variant="primary" size="sm" icon="plus">{{ __('Log') }}</flux:button>
-                </form>
 
                 @if ($logs->isEmpty())
-                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No log entries yet.') }}</flux:text>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No notes yet.') }}</flux:text>
                 @else
                     <div class="max-h-60 space-y-1 overflow-y-auto">
                         @foreach ($logs as $log)
@@ -761,26 +746,25 @@
         </div>
     </flux:modal>
 
-    {{-- Decision Recorder Modal --}}
-    <flux:modal wire:model="showDecisionModal" variant="dialog" class="max-w-lg">
+    {{-- Write Note Modal --}}
+    <flux:modal wire:model="showNoteModal" variant="dialog" class="max-w-lg">
         <div class="space-y-4">
-            <flux:heading size="lg">{{ __('Record Major Decision') }}</flux:heading>
+            <flux:heading size="lg">{{ __('Write Note') }}</flux:heading>
 
-            <flux:textarea
-                wire:model="decisionAction"
-                label="{{ __('What did the character(s) do?') }}"
-                placeholder="{{ __('Describe the action or decision...') }}"
-                rows="3"
-                required
-            />
+            <flux:select wire:model="noteType" label="{{ __('Note type') }}">
+                <flux:select.option value="combat">{{ __('Combat') }}</flux:select.option>
+                <flux:select.option value="narrative">{{ __('Narrative') }}</flux:select.option>
+                <flux:select.option value="decision">{{ __('Decision') }}</flux:select.option>
+                <flux:select.option value="note">{{ __('Note') }}</flux:select.option>
+            </flux:select>
 
             <div>
                 <span class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Characters involved') }}</span>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($characters as $character)
                         <label class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600
-                            {{ in_array($character->id, $decisionCharacterIds) ? 'bg-blue-50 border-blue-300 dark:bg-blue-900/30 dark:border-blue-600' : '' }}">
-                            <input type="checkbox" value="{{ $character->id }}" wire:model="decisionCharacterIds"
+                            {{ in_array($character->id, $noteCharacterIds) ? 'bg-blue-50 border-blue-300 dark:bg-blue-900/30 dark:border-blue-600' : '' }}">
+                            <input type="checkbox" value="{{ $character->id }}" wire:model="noteCharacterIds"
                                    class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700" />
                             {{ $character->name }}
                         </label>
@@ -788,46 +772,68 @@
                 </div>
             </div>
 
-            {{-- AI Suggestion --}}
-            <div class="flex items-center gap-2">
-                <flux:button variant="subtle" size="sm" wire:click="getAiSuggestion" wire:loading.attr="disabled" icon="sparkles">
-                    <span wire:loading.remove wire:target="getAiSuggestion">{{ __('Get AI Suggestion') }}</span>
-                    <span wire:loading wire:target="getAiSuggestion">{{ __('Thinking...') }}</span>
-                </flux:button>
-            </div>
+            <flux:textarea
+                wire:model="noteEntry"
+                label="{{ __('Description') }}"
+                placeholder="{{ __('Describe what happened...') }}"
+                rows="3"
+                required
+            />
 
-            @if ($aiSuggestion)
-                <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-700 dark:bg-indigo-900/20">
-                    <span class="mb-1 block text-xs font-semibold uppercase text-indigo-500">{{ __('AI Suggestion') }}</span>
-                    <p class="mb-2 text-sm text-zinc-600 dark:text-zinc-300">{{ $aiSuggestion['reasoning'] }}</p>
-                    <div class="flex items-center gap-4 text-sm">
-                        <span>Good/Evil: <strong>{{ $aiSuggestion['good_evil_delta'] >= 0 ? '+' : '' }}{{ $aiSuggestion['good_evil_delta'] }}</strong></span>
-                        <span>Law/Chaos: <strong>{{ $aiSuggestion['law_chaos_delta'] >= 0 ? '+' : '' }}{{ $aiSuggestion['law_chaos_delta'] }}</strong></span>
-                    </div>
-                    @if (!empty($aiSuggestion['tags']))
-                        <div class="mt-1 flex flex-wrap gap-1">
-                            @foreach ($aiSuggestion['tags'] as $tag)
-                                <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-xs text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300">{{ $tag }}</span>
-                            @endforeach
+            @if ($noteType === 'decision')
+                {{-- AI Alignment Suggestion --}}
+                <div class="flex items-center gap-2">
+                    <flux:button variant="subtle" size="sm" wire:click="getAiSuggestion" wire:loading.attr="disabled" icon="sparkles">
+                        <span wire:loading.remove wire:target="getAiSuggestion">{{ __('Get AI Suggestion') }}</span>
+                        <span wire:loading wire:target="getAiSuggestion">{{ __('Thinking...') }}</span>
+                    </flux:button>
+                </div>
+
+                @if ($aiSuggestion)
+                    <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-700 dark:bg-indigo-900/20">
+                        <span class="mb-1 block text-xs font-semibold uppercase text-indigo-500">{{ __('AI Suggestion') }}</span>
+                        <p class="mb-2 text-sm text-zinc-600 dark:text-zinc-300">{{ $aiSuggestion['reasoning'] }}</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span>Good/Evil: <strong>{{ $aiSuggestion['good_evil_delta'] >= 0 ? '+' : '' }}{{ $aiSuggestion['good_evil_delta'] }}</strong></span>
+                            <span>Law/Chaos: <strong>{{ $aiSuggestion['law_chaos_delta'] >= 0 ? '+' : '' }}{{ $aiSuggestion['law_chaos_delta'] }}</strong></span>
                         </div>
-                    @endif
-                </div>
+                        @if (! empty($aiSuggestion['tags']))
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                @foreach ($aiSuggestion['tags'] as $tag)
+                                    <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-xs text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300">{{ $tag }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
 
-                <div class="flex justify-end gap-2">
-                    <flux:button variant="subtle" wire:click="$set('showDecisionModal', false)">
-                        {{ __('Cancel') }}
-                    </flux:button>
-                    <flux:button variant="primary" wire:click="confirmDecision({{ $aiSuggestion['good_evil_delta'] }}, {{ $aiSuggestion['law_chaos_delta'] }})">
-                        {{ __('Accept & Apply') }}
-                    </flux:button>
-                </div>
+                    <div class="flex justify-end gap-2">
+                        <flux:button variant="subtle" wire:click="$set('showNoteModal', false)">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="subtle" wire:click="confirmDecision(0, 0)">
+                            {{ __('Save Without Alignment Change') }}
+                        </flux:button>
+                        <flux:button variant="primary" wire:click="confirmDecision({{ $aiSuggestion['good_evil_delta'] }}, {{ $aiSuggestion['law_chaos_delta'] }})">
+                            {{ __('Accept & Apply') }}
+                        </flux:button>
+                    </div>
+                @else
+                    <div class="flex justify-end gap-2">
+                        <flux:button variant="subtle" wire:click="$set('showNoteModal', false)">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" wire:click="confirmDecision(0, 0)">
+                            {{ __('Save Without Alignment Change') }}
+                        </flux:button>
+                    </div>
+                @endif
             @else
                 <div class="flex justify-end gap-2">
-                    <flux:button variant="subtle" wire:click="$set('showDecisionModal', false)">
+                    <flux:button variant="subtle" wire:click="$set('showNoteModal', false)">
                         {{ __('Cancel') }}
                     </flux:button>
-                    <flux:button variant="primary" wire:click="confirmDecision(0, 0)">
-                        {{ __('Record (No Alignment Change)') }}
+                    <flux:button variant="primary" wire:click="saveNote">
+                        {{ __('Save Note') }}
                     </flux:button>
                 </div>
             @endif

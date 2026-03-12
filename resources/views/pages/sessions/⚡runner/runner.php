@@ -39,17 +39,14 @@ new class extends Component
     // Combat panel — selected combatant
     public ?int $selectedCombatantIndex = null;
 
-    // Quick log
-    public string $logEntry = '';
+    // Session Notes
+    public bool $showNoteModal = false;
 
-    public string $logType = 'narrative';
+    public string $noteType = 'note';
 
-    // Decision recorder
-    public bool $showDecisionModal = false;
+    public array $noteCharacterIds = [];
 
-    public array $decisionCharacterIds = [];
-
-    public string $decisionAction = '';
+    public string $noteEntry = '';
 
     public ?array $aiSuggestion = null;
 
@@ -358,45 +355,45 @@ new class extends Component
         }
     }
 
-    // ── Quick Log ─────────────────────────────────────────────────────
+    // ── Session Notes ─────────────────────────────────────────────────
 
-    public function addLogEntry(): void
+    public function openNoteModal(): void
+    {
+        $this->showNoteModal = true;
+        $this->noteType = 'note';
+        $this->noteCharacterIds = [];
+        $this->noteEntry = '';
+        $this->aiSuggestion = null;
+    }
+
+    public function saveNote(): void
     {
         $this->validate([
-            'logEntry' => ['required', 'string', 'max:2000'],
-            'logType' => ['required', 'in:narrative,decision,combat,note'],
+            'noteEntry' => ['required', 'string', 'max:2000'],
+            'noteType' => ['required', 'in:narrative,combat,decision,note'],
         ]);
 
         $this->session->sessionLogs()->create([
-            'entry' => $this->logEntry,
-            'type' => $this->logType,
+            'entry' => $this->noteEntry,
+            'type' => $this->noteType,
+            'character_ids' => $this->noteCharacterIds ?: null,
             'logged_at' => now(),
         ]);
 
-        $this->logEntry = '';
-    }
-
-    // ── Decision Recorder ─────────────────────────────────────────────
-
-    public function openDecisionModal(): void
-    {
-        $this->showDecisionModal = true;
-        $this->decisionCharacterIds = [];
-        $this->decisionAction = '';
-        $this->aiSuggestion = null;
+        $this->showNoteModal = false;
     }
 
     public function getAiSuggestion(): void
     {
         $this->validate([
-            'decisionAction' => ['required', 'string', 'max:2000'],
+            'noteEntry' => ['required', 'string', 'max:2000'],
         ]);
 
         $this->loadingAiSuggestion = true;
 
         try {
             $advisor = new AlignmentAdvisor($this->session->campaign);
-            $response = $advisor->prompt($this->decisionAction);
+            $response = $advisor->prompt($this->noteEntry);
 
             $this->aiSuggestion = $response->toArray();
         } catch (\Throwable) {
@@ -413,11 +410,11 @@ new class extends Component
 
     public function confirmDecision(int $goodEvilDelta, int $lawChaosDelta): void
     {
-        if (empty($this->decisionAction)) {
+        if (empty($this->noteEntry)) {
             return;
         }
 
-        foreach ($this->decisionCharacterIds as $characterId) {
+        foreach ($this->noteCharacterIds as $characterId) {
             $character = Character::find($characterId);
             if (! $character) {
                 continue;
@@ -425,7 +422,7 @@ new class extends Component
 
             $character->alignmentEvents()->create([
                 'game_session_id' => $this->session->id,
-                'action_description' => $this->decisionAction,
+                'action_description' => $this->noteEntry,
                 'good_evil_delta' => $goodEvilDelta,
                 'law_chaos_delta' => $lawChaosDelta,
                 'ai_suggested_ge' => $this->aiSuggestion['good_evil_delta'] ?? null,
@@ -448,13 +445,14 @@ new class extends Component
         }
 
         $this->session->sessionLogs()->create([
-            'entry' => "Decision: {$this->decisionAction}",
+            'entry' => $this->noteEntry,
             'type' => 'decision',
+            'character_ids' => $this->noteCharacterIds ?: null,
             'tags' => $this->aiSuggestion['tags'] ?? [],
             'logged_at' => now(),
         ]);
 
-        $this->showDecisionModal = false;
+        $this->showNoteModal = false;
         $this->aiSuggestion = null;
     }
 

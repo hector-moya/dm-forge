@@ -13,6 +13,7 @@ class SessionLog extends Model
     protected $fillable = [
         'entry',
         'type',
+        'character_ids',
         'tags',
         'logged_at',
     ];
@@ -20,6 +21,7 @@ class SessionLog extends Model
     protected function casts(): array
     {
         return [
+            'character_ids' => 'array',
             'tags' => 'array',
             'logged_at' => 'datetime',
         ];
