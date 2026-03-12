@@ -3,6 +3,8 @@
 namespace App\Ai\Concerns;
 
 use App\Models\Campaign;
+use App\Models\Lore;
+use App\Models\WorldRule;
 
 /**
  * Provides a standardised campaign context string for AI agent instructions.
@@ -28,14 +30,14 @@ trait HasCampaignContext
         if ($campaign->lore) {
             $context .= "\nLore: {$campaign->lore}";
         } elseif ($campaign->relationLoaded('lores') && $campaign->lores->isNotEmpty()) {
-            $loreText = $campaign->lores->map(fn ($l) => "{$l->name}: {$l->description}")->implode("\n");
+            $loreText = $campaign->lores->map(fn (Lore $l) => "{$l->name}: {$l->description}")->implode("\n");
             $context .= "\nLore:\n{$loreText}";
         }
 
         if ($campaign->world_rules) {
             $context .= "\nWorld Rules: {$campaign->world_rules}";
         } elseif ($campaign->relationLoaded('worldRules') && $campaign->worldRules->isNotEmpty()) {
-            $rulesText = $campaign->worldRules->map(fn ($r) => "{$r->name}: {$r->description}")->implode("\n");
+            $rulesText = $campaign->worldRules->map(fn (WorldRule $r) => "{$r->name}: {$r->description}")->implode("\n");
             $context .= "\nWorld Rules:\n{$rulesText}";
         }
 

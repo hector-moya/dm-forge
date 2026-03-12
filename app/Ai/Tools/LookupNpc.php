@@ -3,6 +3,7 @@
 namespace App\Ai\Tools;
 
 use App\Models\Campaign;
+use App\Models\Npc;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -23,21 +24,24 @@ class LookupNpc implements Tool
     {
         $query = $this->campaign->npcs()->with(['faction', 'location']);
 
-        if ($name = $request->string('name')) {
+        $name = (string) $request->string('name');
+        if ($name !== '') {
             $query->where('name', 'like', "%{$name}%");
         }
 
-        if ($factionName = $request->string('faction')) {
+        $factionName = (string) $request->string('faction');
+        if ($factionName !== '') {
             $query->whereHas('faction', fn ($q) => $q->where('name', 'like', "%{$factionName}%"));
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Npc> $npcs */
         $npcs = $query->limit(10)->get();
 
         if ($npcs->isEmpty()) {
             return 'No NPCs found matching the search criteria.';
         }
 
-        return $npcs->map(function ($npc) {
+        return $npcs->map(function (Npc $npc) {
             $info = "**{$npc->name}**";
             if ($npc->role) {
                 $info .= " ({$npc->role})";

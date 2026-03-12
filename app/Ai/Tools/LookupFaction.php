@@ -3,6 +3,7 @@
 namespace App\Ai\Tools;
 
 use App\Models\Campaign;
+use App\Models\Faction;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -23,21 +24,24 @@ class LookupFaction implements Tool
     {
         $query = $this->campaign->factions()->withCount('npcs');
 
-        if ($name = $request->string('name')) {
+        $name = (string) $request->string('name');
+        if ($name !== '') {
             $query->where('name', 'like', "%{$name}%");
         }
 
-        if ($alignment = $request->string('alignment')) {
+        $alignment = (string) $request->string('alignment');
+        if ($alignment !== '') {
             $query->where('alignment', 'like', "%{$alignment}%");
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Faction> $factions */
         $factions = $query->limit(10)->get();
 
         if ($factions->isEmpty()) {
             return 'No factions found matching the search criteria.';
         }
 
-        return $factions->map(function ($faction) {
+        return $factions->map(function (Faction $faction) {
             $info = "**{$faction->name}**";
             if ($faction->alignment) {
                 $info .= " ({$faction->alignment})";

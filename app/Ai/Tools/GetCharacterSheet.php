@@ -2,7 +2,9 @@
 
 namespace App\Ai\Tools;
 
+use App\Models\AlignmentEvent;
 use App\Models\Campaign;
+use App\Models\Character;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -31,6 +33,7 @@ class GetCharacterSheet implements Tool
             return "No character found matching '{$name}'.";
         }
 
+        /** @var Character $character */
         $info = "**{$character->name}**";
         if ($character->player_name) {
             $info .= " (Player: {$character->player_name})";
@@ -46,6 +49,7 @@ class GetCharacterSheet implements Tool
             $info .= "\nStats: {$stats}";
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, AlignmentEvent> $recentEvents */
         $recentEvents = $character->alignmentEvents()
             ->latest()
             ->limit(5)

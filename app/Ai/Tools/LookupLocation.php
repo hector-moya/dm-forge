@@ -3,6 +3,7 @@
 namespace App\Ai\Tools;
 
 use App\Models\Campaign;
+use App\Models\Location;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -23,21 +24,24 @@ class LookupLocation implements Tool
     {
         $query = $this->campaign->locations()->with('children');
 
-        if ($name = $request->string('name')) {
+        $name = (string) $request->string('name');
+        if ($name !== '') {
             $query->where('name', 'like', "%{$name}%");
         }
 
-        if ($region = $request->string('region')) {
+        $region = (string) $request->string('region');
+        if ($region !== '') {
             $query->where('region', 'like', "%{$region}%");
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Location> $locations */
         $locations = $query->limit(10)->get();
 
         if ($locations->isEmpty()) {
             return 'No locations found matching the search criteria.';
         }
 
-        return $locations->map(function ($location) {
+        return $locations->map(function (Location $location) {
             $info = "**{$location->name}**";
             if ($location->region) {
                 $info .= " ({$location->region})";

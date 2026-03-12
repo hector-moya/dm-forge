@@ -4,7 +4,14 @@ namespace App\Ai\Agents;
 
 use App\Ai\Concerns\HasCampaignContext;
 use App\Models\Campaign;
+use App\Models\Character;
+use App\Models\Encounter;
+use App\Models\EncounterMonster;
+use App\Models\EncounterNpc;
 use App\Models\GameSession;
+use App\Models\Npc;
+use App\Models\Scene;
+use App\Models\SessionLog;
 use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
@@ -73,6 +80,7 @@ class NarrativeWriter implements Agent
         if ($scenes->isNotEmpty()) {
             $context .= "## Session Scenes\n";
             foreach ($scenes as $i => $scene) {
+                /** @var Scene $scene */
                 $num = $i + 1;
                 $context .= "{$num}. {$scene->title}";
                 if ($scene->description) {
@@ -84,6 +92,7 @@ class NarrativeWriter implements Agent
                 }
 
                 foreach ($scene->encounters as $encounter) {
+                    /** @var Encounter $encounter */
                     $context .= "   Encounter: {$encounter->name}";
                     if ($encounter->difficulty) {
                         $context .= " [{$encounter->difficulty}]";
@@ -97,6 +106,7 @@ class NarrativeWriter implements Agent
                     }
 
                     foreach ($encounter->monsters as $monster) {
+                        /** @var EncounterMonster $monster */
                         $context .= "     Monster: {$monster->name}";
                         if ($monster->challenge_rating) {
                             $context .= " (CR {$monster->challenge_rating})";
@@ -106,6 +116,7 @@ class NarrativeWriter implements Agent
                     }
 
                     foreach ($encounter->npcs as $encounterNpc) {
+                        /** @var EncounterNpc $encounterNpc */
                         $context .= "     NPC: {$encounterNpc->name}";
                         $context .= " — HP {$encounterNpc->hp_current}/{$encounterNpc->hp_max}, AC {$encounterNpc->armor_class}";
                         if ($encounterNpc->notes) {
@@ -122,6 +133,7 @@ class NarrativeWriter implements Agent
         if ($logs->isNotEmpty()) {
             $context .= "## Session Logs (chronological)\n";
             foreach ($logs as $log) {
+                /** @var SessionLog $log */
                 $time = $log->logged_at?->format('H:i:s') ?? 'N/A';
                 $type = strtoupper($log->type);
                 $context .= "[{$time}] [{$type}] {$log->entry}\n";
@@ -133,6 +145,7 @@ class NarrativeWriter implements Agent
         if ($characters->isNotEmpty()) {
             $context .= "## Party Characters\n";
             foreach ($characters as $character) {
+                /** @var Character $character */
                 $line = "- {$character->name}";
                 if ($character->player_name) {
                     $line .= " (Player: {$character->player_name})";
@@ -157,6 +170,7 @@ class NarrativeWriter implements Agent
         if ($npcs->isNotEmpty()) {
             $context .= "## Campaign NPCs\n";
             foreach ($npcs as $npc) {
+                /** @var Npc $npc */
                 $line = "- {$npc->name}";
                 if ($npc->role) {
                     $line .= " ({$npc->role})";

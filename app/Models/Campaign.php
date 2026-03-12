@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property \Illuminate\Database\Eloquent\Collection<int, Npc> $npcs
  * @property \Illuminate\Database\Eloquent\Collection<int, Character> $characters
  * @property \Illuminate\Database\Eloquent\Collection<int, GameSession> $gameSessions
+ * @property \Illuminate\Database\Eloquent\Collection<int, Lore> $lores
+ * @property \Illuminate\Database\Eloquent\Collection<int, WorldRule> $worldRules
  */
 class Campaign extends Model
 {
