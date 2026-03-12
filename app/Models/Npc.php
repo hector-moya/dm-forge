@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property string|null $image_path
+ * @property array<string, mixed>|null $stats
+ */
 class Npc extends Model
 {
     use HasFactory;
