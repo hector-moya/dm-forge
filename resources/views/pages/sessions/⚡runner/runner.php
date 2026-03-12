@@ -52,6 +52,21 @@ new class extends Component
 
     public bool $loadingAiSuggestion = false;
 
+    // View / Edit log
+    public bool $showViewLogModal = false;
+
+    public bool $showEditLogModal = false;
+
+    public ?int $viewingLogId = null;
+
+    public ?int $editingLogId = null;
+
+    public string $editLogType = 'note';
+
+    public array $editLogCharacterIds = [];
+
+    public string $editLogEntry = '';
+
     // Ability checks
     public SceneAbilityCheckForm $abilityCheckForm;
 
@@ -533,6 +548,46 @@ new class extends Component
         abort_unless($check->scene->game_session_id === $this->session->id, 403);
         $this->abilityCheckForm->destroy($check);
         \Flux::toast(__('Ability check removed.'));
+    }
+
+    public function openViewLog(int $logId): void
+    {
+        $log = $this->session->sessionLogs()->findOrFail($logId);
+        $this->viewingLogId = $log->id;
+        $this->showViewLogModal = true;
+    }
+
+    public function openEditLog(int $logId): void
+    {
+        $log = $this->session->sessionLogs()->findOrFail($logId);
+        $this->editingLogId = $log->id;
+        $this->editLogType = $log->type;
+        $this->editLogCharacterIds = $log->character_ids ?? [];
+        $this->editLogEntry = $log->entry;
+        $this->showEditLogModal = true;
+    }
+
+    public function saveEditLog(): void
+    {
+        $this->validate([
+            'editLogEntry' => ['required', 'string', 'max:2000'],
+            'editLogType' => ['required', 'in:narrative,combat,decision,note'],
+        ]);
+
+        $log = $this->session->sessionLogs()->findOrFail($this->editingLogId);
+        $log->update([
+            'entry' => $this->editLogEntry,
+            'type' => $this->editLogType,
+            'character_ids' => $this->editLogCharacterIds ?: null,
+        ]);
+
+        $this->showEditLogModal = false;
+        $this->editingLogId = null;
+    }
+
+    public function deleteLog(int $logId): void
+    {
+        $this->session->sessionLogs()->findOrFail($logId)->delete();
     }
 
     // ── Session End ───────────────────────────────────────────────────
