@@ -11,6 +11,7 @@ class SessionLog extends Model
     use HasFactory;
 
     protected $fillable = [
+        'scene_id',
         'entry',
         'type',
         'character_ids',
@@ -30,5 +31,10 @@ class SessionLog extends Model
     public function gameSession(): BelongsTo
     {
         return $this->belongsTo(GameSession::class);
+    }
+
+    public function scene(): BelongsTo
+    {
+        return $this->belongsTo(Scene::class);
     }
 }

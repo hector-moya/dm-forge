@@ -360,6 +360,7 @@ new class extends Component
         $branch->update(['chosen' => true]);
 
         $this->session->sessionLogs()->create([
+            'scene_id' => $this->currentSceneId,
             'entry' => "Branch chosen: {$branch->label}",
             'type' => 'decision',
             'logged_at' => now(),
@@ -389,6 +390,7 @@ new class extends Component
         ]);
 
         $this->session->sessionLogs()->create([
+            'scene_id' => $this->currentSceneId,
             'entry' => $this->noteEntry,
             'type' => $this->noteType,
             'character_ids' => $this->noteCharacterIds ?: null,
@@ -460,6 +462,7 @@ new class extends Component
         }
 
         $this->session->sessionLogs()->create([
+            'scene_id' => $this->currentSceneId,
             'entry' => $this->noteEntry,
             'type' => 'decision',
             'character_ids' => $this->noteCharacterIds ?: null,
