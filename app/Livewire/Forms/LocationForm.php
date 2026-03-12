@@ -33,6 +33,7 @@ class LocationForm extends Form
     {
         $this->validate();
 
+        /** @var Location $location */
         $location = $campaign->locations()->create([
             'name' => $this->name,
             'description' => $this->description ?: null,

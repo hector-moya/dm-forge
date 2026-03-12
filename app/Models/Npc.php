@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 /**
  * @property string|null $image_path
  * @property array<string, mixed>|null $stats
+ * @property list<string>|null $catchphrases
  */
 class Npc extends Model
 {

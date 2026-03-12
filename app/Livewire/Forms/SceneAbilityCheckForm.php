@@ -47,7 +47,10 @@ class SceneAbilityCheckForm extends Form
 
         $sortOrder = $scene->abilityChecks()->max('sort_order') + 1;
 
-        return $scene->abilityChecks()->create($this->buildData($sortOrder));
+        /** @var SceneAbilityCheck $check */
+        $check = $scene->abilityChecks()->create($this->buildData($sortOrder));
+
+        return $check;
     }
 
     public function update(SceneAbilityCheck $check): void

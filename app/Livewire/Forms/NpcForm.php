@@ -192,6 +192,7 @@ class NpcForm extends Form
     {
         $this->validate();
 
+        /** @var Npc $npc */
         $npc = $campaign->npcs()->create($this->buildData());
 
         $this->resetForm();
@@ -327,9 +328,7 @@ class NpcForm extends Form
         $stats = [
             'ability_scores' => array_map('intval', $this->npcAbilityScores),
             'saving_throw_proficiencies' => $this->npcSavingThrowProficiencies,
-            'skill_proficiencies' => is_array($this->npcSkillProficiencies)
-                ? $this->npcSkillProficiencies
-                : $this->parseCommaSeparated($this->npcSkillProficiencies),
+            'skill_proficiencies' => $this->parseCommaSeparated($this->npcSkillProficiencies),
             'damage_resistances' => $this->parseCommaSeparated($this->npcDamageResistances),
             'damage_immunities' => $this->parseCommaSeparated($this->npcDamageImmunities),
             'condition_immunities' => $this->parseCommaSeparated($this->npcConditionImmunities),

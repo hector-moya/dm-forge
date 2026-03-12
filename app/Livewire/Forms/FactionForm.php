@@ -37,6 +37,7 @@ class FactionForm extends Form
     {
         $this->validate();
 
+        /** @var Faction $faction */
         $faction = $campaign->factions()->create([
             'name' => $this->name,
             'description' => $this->description ?: null,
