@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\GameSession;
+use App\Models\SessionLog;
 
 class RecapExporter
 {
@@ -11,7 +12,9 @@ class RecapExporter
         $session->load(['campaign', 'sessionLogs']);
 
         $md = "# Session #{$session->session_number}: {$session->title}\n\n";
-        $md .= "**Campaign:** {$session->campaign->name}\n";
+        /** @var \App\Models\Campaign $campaign */
+        $campaign = $session->campaign;
+        $md .= "**Campaign:** {$campaign->name}\n";
         $md .= '**Status:** '.ucfirst($session->status)."\n";
 
         if ($session->started_at) {
@@ -39,6 +42,7 @@ class RecapExporter
         if ($session->sessionLogs->isNotEmpty()) {
             $md .= "## Session Log\n\n";
             foreach ($session->sessionLogs->sortBy('logged_at') as $log) {
+                /** @var SessionLog $log */
                 $time = $log->logged_at?->format('H:i:s') ?? '';
                 $type = strtoupper($log->type);
                 $md .= "- [{$time}] **{$type}** — {$log->entry}\n";

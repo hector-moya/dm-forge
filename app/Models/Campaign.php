@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property array<int, string>|null $special_mechanics
+ * @property \Illuminate\Database\Eloquent\Collection<int, Faction> $factions
+ * @property \Illuminate\Database\Eloquent\Collection<int, Location> $locations
+ * @property \Illuminate\Database\Eloquent\Collection<int, Npc> $npcs
+ * @property \Illuminate\Database\Eloquent\Collection<int, Character> $characters
+ * @property \Illuminate\Database\Eloquent\Collection<int, GameSession> $gameSessions
+ */
 class Campaign extends Model
 {
     use HasFactory;

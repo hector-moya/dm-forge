@@ -3,6 +3,11 @@
 namespace App\Services;
 
 use App\Models\Campaign;
+use App\Models\Character;
+use App\Models\Faction;
+use App\Models\GameSession;
+use App\Models\Location;
+use App\Models\Npc;
 use Illuminate\Database\Eloquent\Collection;
 
 class CampaignExporter
@@ -32,6 +37,7 @@ class CampaignExporter
         if ($campaign->lores->isNotEmpty()) {
             $md .= "## Lore\n\n";
             foreach ($campaign->lores as $lore) {
+                /** @var \App\Models\Lore $lore */
                 $md .= "### {$lore->name}\n\n";
                 if ($lore->description) {
                     $md .= "{$lore->description}\n\n";
@@ -48,6 +54,7 @@ class CampaignExporter
         if ($campaign->worldRules->isNotEmpty()) {
             $md .= "## World Rules\n\n";
             foreach ($campaign->worldRules as $rule) {
+                /** @var \App\Models\WorldRule $rule */
                 $md .= "### {$rule->name}\n\n";
                 if ($rule->description) {
                     $md .= "{$rule->description}\n\n";
@@ -60,6 +67,7 @@ class CampaignExporter
         if ($campaign->specialMechanics->isNotEmpty()) {
             $md .= "## Special Mechanics\n\n";
             foreach ($campaign->specialMechanics as $mechanic) {
+                /** @var \App\Models\SpecialMechanic $mechanic */
                 $md .= "### {$mechanic->name}\n\n";
                 if ($mechanic->description) {
                     $md .= "{$mechanic->description}\n\n";
@@ -76,6 +84,9 @@ class CampaignExporter
         return $md;
     }
 
+    /**
+     * @param  Collection<int, Faction>  $factions
+     */
     private function formatFactions(Collection $factions): string
     {
         if ($factions->isEmpty()) {
@@ -100,6 +111,9 @@ class CampaignExporter
         return $md;
     }
 
+    /**
+     * @param  Collection<int, Location>  $locations
+     */
     private function formatLocations(Collection $locations): string
     {
         if ($locations->isEmpty()) {
@@ -122,6 +136,9 @@ class CampaignExporter
         return $md;
     }
 
+    /**
+     * @param  Collection<int, Npc>  $npcs
+     */
     private function formatNpcs(Collection $npcs): string
     {
         if ($npcs->isEmpty()) {
@@ -151,6 +168,9 @@ class CampaignExporter
         return $md;
     }
 
+    /**
+     * @param  Collection<int, Character>  $characters
+     */
     private function formatCharacters(Collection $characters): string
     {
         if ($characters->isEmpty()) {
@@ -175,6 +195,9 @@ class CampaignExporter
         return $md;
     }
 
+    /**
+     * @param  Collection<int, GameSession>  $sessions
+     */
     private function formatSessions(Collection $sessions): string
     {
         if ($sessions->isEmpty()) {

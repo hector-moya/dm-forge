@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property \Carbon\Carbon|null $started_at
+ * @property \Carbon\Carbon|null $ended_at
+ */
 class GameSession extends Model
 {
     use HasFactory;

@@ -54,7 +54,7 @@ class EntityImageGenerator
 
             $this->deleteOldImage($entity);
 
-            $entity->image_path = $filename;
+            $entity->setAttribute('image_path', $filename);
             $entity->save();
 
             return $filename;
