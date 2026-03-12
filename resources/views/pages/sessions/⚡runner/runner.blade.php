@@ -939,7 +939,12 @@
             </flux:select>
 
             <div>
-                <span class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Characters involved') }}</span>
+                <div class="mb-1 flex items-center justify-between">
+                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Characters involved') }}</span>
+                    <flux:button variant="subtle" size="xs" wire:click="toggleAllEditLogCharacters">
+                        {{ count($editLogCharacterIds) === $characters->count() ? __('Deselect All') : __('Select All') }}
+                    </flux:button>
+                </div>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($characters as $character)
                         <label class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600

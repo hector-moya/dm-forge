@@ -80,32 +80,15 @@
         @endif
     @endif
 
-    {{-- Raw Session Log --}}
+    {{-- Session Notes --}}
     @if ($logs->isNotEmpty())
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-            <flux:heading size="lg" class="mb-4">{{ __('Session Log') }}</flux:heading>
-            <div class="max-h-96 space-y-1 overflow-y-auto">
+            <flux:heading size="lg" class="mb-4">{{ __('Session Notes') }}</flux:heading>
+            <div class="space-y-1">
                 @foreach ($logs as $log)
-                    @if ($editingLogId === $log->id)
-                        <div class="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-600 dark:bg-zinc-700/50">
-                            <div class="flex items-center gap-2">
-                                <flux:select wire:model="editLogType" class="w-32" size="sm">
-                                    <flux:select.option value="narrative">{{ __('Narrative') }}</flux:select.option>
-                                    <flux:select.option value="combat">{{ __('Combat') }}</flux:select.option>
-                                    <flux:select.option value="decision">{{ __('Decision') }}</flux:select.option>
-                                    <flux:select.option value="note">{{ __('Note') }}</flux:select.option>
-                                </flux:select>
-                                <span class="text-xs text-zinc-400">{{ $log->logged_at?->format('H:i:s') }}</span>
-                            </div>
-                            <flux:textarea wire:model="editLogEntry" rows="2" size="sm" />
-                            <div class="flex items-center gap-2">
-                                <flux:button variant="primary" size="sm" wire:click="saveLog">{{ __('Save') }}</flux:button>
-                                <flux:button variant="subtle" size="sm" wire:click="cancelEditLog">{{ __('Cancel') }}</flux:button>
-                            </div>
-                        </div>
-                    @else
-                        <div class="group flex items-start gap-3 rounded px-2 py-1 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
-                            <span class="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{{ $log->logged_at?->format('H:i:s') }}</span>
+                    <div class="group rounded px-2 py-1.5 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-700/30">
+                        <div class="flex items-center gap-2">
+                            <span class="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{{ $log->logged_at?->format('H:i') }}</span>
                             @php
                                 $logColor = match($log->type) {
                                     'combat' => 'text-red-500',
@@ -114,20 +97,39 @@
                                     default => 'text-zinc-400',
                                 };
                             @endphp
-                            <span class="w-16 shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
-                            <span class="flex-1 text-zinc-700 dark:text-zinc-300">{{ $log->entry }}</span>
-                            <div class="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
-                                <flux:button variant="subtle" size="sm" icon="pencil" wire:click="startEditLog({{ $log->id }})" />
-                                <flux:button variant="subtle" size="sm" icon="trash" wire:click="deleteLog({{ $log->id }})" wire:confirm="{{ __('Delete this log entry?') }}" />
+                            <span class="shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
+                            @if (! empty($log->character_ids))
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach ($characters->whereIn('id', $log->character_ids) as $character)
+                                        <flux:badge color="blue" size="xs">{{ \Illuminate\Support\Str::before($character->name, ' ') ?: $character->name }}</flux:badge>
+                                    @endforeach
+                                </div>
+                            @endif
+                            <div class="ml-auto shrink-0">
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button icon="ellipsis-horizontal" variant="ghost" size="xs" class="opacity-0 group-hover:opacity-100" />
+                                    <flux:menu>
+                                        <flux:menu.item icon="eye" wire:click="openViewLog({{ $log->id }})">{{ __('View') }}</flux:menu.item>
+                                        <flux:menu.item icon="pencil" wire:click="openEditLog({{ $log->id }})">{{ __('Edit') }}</flux:menu.item>
+                                        <flux:menu.separator />
+                                        <flux:menu.item icon="trash" variant="danger" wire:click="deleteLog({{ $log->id }})">{{ __('Delete') }}</flux:menu.item>
+                                    </flux:menu>
+                                </flux:dropdown>
                             </div>
                         </div>
-                    @endif
+                        <div class="mt-0.5 flex flex-wrap items-baseline gap-x-2 pl-10">
+                            <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ $log->entry }}</p>
+                            @if ($log->scene_id)
+                                <span class="text-xs text-zinc-400 dark:text-zinc-500">· {{ $allScenes->firstWhere('id', $log->scene_id)?->title }}</span>
+                            @endif
+                        </div>
+                    </div>
                 @endforeach
             </div>
         </div>
     @endif
 
-    @if (!$session->generated_narrative && $logs->isEmpty())
+    @if (! $session->generated_narrative && $logs->isEmpty())
         <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-12 dark:border-zinc-600">
             <flux:icon name="book-open" class="mx-auto mb-4 size-12 text-zinc-400 dark:text-zinc-500" />
             <flux:heading size="lg" class="mb-2">{{ __('No recap yet') }}</flux:heading>
@@ -139,4 +141,107 @@
             </flux:button>
         </div>
     @endif
+
+    {{-- View Log Modal --}}
+    <flux:modal wire:model="showViewLogModal" variant="dialog" class="max-w-lg">
+        @php
+            $viewingLog = $viewingLogId ? $logs->firstWhere('id', $viewingLogId) : null;
+        @endphp
+        @if ($viewingLog)
+            <div class="space-y-4">
+                <flux:heading size="lg">{{ __('View Note') }}</flux:heading>
+
+                <div>
+                    <span class="mb-1 block text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Type') }}</span>
+                    @php
+                        $viewColor = match($viewingLog->type) {
+                            'combat' => 'red',
+                            'decision' => 'amber',
+                            'narrative' => 'blue',
+                            default => 'zinc',
+                        };
+                    @endphp
+                    <flux:badge :color="$viewColor" size="sm">{{ ucfirst($viewingLog->type) }}</flux:badge>
+                </div>
+
+                @if ($viewingLog->scene_id)
+                    <div>
+                        <span class="mb-1 block text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Scene') }}</span>
+                        <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ $allScenes->firstWhere('id', $viewingLog->scene_id)?->title }}</p>
+                    </div>
+                @endif
+
+                @if (! empty($viewingLog->character_ids))
+                    <div>
+                        <span class="mb-1 block text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Characters involved') }}</span>
+                        <div class="flex flex-wrap gap-1">
+                            @foreach ($characters->whereIn('id', $viewingLog->character_ids) as $character)
+                                <flux:badge color="blue" size="sm">{{ $character->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div>
+                    <span class="mb-1 block text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Description') }}</span>
+                    <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ $viewingLog->entry }}</p>
+                </div>
+
+                <div class="flex justify-end">
+                    <flux:button variant="subtle" wire:click="$set('showViewLogModal', false)">
+                        {{ __('Close') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
+
+    {{-- Edit Log Modal --}}
+    <flux:modal wire:model="showEditLogModal" variant="dialog" class="max-w-lg">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('Edit Note') }}</flux:heading>
+
+            <flux:select wire:model="editLogType" label="{{ __('Note type') }}">
+                <flux:select.option value="combat">{{ __('Combat') }}</flux:select.option>
+                <flux:select.option value="narrative">{{ __('Narrative') }}</flux:select.option>
+                <flux:select.option value="decision">{{ __('Decision') }}</flux:select.option>
+                <flux:select.option value="note">{{ __('Note') }}</flux:select.option>
+            </flux:select>
+
+            <div>
+                <div class="mb-1 flex items-center justify-between">
+                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Characters involved') }}</span>
+                    <flux:button variant="subtle" size="xs" wire:click="toggleAllEditLogCharacters">
+                        {{ count($editLogCharacterIds) === $characters->count() ? __('Deselect All') : __('Select All') }}
+                    </flux:button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($characters as $character)
+                        <label class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600
+                            {{ in_array($character->id, $editLogCharacterIds) ? 'bg-blue-50 border-blue-300 dark:bg-blue-900/30 dark:border-blue-600' : '' }}">
+                            <input type="checkbox" value="{{ $character->id }}" wire:model="editLogCharacterIds"
+                                   class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700" />
+                            {{ $character->name }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <flux:textarea
+                wire:model="editLogEntry"
+                label="{{ __('Description') }}"
+                rows="3"
+                required
+            />
+
+            <div class="flex justify-end gap-2">
+                <flux:button variant="subtle" wire:click="$set('showEditLogModal', false)">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="primary" wire:click="saveEditLog">
+                    {{ __('Save Changes') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

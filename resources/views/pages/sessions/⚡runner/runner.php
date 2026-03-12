@@ -570,6 +570,12 @@ new class extends Component
         $this->showEditLogModal = true;
     }
 
+    public function toggleAllEditLogCharacters(): void
+    {
+        $allIds = $this->session->campaign->characters()->pluck('id')->all();
+        $this->editLogCharacterIds = count($this->editLogCharacterIds) === count($allIds) ? [] : $allIds;
+    }
+
     public function saveEditLog(): void
     {
         $this->validate([

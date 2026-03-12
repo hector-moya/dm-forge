@@ -11,12 +11,20 @@ new class extends Component
 
     public bool $generating = false;
 
-    // Log editing
+    // View / Edit log
+    public bool $showViewLogModal = false;
+
+    public bool $showEditLogModal = false;
+
+    public ?int $viewingLogId = null;
+
     public ?int $editingLogId = null;
 
-    public string $editLogEntry = '';
+    public string $editLogType = 'note';
 
-    public string $editLogType = 'narrative';
+    public array $editLogCharacterIds = [];
+
+    public string $editLogEntry = '';
 
     public function mount(GameSession $session): void
     {
@@ -93,44 +101,50 @@ new class extends Component
         $this->session->update(array_map('trim', $sections));
     }
 
-    public function startEditLog(int $logId): void
+    public function openViewLog(int $logId): void
+    {
+        $log = $this->session->sessionLogs()->findOrFail($logId);
+        $this->viewingLogId = $log->id;
+        $this->showViewLogModal = true;
+    }
+
+    public function openEditLog(int $logId): void
     {
         $log = $this->session->sessionLogs()->findOrFail($logId);
         $this->editingLogId = $log->id;
-        $this->editLogEntry = $log->entry;
         $this->editLogType = $log->type;
+        $this->editLogCharacterIds = $log->character_ids ?? [];
+        $this->editLogEntry = $log->entry;
+        $this->showEditLogModal = true;
     }
 
-    public function cancelEditLog(): void
+    public function toggleAllEditLogCharacters(): void
     {
-        $this->editingLogId = null;
-        $this->editLogEntry = '';
-        $this->editLogType = 'narrative';
+        $allIds = $this->session->campaign->characters()->pluck('id')->all();
+        $this->editLogCharacterIds = count($this->editLogCharacterIds) === count($allIds) ? [] : $allIds;
     }
 
-    public function saveLog(): void
+    public function saveEditLog(): void
     {
         $this->validate([
             'editLogEntry' => ['required', 'string', 'max:2000'],
-            'editLogType' => ['required', 'in:narrative,decision,combat,note'],
+            'editLogType' => ['required', 'in:narrative,combat,decision,note'],
         ]);
 
         $log = $this->session->sessionLogs()->findOrFail($this->editingLogId);
         $log->update([
             'entry' => $this->editLogEntry,
             'type' => $this->editLogType,
+            'character_ids' => $this->editLogCharacterIds ?: null,
         ]);
 
-        $this->cancelEditLog();
+        $this->showEditLogModal = false;
+        $this->editingLogId = null;
     }
 
     public function deleteLog(int $logId): void
     {
         $this->session->sessionLogs()->findOrFail($logId)->delete();
-
-        if ($this->editingLogId === $logId) {
-            $this->cancelEditLog();
-        }
     }
 
     public function clearRecap(): void
@@ -150,8 +164,13 @@ new class extends Component
             ->orderBy('logged_at')
             ->get();
 
+        $characters = $this->session->campaign->characters()->get();
+        $allScenes = $this->session->scenes()->orderBy('sort_order')->get();
+
         return view('pages.sessions.⚡recap.recap', [
             'logs' => $logs,
+            'characters' => $characters,
+            'allScenes' => $allScenes,
         ])->title(__('Recap').' — Session #'.$this->session->session_number);
     }
 };
