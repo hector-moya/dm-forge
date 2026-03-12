@@ -567,9 +567,13 @@
                                     <span class="shrink-0 text-xs font-semibold uppercase {{ $logColor }}">{{ $log->type }}</span>
                                     @if (! empty($log->character_ids))
                                         <div class="flex flex-wrap gap-1">
-                                            @foreach ($characters->whereIn('id', $log->character_ids) as $character)
-                                                <flux:badge color="blue" size="xs">{{ \Illuminate\Support\Str::before($character->name, ' ') ?: $character->name }}</flux:badge>
-                                            @endforeach
+                                            @if (count($log->character_ids) === $characters->count())
+                                                <flux:badge color="blue" size="xs">{{ __('Whole Party') }}</flux:badge>
+                                            @else
+                                                @foreach ($characters->whereIn('id', $log->character_ids) as $character)
+                                                    <flux:badge color="blue" size="xs">{{ \Illuminate\Support\Str::before($character->name, ' ') ?: $character->name }}</flux:badge>
+                                                @endforeach
+                                            @endif
                                         </div>
                                     @endif
                                     <div class="ml-auto shrink-0">
@@ -905,9 +909,13 @@
                     <div>
                         <span class="mb-1 block text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Characters involved') }}</span>
                         <div class="flex flex-wrap gap-1">
-                            @foreach ($characters->whereIn('id', $viewingLog->character_ids) as $character)
-                                <flux:badge color="blue" size="sm">{{ $character->name }}</flux:badge>
-                            @endforeach
+                            @if (count($viewingLog->character_ids) === $characters->count())
+                                <flux:badge color="blue" size="sm">{{ __('Whole Party') }}</flux:badge>
+                            @else
+                                @foreach ($characters->whereIn('id', $viewingLog->character_ids) as $character)
+                                    <flux:badge color="blue" size="sm">{{ $character->name }}</flux:badge>
+                                @endforeach
+                            @endif
                         </div>
                     </div>
                 @endif
